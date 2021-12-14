@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+
+<title>nbt-parser</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="nbt.js"></script>
+
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: sans-serif;
+  }
+</style>
+
+</head>
+
+<body>
+
+<script>
+(async () => {
+
+
+let response = await fetch("level.dat");
+let data = await response.arrayBuffer();console.log(data);
+
+nbt.parse(data,(error,data) => {
+  if (error){ throw error; }
+
+  console.log(data);
+  console.log(data.value);
+});
+
+
+})();
+</script>
+
+</body>
+
+</html>
