@@ -25,14 +25,14 @@
 (async () => {
 
 
-let response = await fetch("hello_world.nbt");
+let response = await fetch("level.dat");
 let buffer = await response.arrayBuffer();
-let data = new Uint8Array(buffer);console.log(data);
+let data = new Uint8Array(buffer);console.log(buffer);
 
 /*
 let response = await fetch("level.dat");
-let data = await response.arrayBuffer();console.log(data);
-let edited = data.slice(8,data.byteLength);console.log(edited);
+let buffer = await response.arrayBuffer();console.log(buffer);
+let data = buffer.slice(8,buffer.byteLength);console.log(data);
 */
 
 nbt.parse(data,(error,data) => {
