@@ -24,10 +24,34 @@
 <script>
 (async () => {
 
+/* View as actual ones and zeros (ASCII), found on StackOverflow - https://stackoverflow.com/a/62224531 */
+const toBinString = bytes => {
+  let result = bytes.reduce((str,byte) => {
+    let originalBin = byte.toString(2).padStart(8,"0");
+    let charVersion = String.fromCharCode(byte);
+    let charCode = charVersion.charCodeAt(0);
+    let charValid = charCode >= 32 && charCode < 127;//console.log(charVersion,charValid);
+    let result2 = `${str}${(str != "") ? " " : ""}${(charValid) ? charVersion : byte.toString(10)}`;
+    return result2;
+  },"");
+  return result;
+}
 
-let response = await fetch("level.dat");
+/* Check for Bedrock Level dat header, from prismarine-nbt */
+const hasBedrockLevelHeader = (data) => {
+  let result = data[1] === 0 && data[2] === 0 && data[3] === 0;//console.log(result);
+  return result;
+}
+
+let response = await fetch("hello_world.nbt");
 let buffer = await response.arrayBuffer();
-let data = new Uint8Array(buffer);console.log(buffer);
+let data = new Uint8Array(buffer);console.log(buffer,toBinString(data));
+
+/* Partially from prismarine-nbt also */
+data.startOffset = data.startOffset || 0;
+if (hasBedrockLevelHeader(data)){ /* Bedrock level.dat header */
+  data.startOffset += 8; // Skip + 8 bytes becase of the non-NBT header bytes at the beginning of the file
+}
 
 /*
 let response = await fetch("level.dat");

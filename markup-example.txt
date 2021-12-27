@@ -1,0 +1,64 @@
+Markup-example
+
+An idea I have, turn binary NBT into an HTML/XML-like output! I think this would look really awesome, and be really easy to write in.
+It would make things easy to compile and decompile into also, since each binary NBT tag would match an XML-like tag output.
+
+Examples will follow!
+
+Original NBT data from hello_world.nbt, turned into JSON using NBT.js:
+
+{
+  "name": "helloWorld", <!-- the original hello_world.nbt file uses a space ("hello world", not "helloWorld"), but not sure how I'd implement that. I don't think it will be an issue with Minecraft's format, I'll have to try it out. -->
+  "value": {
+    "name": {
+      "type": "string",
+      "value": "Bananrama"
+    }
+  }
+}
+
+Same data, represented using an XML-like syntax:
+
+<helloWorld>
+  <string>Bananrama</string>
+</helloWorld>
+
+To get the tag data out, you convert the binary number to a decimal number, and that is equivalent to a tag. This is the conversion
+that prismarine-nbt uses, and this helps know what the tag mean a lot more.
+
+{
+  "nbtMapper": ["mapper",
+    {
+      "type": "i8",
+      "mappings": {
+        "0": "end",
+        "1": "byte",
+        "2": "short",
+        "3": "int",
+        "4": "long",
+        "5": "float",
+        "6": "double",
+        "7": "byteArray",
+        "8": "string",
+        "9": "list",
+        "10": "compound",
+        "11": "intArray",
+        "12": "longArray"
+      }
+    }
+  ]
+}
+
+After converting the bytes accordingly, you would first get something like this:
+
+10 0 11 h e l l o <space> w o r l d 8 0 4 n a m e 0 9 B a n a n r a m a 0
+
+Now that you have both the tags and the characters separated, you can change each tag into an equivalent XML tag, possibly something like this:
+
+<compound>
+  <intArray>hello world<string></string>
+  <long>name</long>
+  <list>Bananrama</list>
+</compound>
+
+I don't think this looks quite right, but yeah something like that.
