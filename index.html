@@ -30,11 +30,18 @@ const toBinString = bytes => {
     let originalBin = byte.toString(2).padStart(8,"0");
     let charVersion = String.fromCharCode(byte);
     let charCode = charVersion.charCodeAt(0);
-    let charValid = charCode >= 32 && charCode < 127;//console.log(charVersion,charValid);
+    let charValid = charCode >= 32 && charCode < 127;//console.log(byte,charVersion,charValid);
     let result2 = `${str}${(str != "") ? " " : ""}${(charValid) ? charVersion : byte.toString(10)}`;
+    if (!charValid) console.log(byte,originalBin,toFlipEndian(byte),parseInt(toFlipEndian(byte),2));
     return result2;
   },"");
   return result;
+}
+
+/* Reverse integer bytes (flip endianness) */
+const toFlipEndian = int => {
+  let flipped = (int).toString(2).split("").reverse().join("");
+  return flipped.padEnd(8,"0");
 }
 
 /* Check for Bedrock Level dat header, from prismarine-nbt */
