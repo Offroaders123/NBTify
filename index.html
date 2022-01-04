@@ -24,53 +24,46 @@
 <script>
 (async () => {
 
-/* View as actual ones and zeros (ASCII), found on StackOverflow - https://stackoverflow.com/a/62224531 */
-const toBinString = bytes => {
-  let result = bytes.reduce((str,byte) => {
-    let originalBin = byte.toString(2).padStart(8,"0");
-    let charVersion = String.fromCharCode(byte);
-    let charCode = charVersion.charCodeAt(0);
-    let charValid = charCode >= 32 && charCode < 127;//console.log(byte,charVersion,charValid);
-    let result2 = `${str}${(str != "") ? " " : ""}${(charValid) ? charVersion : byte.toString(10)}`;
-    if (!charValid) console.log(byte,originalBin,toFlipEndian(byte),parseInt(toFlipEndian(byte),2));
-    return result2;
+const nbt = await fetchAsArrayBuffer("hello_world.nbt");
+console.log(Array.from(new Uint8Array(nbt)));
+console.log(bufferToHexString(nbt));
+console.log(bufferToMarkupString(new Uint8Array(nbt)));
+
+async function fetchAsArrayBuffer(url){
+  const response = await fetch(url);
+  const result = await response.arrayBuffer();
+  return result;
+}
+
+function bufferToHexString(buffer){
+  return Array.from(new Uint8Array(buffer)).map(item => item.toString(16).padStart(2,"0")).join("");
+}
+
+function bufferToBinaryString(bytes){
+  return bytes.reduce((result,byte) => {
+    const binaryString = byte.toString(2).padStart(8,"0");
+    const characterString = String.fromCharCode(byte);
+    const characterCode = characterString.charCodeAt(0);
+    const characterValid = characterCode >= 32 && characterCode < 127;
+    return `${result}${(result !== "") ? " " : ""}${(characterValid) ? characterString : byte.toString(10)}`;
   },"");
-  return result;
 }
 
-/* Reverse integer bytes (flip endianness) */
-const toFlipEndian = int => {
-  let flipped = (int).toString(2).split("").reverse().join("");
-  return flipped.padEnd(8,"0");
+function bufferToMarkupString(bytes){
+  return bytes.reduce((result,byte) => {
+    const binaryString = byte.toString(2).padStart(8,"0");
+    const characterString = String.fromCharCode(byte);
+    const characterCode = characterString.charCodeAt(0);
+    const characterValid = characterCode >= 32 && characterCode < 127;
+    if (byte == 0) byte = "</end>";
+    if (byte == 4) byte = "<long>";
+    if (byte == 8) byte = "<string>";
+    if (byte == 9) byte = "<list>";
+    if (byte == 10) byte = "<compound>";
+    if (byte == 11) byte = "<int-array>";
+    return `${result}${(characterValid) ? characterString : byte.toString(10)}`;
+  },"");
 }
-
-/* Check for Bedrock Level dat header, from prismarine-nbt */
-const hasBedrockLevelHeader = (data) => {
-  let result = data[1] === 0 && data[2] === 0 && data[3] === 0;//console.log(result);
-  return result;
-}
-
-let response = await fetch("hello_world.nbt");
-let buffer = await response.arrayBuffer();
-let data = new Uint8Array(buffer);console.log(buffer,toBinString(data));
-
-/* Partially from prismarine-nbt also */
-data.startOffset = data.startOffset || 0;
-if (hasBedrockLevelHeader(data)){ /* Bedrock level.dat header */
-  data.startOffset += 8; // Skip + 8 bytes becase of the non-NBT header bytes at the beginning of the file
-}
-
-/*
-let response = await fetch("level.dat");
-let buffer = await response.arrayBuffer();console.log(buffer);
-let data = buffer.slice(8,buffer.byteLength);console.log(data);
-*/
-
-nbt.parse(data,(error,data) => {
-  if (error) throw error;
-  console.log(data);
-});
-
 
 })();
 </script>
