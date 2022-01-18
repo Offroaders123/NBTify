@@ -6,6 +6,7 @@
 <title>Byte Endianness</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="author" content="Brandon Bennett">
 <base target="_blank">
 <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAZQTFRF////AAAAVcLTfgAAADVJREFUeJxjqP/HcK6Y4VQww///IPJfMMPjYIa7wQx/fzP87Wf4Xc7wnZ3hfT3DwXaQgvp/ABpZFtOL1keSAAAAAElFTkSuQmCC">
 
@@ -106,8 +107,8 @@ hex outfile
 <a href="https://unix.stackexchange.com/a/239544">Example source from StackOverflow</a>
 </pre>
 
-<p>I found a new possible examle to explan how byte endianness works, so I decided to try and reverse-engineer it, in hopes of learning how I can convert between big-endian, and little-endian binary formats.</p>
-<p>After calculating what these bytes are in both hexadecimal and binary formats below, these are what the differences in the byte orders look like for the two strings. It is an expanded version of the same the bytes as they appear above:</p>
+<p>I found a new possible example to explain how byte endianness works, so I decided to try and reverse-engineer it in hopes of learning how I can convert between big-endian, and little-endian binary formats!</p>
+<p>After calculating what these bytes are in both hexadecimal and binary formats, I made a little table below to examine the differences in how the byte orders look between the two strings. These are expanded versions of the same bytes as they appear above:</p>
 
 <pre class="snippet">
 <code>h        e        l        l        o        .
@@ -119,9 +120,9 @@ e        h        l        l        .        o
 01100101 01101000 01101100 01101100 00101110 01101111</code>
 </pre>
 
-<p>So my misunderstanding, so far, in changing between endian types was that I thought the bits were arranged in a new order, while it is acutally the bytes that are moved around! I guess this can be a case where reading the fine print a little closer would help, haha. I haven't had much success with finding precise examples online, like this one I luckily finally found from StackOverflow. I think that could have led to my confusion around how endianness worked.</p>
-<p>I'm really happy that I finally found an example like this one, because seeing the characters reordered in this way was easier for me to understand than looking at a series of bytes. This one was less of a numerical maze, and more like a word puzzle! The sequence appears just to flip every two bytes around, or Unicode characters in the case of this example.</p>
-<p>Say you wanted to run these values through a diff checking tool like Git or <a href="https://www.diffchecker.com">Diffchecker</a>, the outcome essentially look something like this:</p>
+<p>So my misunderstanding up to now, in changing between endian types, was that I thought the <em>bits</em> were supposed to be arranged in a new order, while it's acutally the <em><strong>bytes</strong></em> that are moved around! I guess this can be a case where reading the fine print extra close would help, haha. I haven't had much success with finding precise examples online, like this one, so it's great that I finally found this one from Stack Overflow. I think that could have led to my confusion around how endianness works.</p>
+<p>I'm really happy that I finally found an example like this one, because seeing the characters reordered in this way was easier for me to understand than looking at a series of bytes, since that's still a new area for me. It was less of a numerical maze, and more like a word puzzle! Now I can see the sequence appears to just flip every two bytes around, or Unicode characters for this example.</p>
+<p>Say you wanted to run these values through a diff-checking tool like Git or <a href="https://www.diffchecker.com">Diffchecker</a>, the outcome would essentially look something like this:</p>
 
 <pre class="snippet">
 <code><span class="remove"><span class="remove">h</span>        <span class="remove">e</span>        l        l        <span class="remove">o</span>        <span class="remove">.</span>
@@ -133,7 +134,7 @@ e        h        l        l        .        o
 01100101 <span class="add">01101000</span> 01101100 <span class="add">01101100</span> 00101110 <span class="add">01101111</span></span></code>
 </pre>
 
-<p>Having another way to visualize the sequence change was really what helped me with figuring out byte endianness. Hopefully this was an accurate find, because this little page turned out fairly fancy if I say so myself! It even supports dark mode 😂</p>
+<p>Having another way to visualize the sequence change was really what helped me start figuring this out just a little bit more. Hopefully this <em>was</em> an accurate find relative to my situation, because this little article turned out pretty awesome with the visuals! It has a super responsive layout, and it even supports dark mode, because why not 😂</p>
 
 </main>
 
