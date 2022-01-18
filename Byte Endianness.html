@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+
+<title>Byte Endianness</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<base target="_blank">
+<link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQAQMAAAAlPW0iAAAAAXNSR0IB2cksfwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAZQTFRF////AAAAVcLTfgAAADVJREFUeJxjqP/HcK6Y4VQww///IPJfMMPjYIa7wQx/fzP87Wf4Xc7wnZ3hfT3DwXaQgvp/ABpZFtOL1keSAAAAAElFTkSuQmCC">
+
+<style>
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  :root {
+    color-scheme: light dark;
+  }
+  body {
+    margin: 0;
+    padding: 0 32px;
+    padding-bottom: calc(env(safe-area-inset-bottom,0px) + 16px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", system-ui, sans-serif;
+    touch-action: manipulation;
+    -webkit-text-size-adjust: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body > * {
+    max-width: 80ch;
+  }
+  header {
+    width: 100%;
+  }
+  main {
+    width: 100%;
+  }
+  p {
+    line-height: 1.4em;
+  }
+  a {
+    color: inherit;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .snippet {
+    margin: 0;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+    color: #eaeaea;
+    font-size: 13px;
+    font-family: inherit;
+    background: #222222;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px -4px #00000060;
+    overflow: auto;
+  }
+  .snippet code {
+    font-family: ui-monospace, "Noto Sans Mono", "Cousine", monospace;
+    line-height: 1.4;
+  }
+  .snippet a {
+    margin: -2px -4px;
+    padding: 2px 4px;
+    position: sticky;
+    left: 0;
+    bottom: 0;
+    border-radius: 2px;
+    outline: none;
+    transform: translate(-4px,2px);
+    transition: 150ms;
+    transition-property: color, background-color;
+  }
+  .snippet a:is(:hover,:active,:focus) {
+    color: #ffffff;
+    background-color: #ffffff24;
+  }
+  .snippet .add {
+    background: hsl(120deg 93% 50% / 25%);
+  }
+  .snippet .remove {
+    background: hsl(0deg 93% 50% / 30%);
+  }
+</style>
+
+</head>
+
+<body ontouchstart>
+
+<header>
+  <h1>Byte Endianness</h1>
+</header>
+
+<main>
+
+<pre class="snippet">
+<code>hex infile
+   0000 68 65 6c 6c 6f 2e                                 hello.
+hex outfile
+   0000 65 68 6c 6c 2e 6f                                 ehll.o</code>
+<a href="https://unix.stackexchange.com/a/239544">Example source from StackOverflow</a>
+</pre>
+
+<p>I found a new possible examle to explan how byte endianness works, so I decided to try and reverse-engineer it, in hopes of learning how I can convert between big-endian, and little-endian binary formats.</p>
+<p>After calculating what these bytes are in both hexadecimal and binary formats below, these are what the differences in the byte orders look like for the two strings. It is an expanded version of the same the bytes as they appear above:</p>
+
+<pre class="snippet">
+<code>h        e        l        l        o        .
+68       65       6c       6c       6f       2e
+01101000 01100101 01101100 01101100 01101111 00101110
+
+e        h        l        l        .        o
+65       68       6c       6c       2e       6f
+01100101 01101000 01101100 01101100 00101110 01101111</code>
+</pre>
+
+<p>So my misunderstanding, so far, in changing between endian types was that I thought the bits were arranged in a new order, while it is acutally the bytes that are moved around! I guess this can be a case where reading the fine print a little closer would help, haha. I haven't had much success with finding precise examples online, like this one I luckily finally found from StackOverflow. I think that could have led to my confusion around how endianness worked.</p>
+<p>I'm really happy that I finally found an example like this one, because seeing the characters reordered in this way was easier for me to understand than looking at a series of bytes. This one was less of a numerical maze, and more like a word puzzle! The sequence appears just to flip every two bytes around, or Unicode characters in the case of this example.</p>
+<p>Say you wanted to run these values through a diff checking tool like Git or <a href="https://www.diffchecker.com">Diffchecker</a>, the outcome essentially look something like this:</p>
+
+<pre class="snippet">
+<code><span class="remove"><span class="remove">h</span>        <span class="remove">e</span>        l        l        <span class="remove">o</span>        <span class="remove">.</span>
+<span class="remove">68</span>       <span class="remove">65</span>       6c       6c       <span class="remove">6f</span>       <span class="remove">2e</span>
+<span class="remove">01101000</span> 01100101 <span class="remove">01101100</span> 01101100 <span class="remove">01101111</span> 00101110</span>
+
+<span class="add"><span class="add">e</span>        <span class="add">h</span>        l        l        <span class="add">.</span>        <span class="add">o</span>
+<span class="add">65</span>       <span class="add">68</span>       6c       6c       <span class="add">2e</span>       <span class="add">6f</span>
+01100101 <span class="add">01101000</span> 01101100 <span class="add">01101100</span> 00101110 <span class="add">01101111</span></span></code>
+</pre>
+
+<p>Having another way to visualize the sequence change was really what helped me with figuring out byte endianness. Hopefully this was an accurate find, because this little page turned out fairly fancy if I say so myself! It even supports dark mode 😂</p>
+
+</main>
+
+<script>
+let hexInFile = ["68","65","6c","6c","6f","2e"];
+let hexOutFile = ["65","68","6c","6c","2e","6f"];
+
+//console.log(convertToString(hexInFile));
+//console.log(convertToString(hexOutFile));
+
+//console.log(convertToBinary(hexInFile).join(" "));
+//console.log(convertToBinary(hexOutFile).join(" "));
+
+function convertToString(byteArray){
+  const string = byteArray.reduce((previous,hex) => {
+    const unicode = String.fromCharCode(parseInt(hex,16));
+    return `${previous}${unicode}`;
+  },"");
+  return string;
+}
+
+function convertToBinary(byteArray){
+  const binaryArray = byteArray.map(byte => {
+    return parseInt(byte,16).toString(2).padStart(8,"0");
+  });
+  return binaryArray;
+}
+</script>
+
+</body>
+
+</html>
