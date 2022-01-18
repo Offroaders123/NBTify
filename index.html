@@ -31,8 +31,8 @@ const toBinString = bytes => {
     let charVersion = String.fromCharCode(byte);
     let charCode = charVersion.charCodeAt(0);
     let charValid = charCode >= 32 && charCode < 127;//console.log(byte,charVersion,charValid);
-    let result2 = `${str}${(str != "") ? " " : ""}${(charValid) ? charVersion : byte.toString(10)}`;
-    if (!charValid) console.log(byte,originalBin,toFlipEndian(byte),parseInt(toFlipEndian(byte),2));
+    let result2 = `${str}${(str != "") ? " " : ""}${(charValid) ? charVersion : parseInt(toFlipEndian(byte),2)}`;
+    //if (!charValid) console.log(byte,originalBin,toFlipEndian(byte),parseInt(toFlipEndian(byte),2));
     return result2;
   },"");
   return result;
@@ -50,21 +50,21 @@ const hasBedrockLevelHeader = (data) => {
   return result;
 }
 
+/*
 let response = await fetch("hello_world.nbt");
 let buffer = await response.arrayBuffer();
-let data = new Uint8Array(buffer);console.log(buffer,toBinString(data));
+let data = new Uint8Array(buffer);console.log(toBinString(data));
+*/
+
+let response = await fetch("level.dat");
+let buffer = await response.arrayBuffer();
+let data = new Uint8Array(buffer.slice(8,buffer.byteLength));console.log(toBinString(data));
 
 /* Partially from prismarine-nbt also */
 data.startOffset = data.startOffset || 0;
 if (hasBedrockLevelHeader(data)){ /* Bedrock level.dat header */
   data.startOffset += 8; // Skip + 8 bytes becase of the non-NBT header bytes at the beginning of the file
 }
-
-/*
-let response = await fetch("level.dat");
-let buffer = await response.arrayBuffer();console.log(buffer);
-let data = buffer.slice(8,buffer.byteLength);console.log(data);
-*/
 
 nbt.parse(data,(error,data) => {
   if (error) throw error;
