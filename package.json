@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "prismarine-nbt": "^2.1.0"
+  }
+}
