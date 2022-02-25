@@ -36,7 +36,6 @@
 	 *
 	 * @type Object<string, number>
 	 * @see module:nbt.tagTypeNames */
-/* original unedited big endian values, for Java
 	nbt.tagTypes = {
 		'end': 0,
 		'byte': 1,
@@ -51,22 +50,6 @@
 		'compound': 10,
 		'intArray': 11,
 		'longArray': 12
-	};
-*/
-	nbt.tagTypes = { // 0 128 64 192 32 160 96 224 16 144 80 208 48  converted little endian values, for Bedrock
-		'end': 0,
-		'byte': 128,
-		'short': 64,
-		'int': 192,
-		'long': 32,
-		'float': 160,
-		'double': 96,
-		'byteArray': 224,
-		'string': 16,
-		'list': 144,
-		'compound': 80,
-		'intArray': 208,
-		'longArray': 48
 	};
 
 	/**
@@ -613,7 +596,7 @@
 
 		var reader = new nbt.Reader(data);
 
-		var type = reader.byte();console.log(type,nbt.tagTypes.compound);
+		var type = reader.byte();
 		if (type !== nbt.tagTypes.compound) {
 			throw new Error('Top tag should be a compound');
 		}
