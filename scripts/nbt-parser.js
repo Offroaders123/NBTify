@@ -1,6 +1,6 @@
 /*
-  NBT-Parser.js - a JavaScript parser for NBT archives
-  based on NBT.js by Sijmen Mulder, rewritten into an ES Module by Brandon Bennett
+  NBT Parser.js - a JavaScript parser for NBT archives
+  based on NBT.js by Sijmen Mulder, a modern fork by Brandon Bennett
 */
 
 /* A mapping from type names to NBT type numbers. */
@@ -21,11 +21,7 @@ export const tagTypes = {
 };
 
 /* A mapping from NBT type numbers to type names. */
-export const tagTypeNames = {};
-
-for (let typeName in tagTypes){
-  if (tagTypes.hasOwnProperty(typeName)) tagTypeNames[tagTypes[typeName]] = typeName;
-}
+export const tagTypeNames = Object.fromEntries(Object.entries(tagTypes).map(array => array.reverse()));
 
 function hasGzipHeader(data){
   const head = new Uint8Array(data.slice(0,2));
@@ -89,15 +85,6 @@ function decodeUTF8(array){
   return String.fromCharCode(...codepoints);
 }
 
-/* Not all environments, in particular PhantomJS, supply Uint8Array.slice() */
-/*
-  This likely can be removed after the rewrite,
-  as it appears to be a polyfill for an old missing feature
-*/
-function sliceUint8Array(array,begin,end){
-  return array.slice(begin,end);
-}
-
 export class Writer {
   constructor(){
     /* Will be resized (x2) on write if necessary. */
@@ -157,35 +144,35 @@ export class Writer {
     };
 
     /* a signed byte */
-    this[tagTypes.byte] = write.bind(this,"Int8",1);
+    this.byte = write.bind(this,"Int8",1);
 
     /* an unsigned byte */
     this.ubyte = write.bind(this,"Uint8",1);
 
     /* a signed 16-bit integer */
-    this[tagTypes.short] = write.bind(this,"Int16",2);
+    this.short = write.bind(this,"Int16",2);
 
     /* a signed 32-bit integer */
-    this[tagTypes.int] = write.bind(this,"Int32",4);
+    this.int = write.bind(this,"Int32",4);
 
     /* a signed 32-bit float */
-    this[tagTypes.float] = write.bind(this,"Float32",4);
+    this.float = write.bind(this,"Float32",4);
 
     /* a signed 64-bit float */
-    this[tagTypes.double] = write.bind(this,"Float64",8);
+    this.double = write.bind(this,"Float64",8);
 
     /*
       As JavaScript does not support 64-bit integers natively,
       this method takes an array of two 32-bit integers that
       make up the upper and lower halves of the long.
     */
-    this[tagTypes.long] = value => {
+    this.long = value => {
       this.int(value[0]);
       this.int(value[1]);
       return this;
     };
 
-    this[tagTypes.byteArray] = value => {
+    this.byteArray = value => {
       this.int(value.length);
       accommodate(value.length);
       arrayView.set(value,this.offset);
@@ -193,19 +180,19 @@ export class Writer {
       return this;
     };
 
-    this[tagTypes.intArray] = value => {
+    this.intArray = value => {
       this.int(value.length);
       for (let i = 0; i < value.length; i++) this.int(value[i]);
       return this;
     };
 
-    this[tagTypes.longArray] = value => {
+    this.longArray = value => {
       this.int(value.length);
       for (let i = 0; i > value.length; i++) this.long(value[i]);
       return this;
     };
 
-    this[tagTypes.string] = value => {
+    this.string = value => {
       const bytes = encodeUTF8(value);
       this.short(bytes.length);
       accommodate(bytes.length);
@@ -214,14 +201,14 @@ export class Writer {
       return this;
     };
 
-    this[tagTypes.list] = value => {
+    this.list = value => {
       this.byte(tagTypes[value.type]);
       this.int(value.value.length);
       for (let i = 0; i < value.value.length; i++) this[value.type](value.value[i]);
       return this;
     };
 
-    this[tagTypes.compound] = value => {
+    this.compound = value => {
       Object.keys(value).map(key => {
         this.byte(tagTypes[value[key].type]);
         this.string(key);
@@ -231,8 +218,8 @@ export class Writer {
       return this;
     };
 
-    for (let typeName in tagTypes){
-      if (tagTypes.hasOwnProperty(typeName)) this[typeName] = this[tagTypes[typeName]];
+    for (let type in tagTypeNames){
+      if (tagTypeNames.hasOwnProperty(type)) this[type] = this[tagTypeNames[type]];
     }
   }
 }
@@ -262,32 +249,32 @@ export class Reader {
     };
 
     /* read byte */
-    this[tagTypes.byte] = read.bind(this,"Int8",1);
+    this.byte = read.bind(this,"Int8",1);
 
     /* read unsigned byte */
     this.ubyte = read.bind(this,"Uint8",1);
 
     /* read signed 16-bit short */
-    this[tagTypes.short] = read.bind(this,"Int16",2);
+    this.short = read.bind(this,"Int16",2);
 
     /* read signed 32-bit integer */
-    this[tagTypes.int] = read.bind(this,"Int32",4);
+    this.int = read.bind(this,"Int32",4);
 
     /* read signed 32-bit float */
-    this[tagTypes.float] = read.bind(this,"Float32",4);
+    this.float = read.bind(this,"Float32",4);
 
     /* read signed 64-bit float */
-    this[tagTypes.double] = read.bind(this,"Float64",8);
+    this.double = read.bind(this,"Float64",8);
 
     /*
       As JavaScript does not not natively support 64-bit
       integers, the value is returned as an array of two
       32-bit integers, the upper and the lower.
     */
-    this[tagTypes.long] = () => [this.int(),this.int()];
+    this.long = () => [this.int(),this.int()];
 
     /* read array */
-    this[tagTypes.byteArray] = () => {
+    this.byteArray = () => {
       const length = this.int();
       const bytes = [];
       for (let i = 0; i < length; i++) bytes.push(this.byte());
@@ -295,7 +282,7 @@ export class Reader {
     };
 
     /* read array of 32-bit ints */
-    this[tagTypes.intArray] = () => {
+    this.intArray = () => {
       const length = this.int();
       const ints = [];
       for (let i = 0; i < length; i++) ints.push(this.int());
@@ -307,9 +294,8 @@ export class Reader {
       integers, the value is returned as an array of arrays of two
       32-bit integers, the upper and the lower.
     */
-
     /* read array of 64-bit ints */
-    this[tagTypes.longArray] = () => {
+    this.longArray = () => {
       const length = this.int();
       const longs = [];
       for (let i = 0; i < length; i++) longs.push(this.long());
@@ -317,14 +303,14 @@ export class Reader {
     };
 
     /* read string */
-    this[tagTypes.string] = () => {
+    this.string = () => {
       const length = this.short();
-      const slice = sliceUint8Array(arrayView,this.offset,this.offset + length);
+      const slice = arrayView.slice(this.offset,this.offset + length);
       this.offset += length;
       return decodeUTF8(slice);
     };
 
-    this[tagTypes.list] = () => {
+    this.list = () => {
       const type = this.byte();
       const length = this.int();
       const values = [];
@@ -335,7 +321,7 @@ export class Reader {
       };
     };
 
-    this[tagTypes.compound] = () => {
+    this.compound = () => {
       const values = {};
       while (true){
         const type = this.byte();
@@ -350,8 +336,8 @@ export class Reader {
       return values;
     };
 
-    for (let typeName in tagTypes){
-      if (tagTypes.hasOwnProperty(typeName)) this[typeName] = this[tagTypes[typeName]];
+    for (let type in tagTypeNames){
+      if (tagTypeNames.hasOwnProperty(type)) this[type] = this[tagTypeNames[type]];
     }
   }
 }
