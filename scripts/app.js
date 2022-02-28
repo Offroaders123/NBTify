@@ -5,7 +5,7 @@ window.nbt = nbt;
 
 // Fetch NBT data
 const BEDROCK_NBT = await (await fetch("../nbt/level.dat")).arrayBuffer();
-const JAVA_NBT = await (await fetch("../nbt/hello_world.nbt")).arrayBuffer();
+const JAVA_NBT = await (await fetch("../nbt/simple_house.nbt")).arrayBuffer();
 
 window.BEDROCK_DAT = BEDROCK_NBT;
 window.JAVA_NBT = JAVA_NBT;

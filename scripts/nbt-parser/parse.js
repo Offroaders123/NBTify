@@ -17,17 +17,12 @@ export default function parse(data,callback){
 
   if (!hasGzipHeader(data)){
     callback(null,parseUncompressed(data));
-  } else if (!zlib){
+  } else if (!Zlib){
     callback(new Error("NBT archive is compressed but zlib is not available"),null);
   } else {
-    /* zlib.gunzip take a Buffer, at least in Node, so try to convert if possible. */
-    const buffer = (data.length) ? data : new Uint8Array(data);
-    zlib.gunzip(buffer,(error,uncompressed) => {
-      if (error){
-        callback(error,null);
-      } else {
-        callback(null,parseUncompressed(uncompressed));
-      }
-    });
+    const buffer = new Uint8Array(data);
+    const gunzip = new Zlib.Gunzip(buffer);
+    const uncompressed = gunzip.decompress();
+    callback(null,parseUncompressed(uncompressed.buffer));
   }
 }
