@@ -11,12 +11,9 @@ window.BEDROCK_NBT = BEDROCK_NBT;
 window.JAVA_NBT = JAVA_NBT;
 
 // Working with the NBT data
-nbt.parse(JAVA_NBT,(error,data) => {
-  if (error) throw error;
-  console.log(data);
-});
+console.log(nbt.parse(JAVA_NBT));
 
-const CUSTOM_DATA = nbt.writeUncompressed({
+const CUSTOM_DATA = nbt.write({
   name: "hey",
   value: {
     hey: {
@@ -28,7 +25,4 @@ const CUSTOM_DATA = nbt.writeUncompressed({
 
 console.log(CUSTOM_DATA);
 
-nbt.parse(CUSTOM_DATA,(error,data) => {
-  if (error) throw error;
-  console.log(data);
-});
+console.log(nbt.parse(CUSTOM_DATA));

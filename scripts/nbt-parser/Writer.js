@@ -1,7 +1,5 @@
-import tagTypes from "./tagTypes.js";
-import tagTypeNames from "./tagTypeNames.js";
-
-import encodeUTF8 from "./encodeUTF8.js";
+import { encode } from "./encoding.js";
+import { tags, names } from "./tags.js";
 
 export default class Writer {
   constructor(){
@@ -111,7 +109,7 @@ export default class Writer {
     };
 
     this.string = value => {
-      const bytes = encodeUTF8(value);
+      const bytes = encode(value);
       this.short(bytes.length);
       accommodate(bytes.length);
       arrayView.set(bytes,this.offset);
@@ -120,7 +118,7 @@ export default class Writer {
     };
 
     this.list = value => {
-      this.byte(tagTypes[value.type]);
+      this.byte(tags[value.type]);
       this.int(value.value.length);
       for (let i = 0; i < value.value.length; i++) this[value.type](value.value[i]);
       return this;
@@ -128,16 +126,16 @@ export default class Writer {
 
     this.compound = value => {
       Object.keys(value).map(key => {
-        this.byte(tagTypes[value[key].type]);
+        this.byte(tags[value[key].type]);
         this.string(key);
         this[value[key].type](value[key].value);
       });
-      this.byte(tagTypes.end);
+      this.byte(tags.end);
       return this;
     };
 
-    for (let type in tagTypeNames){
-      if (tagTypeNames.hasOwnProperty(type)) this[type] = this[tagTypeNames[type]];
+    for (let type in names){
+      if (names.hasOwnProperty(type)) this[type] = this[names[type]];
     }
   }
 }

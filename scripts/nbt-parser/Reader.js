@@ -1,7 +1,5 @@
-import decodeUTF8 from "./decodeUTF8.js";
-
-import tagTypes from "./tagTypes.js";
-import tagTypeNames from "./tagTypeNames.js";
+import { decode } from "./encoding.js";
+import { tags, names } from "./tags.js";
 
 /*
   In addition to the named writing methods documented below,
@@ -86,7 +84,7 @@ export default class Reader {
       const length = this.short();
       const slice = arrayView.slice(this.offset,this.offset + length);
       this.offset += length;
-      return decodeUTF8(slice);
+      return decode(slice);
     };
 
     this.list = () => {
@@ -95,7 +93,7 @@ export default class Reader {
       const values = [];
       for (let i = 0; i < length; i++) values.push(this[type]());
       return {
-        type: tagTypeNames[type],
+        type: names[type],
         value: values
       };
     };
@@ -104,19 +102,19 @@ export default class Reader {
       const values = {};
       while (true){
         const type = this.byte();
-        if (type === tagTypes.end) break;
+        if (type === tags.end) break;
         const name = this.string();
         const value = this[type]();
         values[name] = {
-          type: tagTypeNames[type],
+          type: names[type],
           value
         };
       }
       return values;
     };
 
-    for (let type in tagTypeNames){
-      if (tagTypeNames.hasOwnProperty(type)) this[type] = this[tagTypeNames[type]];
+    for (let type in names){
+      if (names.hasOwnProperty(type)) this[type] = this[names[type]];
     }
   }
 }

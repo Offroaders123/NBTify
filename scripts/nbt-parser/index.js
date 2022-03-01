@@ -1,7 +1,5 @@
 // ES Module imports
-import writeUncompressed from "./writeUncompressed.js";
-import parseUncompressed from "./parseUncompressed.js";
-
 import parse from "./parse.js";
+import write from "./write.js";
 
-export { writeUncompressed, parseUncompressed, parse };
+export { parse, write };
