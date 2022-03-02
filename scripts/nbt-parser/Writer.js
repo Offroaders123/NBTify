@@ -2,7 +2,7 @@ import { encode } from "./encoding.js";
 import { tags, names } from "./tags.js";
 
 export default class Writer {
-  constructor(){
+  constructor(endian){
     /* Will be resized (x2) on write if necessary. */
     let buffer = new ArrayBuffer(1024);
 
@@ -16,6 +16,8 @@ export default class Writer {
       The buffer will be resized when necessary.
     */
     this.offset = 0;
+
+    this.endian = endian;
 
     /*
       Ensures that the buffer is large enough to write `size`
@@ -45,7 +47,8 @@ export default class Writer {
 
     const write = (dataType,size,value) => {
       accommodate(size);
-      dataView[`set${dataType}`](this.offset,value);
+      /* This is where the endian parameter comes into play */
+      dataView[`set${dataType}`](this.offset,value,(this.endian === "little"));
       this.offset += size;
       return this;
     }

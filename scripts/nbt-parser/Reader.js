@@ -7,7 +7,7 @@ import { tags, names } from "./tags.js";
   as shown in the example below.
 */
 export default class Reader {
-  constructor(buffer){
+  constructor(buffer,endian){
     if (!buffer) throw new Error(`Argument "buffer" is falsy`);
 
     /*
@@ -16,11 +16,14 @@ export default class Reader {
     */
     this.offset = 0;
 
+    this.endian = endian;
+
     const arrayView = new Uint8Array(buffer);
     const dataView = new DataView(buffer);
 
     const read = (dataType,size) => {
-      const value = dataView[`get${dataType}`](this.offset);
+      /* This is where the endian parameter comes into play */
+      const value = dataView[`get${dataType}`](this.offset,(this.endian === "little"));
       this.offset += size;
       return value;
     };
