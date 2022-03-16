@@ -1,5 +1,5 @@
 // ES Module imports
-import * as nbt from "./nbt-parser/index.js";
+import * as nbt from "../../index.js";
 
 window.nbt = nbt;
 
