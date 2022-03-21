@@ -1,7 +1,7 @@
 // ES Module imports
-import * as nbt from "../../index.js";
+//import * as nbt from "../../index.js";
 
-window.nbt = nbt;
+//window.nbt = nbt;
 
 // Fetch NBT data
 const BEDROCK_NBT = await (await fetch("./nbt/level.dat")).arrayBuffer();
