@@ -19,7 +19,7 @@ export default class Reader {
     this.endian = endian;
 
     const arrayView = new Uint8Array(buffer);
-    const dataView = new DataView(buffer);
+    const dataView = new DataView(arrayView.buffer);
 
     const read = (dataType,size) => {
       /* This is where the endian parameter comes into play */

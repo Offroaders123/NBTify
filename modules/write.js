@@ -1,7 +1,9 @@
+import { promisify } from "util";
+import zlib from "zlib";
 import Writer from "./Writer.js";
 import { tags } from "./tags.js";
 
-export default function write(data,{ endian = "big", gzip = false } = {}){
+export default async function write(data,{ endian = "big", gzip = false } = {}){
   if (!data) throw new Error(`Argument "data" is falsy`);
 
   /*
@@ -17,5 +19,5 @@ export default function write(data,{ endian = "big", gzip = false } = {}){
   const result = writer.getData();
 
   /* Using GZIP compression while writing NBT data doesn't work as expected at the moment. */
-  return (gzip) ? new Zlib.Gzip(new Uint8Array(result)).compress().buffer : result;
+  return (gzip) ? await promisify(zlib.gzip)(new Uint8Array(result)) : result;
 }

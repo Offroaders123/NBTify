@@ -1,3 +1,5 @@
+import { promisify } from "util";
+import zlib from "zlib";
 import Reader from "./Reader.js";
 import { tags } from "./tags.js";
 
@@ -11,10 +13,13 @@ import { tags } from "./tags.js";
   compressed archives. It will be passed a Buffer if the type is
   available, or an Uint8Array otherwise.
 */
-export default function parse(data,{ endian = "big" } = {}){
+export default async function parse(data,{ endian = "big" } = {}){
   if (!data) throw new Error(`Argument "data" is falsy`);
 
-  if (hasGzipHeader(data)) data = new Zlib.Gunzip(new Uint8Array(data)).decompress().buffer;
+  if (hasGzipHeader(data)){
+    console.log("gzip detected here :P");
+    data = await promisify(zlib.gunzip)(new Uint8Array(data));
+  }
 
   /* Remove the Bedrock level header bytes if they are present in the data */
   if (hasBedrockLevelHeader(data)) data = data.slice(8);
