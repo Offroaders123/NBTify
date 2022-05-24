@@ -1,6 +1,8 @@
 // ES Module imports
-import { promises as fs } from "fs";
-import * as nbt from "../../index.js";
+const { promises: fs } = require("fs");
+
+(async () => {
+const nbt = await import("./NBT-Parser/index.js");
 
 // Fetch NBT data
 const BEDROCK_NBT = await fs.readFile("../nbt/level.dat");
@@ -21,3 +23,5 @@ const JAVA_RECOMPILE = Buffer.from(await nbt.write(JAVA_OUTPUT,{ gzip: false }))
 
 console.log(BEDROCK_RECOMPILE);
 console.log(JAVA_RECOMPILE);
+
+})();
