@@ -1,5 +1,5 @@
-// ES Module imports
-import parse from "./modules/parse.js";
-import write from "./modules/write.js";
+import parse from "./src/parse.js";
 
-export { parse, write };
+export { parse };
+
+export default { parse, [Symbol.toStringTag]: "NBT" };

@@ -1,5 +1,28 @@
 {
   "name": "nbt-parser",
+  "version": "0.3.0",
+  "description": "A library to parse NBT files on the web!",
   "type": "module",
-  "main": "index.js"
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Offroaders123/NBT-Parser.git"
+  },
+  "keywords": [
+    "javascript",
+    "minecraft",
+    "nbt",
+    "nbt-parser",
+    "minecraft-bedrock-edition",
+    "bedrock-edition",
+    "java-edition",
+    "nbt-library",
+    "minecraft-java-edition"
+  ],
+  "author": "Brandon Bennett <offroaders123@gmail.com> (https://github.com/Offroaders123)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Offroaders123/NBT-Parser/issues"
+  },
+  "homepage": "https://github.com/Offroaders123/NBT-Parser#readme"
 }
