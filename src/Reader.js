@@ -56,7 +56,7 @@ export default class Reader {
     const length = this.int();
     const longs = [];
     for (let i = 0; i < length; i++){
-      longs.push();
+      longs.push(this.long());
     }
     return longs;
   }

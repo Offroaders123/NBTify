@@ -1,5 +1,6 @@
 import Reader from "./Reader.js";
 import { tags } from "./tags.js";
+import { decompress } from "./compression.js";
 
 export default async function parse(data,{ endian } = {}){
   if (!data) throw new Error("Unexpected falsy value for the data parameter");
@@ -55,12 +56,4 @@ function hasGzipHeader(data){
   const header = new Uint8Array(data.slice(0,2));
   const result = (header[0] === 0x1f && header[1] === 0x8b);
   return result;
-}
-
-async function decompress(data,{ encoding } = {}){
-  const stream = new DecompressionStream(encoding);
-  const writable = stream.writable.getWriter();
-  writable.write(data);
-  writable.close();
-  return await new Response(stream.readable).arrayBuffer();
 }
