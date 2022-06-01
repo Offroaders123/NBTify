@@ -71,7 +71,7 @@ export default class Writer {
   }
   intArray(value) {
     this.int(value.length);
-    for (let i = 0; i < length; i++){
+    for (let i = 0; i < value.length; i++){
       this.int(value[i]);
     }
     return this;
