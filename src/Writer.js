@@ -58,9 +58,7 @@ export default class Writer {
     return this.write("Float64",8,value);
   }
   long(value) {
-    this.int(value[0]);
-    this.int(value[1]);
-    return this;
+    return this.write("BigInt64",8,value);
   }
   byteArray(value) {
     this.int(value.length);

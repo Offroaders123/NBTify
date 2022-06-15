@@ -34,7 +34,7 @@ export default class Reader {
     return this.read("Float64",8);
   }
   long() {
-    return [this.int(),this.int()];
+    return this.read("BigInt64",8);
   }
   byteArray() {
     const length = this.int();
