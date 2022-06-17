@@ -1,4 +1,5 @@
 export default function expand(data){
+  // return data;
   return { name: "", type: "compound", value: expand2(data) };
 }
 
@@ -6,56 +7,42 @@ function expand2(data){
   // console.log(data);
   const result = {};
   for (const key in data){
-    const value = data[key];
-    const type = getType(value);
+    const { type, value } = getType(data[key]);
     // console.log(key,value,type);
     result[key] = { type, value };
   }
   return result;
 }
 
+const typeMap = {
+  b: "byte",
+  s: "short",
+  l: "long",
+  f: "float",
+  d: "double"
+};
+
 function getType(value){
   let type = typeof value;
 
   if (type === "object"){
-    type = "compound";
+    type = Array.isArray(value) ? "list" : "compound";
   }
 
-  if (type === "compound" && Array.isArray(value)){
-    type = "list";
+  if (type === "number"){
+    type = "int";
   }
 
-  if (type === "number" && Number.isInteger(value)){
-    console.log(value);
-    if (value >= -128 && value <= 127){
-      type = "byte";
-      console.log("could be byte");
-    }
-    if (value >= -32768 && value <= 32767 && value < -128 && value > 127){
-      type = "short";
-      console.log("could be short");
-    }
-    if (value >= -2147483648 && value <= 2147483647 && value < -32768 && value > 32767){
-      type = "int";
-      console.log("could be int");
+  if (type === "string"){
+    let snbt = value.slice(-1);
+    let content = value.slice(0,-1);
+    if (!isNaN(content) && /[bslfd]/.test(snbt.toLowerCase())){
+      type = typeMap[snbt];
+      value = snbt === "long" ? BigInt(content) : Number(content);
+      console.log("true! --",value,type);
     }
   }
 
-  if (type === "number" && !Number.isInteger(value)){
-    console.log(value);
-    if (value >= -3.40282347e+38 && value <= 3.40282347e+38){
-      type = "float";
-      console.log("could be float");
-    }
-    if (value >= -1.79769313486231570e+308 && value <= 1.79769313486231570e+308 && value < -3.40282347e+38 && value > 3.40282347e+38){
-      type = "double";
-      console.log("could be double");
-    }
-  }
-
-  if (type === "bigint"){
-    type = "long";
-  }
-
-  return type;
+  // console.log(type,value);
+  return { type, value };
 }
