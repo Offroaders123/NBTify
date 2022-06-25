@@ -1,7 +1,7 @@
 import { tags, types } from "./tags.js";
 import { decompress } from "./compression.js";
 
-export default async function parse(data,{ endian } = {}){
+export default async function read(data,{ endian } = {}){
   if (!data) throw new Error("Unexpected falsy value for the data parameter");
 
   if (typeof endian !== "undefined" && !["big","little"].includes(endian)){
@@ -15,7 +15,7 @@ export default async function parse(data,{ endian } = {}){
 
   if (typeof endian !== "undefined"){
     try {
-      const result = await runParser(data,endian);
+      const result = await runReader(data,endian);
       return result;
     } catch (error){
       throw error;
@@ -23,10 +23,10 @@ export default async function parse(data,{ endian } = {}){
   } else {
     let result = null;
     try {
-      result = await runParser(data,"big");
+      result = await runReader(data,"big");
     } catch (error){
       try {
-        result = await runParser(data,"little");
+        result = await runReader(data,"little");
       } catch {
         throw error;
       }
@@ -35,7 +35,7 @@ export default async function parse(data,{ endian } = {}){
   }
 }
 
-async function runParser(data,endian){
+async function runReader(data,endian){
   if (hasGzipHeader(data)) data = await decompress(data,{ encoding: "gzip" });
 
   const reader = new Reader(data,endian);
