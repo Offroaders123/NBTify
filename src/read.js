@@ -42,19 +42,20 @@ async function runReader(data,endian){
   const compound = reader.byte();
   if (compound !== tags.compound) throw new Error("Top tag must be a compound");
 
-  return { name: reader.string(), type: "compound", value: reader.compound() };
+  const name = reader.string();
+  const value = reader.compound();
+
+  return { name, type: "compound", value };
 }
 
 function hasBedrockLevelHeader(data){
-  const header = new Uint8Array(data.slice(0,4));
-  const result = (header[1] === 0 && header[2] === 0 && header[3] === 0);
-  return result;
+  const header = Number(...data.slice(1,4));
+  return header === 0x0;
 }
 
 function hasGzipHeader(data){
-  const header = new Uint8Array(data.slice(0,2));
-  const result = (header[0] === 0x1f && header[1] === 0x8b);
-  return result;
+  const header = new DataView(data.buffer).getInt16();
+  return header === 0x1f8b;
 }
 
 class Reader {
@@ -62,87 +63,95 @@ class Reader {
     if (!data) throw new Error(`Unexpected falsy value for the "data" parameter.`);
 
     this.offset = 0;
-    this.endian = endian;
+    this.endian = (endian === "little");
 
-    this.arrayView = new Uint8Array(data);
-    this.dataView = new DataView(this.arrayView.buffer);
-  }
-  read(type,size) {
-    const value = this.dataView[`get${type}`](this.offset,(this.endian === "little"));
-    this.offset += size;
-    return value;
+    this.data = new Uint8Array(data);
+    this.view = new DataView(this.data.buffer);
   }
   byte() {
-    return this.read("Int8",1);
-  }
-  ubyte() {
-    return this.read("Uint8",1);
+    const value = this.view.getInt8(this.offset);
+    this.offset += 1;
+    return value;
   }
   short() {
-    return this.read("Int16",2);
+    const value = this.view.getInt16(this.offset,this.endian);
+    this.offset += 2;
+    return value;
   }
   int() {
-    return this.read("Int32",4);
+    const value = this.view.getInt32(this.offset,this.endian);
+    this.offset += 4;
+    return value;
   }
   float() {
-    return this.read("Float32",4);
+    const value = this.view.getFloat32(this.offset,this.endian);
+    this.offset += 4;
+    return value;
   }
   double() {
-    return this.read("Float64",8);
+    const value = this.view.getFloat64(this.offset,this.endian);
+    this.offset += 8;
+    return value;
   }
   long() {
-    return this.read("BigInt64",8);
+    const value = this.view.getBigInt64(this.offset,this.endian);
+    this.offset += 8;
+    return value;
   }
   byteArray() {
     const length = this.int();
-    const bytes = [];
+    const value = [];
     for (let i = 0; i < length; i++){
-      bytes.push(this.byte());
+      const entry = this.byte();
+      value.push(entry);
     }
-    return bytes;
+    return value;
   }
   intArray() {
     const length = this.int();
-    const ints = [];
+    const value = [];
     for (let i = 0; i < length; i++){
-      ints.push(this.int());
+      const entry = this.int();
+      value.push(entry);
     }
-    return ints;
+    return value;
   }
   longArray() {
     const length = this.int();
-    const longs = [];
+    const value = [];
     for (let i = 0; i < length; i++){
-      longs.push(this.long());
+      const entry = this.long();
+      value.push(entry);
     }
-    return longs;
+    return value;
   }
   string() {
     const length = this.short();
-    const slice = this.arrayView.slice(this.offset,this.offset + length);
+    const value = this.data.slice(this.offset,this.offset + length);
     this.offset += length;
-    return new TextDecoder().decode(slice);
+    return new TextDecoder().decode(value);
   }
   list() {
     const tag = this.byte();
     const type = types[tag];
     const length = this.int();
-    const values = [];
+    const value = [];
     for (let i = 0; i < length; i++){
-      values.push(this[type]());
+      const entry = this[type]();
+      value.push(entry);
     }
-    return { type, value: values };
+    return { type, value };
   }
   compound() {
-    const values = {};
+    const value = {};
     while (true){
       const tag = this.byte();
       const type = types[tag];
       if (tag === tags.end) break;
       const name = this.string();
-      const value = this[type]();
-      values[name] = { type, value };
+      const entry = this[type]();
+      value[name] = { type, value: entry };
     }
-    return values;
+    return value;
   }
 }
