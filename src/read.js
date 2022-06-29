@@ -2,31 +2,39 @@ import { tags, types } from "./tags.js";
 import { decompress } from "./compression.js";
 
 export default async function read(data,{ endian } = {}){
-  if (!data) throw new Error("Unexpected falsy value for the data parameter");
-
-  if (typeof endian !== "undefined" && !["big","little"].includes(endian)){
-    throw new Error("Unexpected endian type");
+  if (data instanceof ArrayBuffer === data instanceof Object.getPrototypeOf(Uint8Array)){
+    throw new Error("First argument must be either an ArrayBuffer or TypedArray");
+  }
+  if (endian !== undefined && endian !== "big" && endian !== "little"){
+    throw new Error(`Endian property must be set to either "big" or "little"`);
   }
 
-  if (endian !== "big" && hasBedrockLevelHeader(data)){
-    data = data.slice(8);
-    endian = "little";
-  }
-
-  if (typeof endian !== "undefined"){
-    try {
-      const result = await runReader(data,endian);
-      return result;
-    } catch (error){
-      throw error;
+  if (endian !== undefined){
+    if (hasBedrockLevelHeader(data) && endian !== "big"){
+      data = data.slice(8);
     }
+    if (hasGzipHeader(data)){
+      data = await decompress(data,{ encoding: "gzip" });
+    }
+
+    const reader = new Reader(data,endian);
+    const tag = reader.byte();
+    if (tag !== tags.compound){
+      throw new Error("First byte in buffer must be a compound tag");
+    }
+
+    const type = types[tag];
+    const name = reader.string();
+    const value = reader.compound();
+
+    return { name, type, value };
   } else {
-    let result = null;
+    let result;
     try {
-      result = await runReader(data,"big");
+      result = await read(data,{ endian: "big" });
     } catch (error){
       try {
-        result = await runReader(data,"little");
+        result = await read(data,{ endian: "little" });
       } catch {
         throw error;
       }
@@ -35,32 +43,24 @@ export default async function read(data,{ endian } = {}){
   }
 }
 
-async function runReader(data,endian){
-  if (hasGzipHeader(data)) data = await decompress(data,{ encoding: "gzip" });
-
-  const reader = new Reader(data,endian);
-  const compound = reader.byte();
-  if (compound !== tags.compound) throw new Error("Top tag must be a compound");
-
-  const name = reader.string();
-  const value = reader.compound();
-
-  return { name, type: "compound", value };
-}
-
 function hasBedrockLevelHeader(data){
-  const header = Number(...data.slice(1,4));
-  return header === 0x0;
+  const header = new Uint8Array(data).slice(1,4).join("");
+  return header === "000";
 }
 
 function hasGzipHeader(data){
-  const header = new DataView(data.buffer).getInt16();
+  const header = new DataView(new Uint8Array(data).buffer).getInt16();
   return header === 0x1f8b;
 }
 
 class Reader {
   constructor(data,endian) {
-    if (!data) throw new Error(`Unexpected falsy value for the "data" parameter.`);
+    if (data instanceof ArrayBuffer === data instanceof Object.getPrototypeOf(Uint8Array)){
+      throw new Error("First argument must be either an ArrayBuffer or TypedArray");
+    }
+    if (endian !== undefined && endian !== "big" && endian !== "little"){
+      throw new Error(`Second argument must be set to either "big" or "little"`);
+    }
 
     this.offset = 0;
     this.endian = (endian === "little");
