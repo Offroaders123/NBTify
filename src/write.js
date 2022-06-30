@@ -1,56 +1,63 @@
 import { tags } from "./tags.js";
 import { compress } from "./compression.js";
 
-export default async function write(data,{ endian, encoding } = {}){
-  if (!data) throw new Error("Unexpected falsy value for the data parameter");
+export default async function write(data,{ endian = "big", encoding } = {}){
+  if (typeof data !== "object"){
+    throw new Error("First argument must be an object");
+  }
+  if (endian !== "big" && endian !== "little"){
+    throw new Error(`Endian property must be set to either "big" or "little"`);
+  }
 
   const writer = new Writer(endian);
+  const { name, value } = data;
 
   writer.byte(tags.compound);
-  writer.string(data.name);
-  writer.compound(data.value);
+  writer.string(name);
+  writer.compound(value);
 
   let result = writer.getData();
-
-  if (typeof encoding !== "undefined"){
+  if (encoding !== undefined){
     result = await compress(result,{ encoding });
   }
+
   return typeof Buffer !== "undefined" ? Buffer.from(result) : result;
 }
 
 class Writer {
   constructor(endian) {
-    this.buffer = new ArrayBuffer(1024);
-
-    this.dataView = new DataView(this.buffer);
-    this.arrayView = new Uint8Array(this.buffer);
-
+    if (endian !== "big" && endian !== "little"){
+      throw new Error(`First argument must be set to either "big" or "little"`);
+    }
+  
     this.offset = 0;
+    this.endian = (endian === "little");
 
-    this.endian = endian;
+    this.buffer = new ArrayBuffer(1024);
+    this.view = new DataView(this.buffer);
+    this.data = new Uint8Array(this.buffer);
   }
   accommodate(size) {
-    const requiredLength = this.offset + size;
-    if (this.buffer.byteLength >= requiredLength) return;
+    const required = this.offset + size;
+    const { byteLength } = this.buffer;
+    if (byteLength >= required) return;
 
-    let newLength = this.buffer.byteLength;
-    while (newLength < requiredLength) newLength *= 2;
+    let length = byteLength;
+    while (length < required){
+      length *= 2;
+    }
 
-    const newBuffer = new ArrayBuffer(newLength);
-    const newArrayView = new Uint8Array(newBuffer);
-    newArrayView.set(this.arrayView);
+    const buffer = new ArrayBuffer(length);
+    const data = new Uint8Array(buffer);
+    data.set(this.data);
 
-    if (this.offset > this.buffer.byteLength) newArrayView.fill(0,this.buffer.byteLength,this.offset);
+    if (this.offset > byteLength){
+      data.fill(0,byteLength,this.offset);
+    }
 
-    this.buffer = newBuffer;
-    this.dataView = new DataView(newBuffer);
-    this.arrayView = newArrayView;
-  }
-  write(type,size,value) {
-    this.accommodate(size);
-    this.dataView[`set${type}`](this.offset,value,(this.endian === "little"));
-    this.offset += size;
-    return this;
+    this.buffer = buffer;
+    this.data = data;
+    this.view = new DataView(this.buffer);
   }
   getData() {
     this.accommodate(0);
@@ -58,69 +65,83 @@ class Writer {
     return typeof Buffer !== "undefined" ? Buffer.from(result) : result;
   }
   byte(value) {
-    return this.write("Int8",1,value);
-  }
-  ubyte(value) {
-    return this.write("Uint8",1,value);
+    this.accommodate(1);
+    this.view.setInt8(this.offset,value);
+    this.offset += 1;
   }
   short(value) {
-    return this.write("Int16",2,value);
+    this.accommodate(2);
+    this.view.setInt16(this.offset,value,this.endian);
+    this.offset += 2;
   }
   int(value) {
-    return this.write("Int32",4,value);
+    this.accommodate(4);
+    this.view.setInt32(this.offset,value,this.endian);
+    this.offset += 4;
   }
   float(value) {
-    return this.write("Float32",4,value);
+    this.accommodate(4);
+    this.view.setFloat32(this.offset,value,this.endian);
+    this.offset += 4;
   }
   double(value) {
-    return this.write("Float64",8,value);
+    this.accommodate(8);
+    this.view.setFloat64(this.offset,value,this.endian);
+    this.offset += 8;
   }
   long(value) {
-    return this.write("BigInt64",8,value);
+    this.accommodate(8);
+    this.view.setBigInt64(this.offset,value,this.endian);
+    this.offset += 8;
   }
   byteArray(value) {
-    this.int(value.length);
-    this.accommodate(value.length);
-    this.arrayView.set(value,this.offset);
-    this.offset += value.length;
-    return this;
+    const { length } = value;
+    this.accommodate(length);
+    this.data.set(value,this.offset);
+    this.offset += length;
   }
   intArray(value) {
-    this.int(value.length);
-    for (let i = 0; i < value.length; i++){
-      this.int(value[i]);
+    const { length } = value;
+    this.int(length);
+    for (const entry of value){
+      this.int(entry);
     }
-    return this;
   }
   longArray(value) {
-    this.int(value.length);
-    for (let i = 0; i < value.length; i++){
-      this.long(value[i]);
+    const { length } = value;
+    this.int(length);
+    for (const entry of value){
+      this.long(entry);
     }
-    return this;
   }
   string(value) {
-    const bytes = new TextEncoder().encode(value);
-    this.short(bytes.length);
-    this.accommodate(bytes.length);
-    this.arrayView.set(bytes,this.offset);
-    this.offset += bytes.length;
-    return this;
+    value = new TextEncoder().encode(value);
+    const { length } = value;
+    this.short(length);
+    this.accommodate(length);
+    this.data.set(value,this.offset);
+    this.offset += length;
   }
   list(value) {
-    this.byte(tags[value.type]);
-    this.int(value.value.length);
-    for (let i = 0; i < value.value.length; i++){
-      this[value.type](value.value[i]);
+    const { type } = value;
+    const tag = tags[type];
+    const entries = value.value;
+    const { length } = entries;
+    this.byte(tag);
+    this.int(length);
+    for (const entry of entries){
+      this[type](entry);
     }
   }
   compound(value) {
     for (const key in value){
-      this.byte(tags[value[key].type]);
+      const entry = value[key];
+      const { type } = entry;
+      const tag = tags[type];
+      this.byte(tag);
       this.string(key);
-      this[value[key].type](value[key].value);
+      this[type](entry.value);
     }
     this.byte(tags.end);
-    return this;
   }
 }
