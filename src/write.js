@@ -1,7 +1,7 @@
 import { tags } from "./tags.js";
 import { compress } from "./compression.js";
 
-export default async function write(data,{ endian = "big", encoding } = {}){
+export async function write(data,{ endian = "big", encoding } = {}){
   if (typeof data !== "object"){
     throw new Error("First argument must be an object");
   }
@@ -24,7 +24,7 @@ export default async function write(data,{ endian = "big", encoding } = {}){
   return typeof Buffer !== "undefined" ? Buffer.from(result) : result;
 }
 
-class Writer {
+export class Writer {
   constructor(endian) {
     if (endian !== "big" && endian !== "little"){
       throw new Error(`First argument must be set to either "big" or "little"`);
@@ -96,6 +96,7 @@ class Writer {
   }
   byteArray(value) {
     const { length } = value;
+    this.int(length);
     this.accommodate(length);
     this.data.set(value,this.offset);
     this.offset += length;

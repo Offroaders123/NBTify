@@ -1,6 +1,6 @@
 {
   "name": "nbt-parser",
-  "version": "0.4.0",
+  "version": "0.4.6",
   "description": "A library to parse NBT files on the web!",
   "type": "module",
   "main": "src/index.js",

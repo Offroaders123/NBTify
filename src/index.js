@@ -1,6 +1,8 @@
-import read from "./read.js";
-import write from "./write.js";
+import { read, Reader } from "./read.js";
+import { write, Writer } from "./write.js";
 
-export { read, write };
+import { compress, decompress } from "./compression.js";
 
-export default { read, write, [Symbol.toStringTag]: "NBT" };
+export { read, Reader, write, Writer, compress, decompress };
+
+export default { read, Reader, write, Writer, compress, decompress, [Symbol.toStringTag]: "NBT" };

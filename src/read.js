@@ -1,7 +1,7 @@
 import { tags, types } from "./tags.js";
 import { decompress } from "./compression.js";
 
-export default async function read(data,{ endian } = {}){
+export async function read(data,{ endian } = {}){
   if (data instanceof ArrayBuffer === data instanceof Object.getPrototypeOf(Uint8Array)){
     throw new Error("First argument must be either an ArrayBuffer or TypedArray");
   }
@@ -53,7 +53,7 @@ function hasGzipHeader(data){
   return header === 0x1f8b;
 }
 
-class Reader {
+export class Reader {
   constructor(data,endian) {
     if (data instanceof ArrayBuffer === data instanceof Object.getPrototypeOf(Uint8Array)){
       throw new Error("First argument must be either an ArrayBuffer or TypedArray");
