@@ -3,6 +3,8 @@ import { write, Writer } from "./write.js";
 
 import { compress, decompress } from "./compression.js";
 
-export { read, Reader, write, Writer, compress, decompress };
+import { tags, types } from "./tags.js";
 
-export default { read, Reader, write, Writer, compress, decompress, [Symbol.toStringTag]: "NBT" };
+export { read, write, compress, decompress, Reader, Writer, tags, types };
+
+export default { read, write, compress, decompress, Reader, Writer, tags, types, [Symbol.toStringTag]: "NBT" };
