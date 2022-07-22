@@ -1,9 +1,10 @@
 {
   "name": "nbt-parser",
-  "version": "0.4.6",
+  "version": "0.5.0",
   "description": "A library to parse NBT files on the web!",
   "type": "module",
   "main": "src/index.js",
+  "types": "types/index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Offroaders123/NBT-Parser.git"
