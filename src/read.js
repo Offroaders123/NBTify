@@ -1,6 +1,8 @@
+import { TypedArray } from "./TypedArray.js";
 import { tags, types } from "./tags.js";
 import { decompress } from "./compression.js";
 
+/** @type { import("./read").read } */
 export async function read(data,{ endian } = {}){
   if (data instanceof ArrayBuffer === data instanceof Object.getPrototypeOf(Uint8Array)){
     throw new Error("First argument must be either an ArrayBuffer or TypedArray");
@@ -49,10 +51,11 @@ function hasBedrockLevelHeader(data){
 }
 
 function hasGzipHeader(data){
-  const header = new DataView(new Uint8Array(data).buffer).getInt16();
+  const header = new DataView(new Uint8Array(data).buffer).getInt16(0);
   return header === 0x1f8b;
 }
 
+/** @type { import("./read").Reader } */
 export class Reader {
   constructor(data,endian) {
     if (data instanceof ArrayBuffer === data instanceof Object.getPrototypeOf(Uint8Array)){
