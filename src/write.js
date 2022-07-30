@@ -1,6 +1,7 @@
 import { tags } from "./tags.js";
 import { compress } from "./compression.js";
 
+/** @type { import("../types/index").write } */
 export async function write(data,{ endian = "big", encoding } = {}){
   if (typeof data !== "object"){
     throw new Error("First argument must be an object");
@@ -24,6 +25,7 @@ export async function write(data,{ endian = "big", encoding } = {}){
   return typeof Buffer !== "undefined" ? Buffer.from(result) : result;
 }
 
+/** @type { import("../types/index").Writer } */
 export class Writer {
   constructor(endian) {
     if (endian !== "big" && endian !== "little"){

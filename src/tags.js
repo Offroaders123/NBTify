@@ -1,3 +1,4 @@
+/** @type { import("../types/index").tags } */
 export const tags = {
   end: 0,
   byte: 1,
@@ -14,6 +15,7 @@ export const tags = {
   longArray: 12
 };
 
+/** @type { import("../types/index").types } */
 export const types = {
   0: "end",
   1: "byte",

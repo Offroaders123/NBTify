@@ -1,8 +1,10 @@
+/** @type { import("../types/index").compress } */
 export async function compress(data,{ encoding } = {}){
   const stream = new CompressionStream(encoding);
   return await pipeThrough(data,stream);
 }
 
+/** @type { import("../types/index").decompress } */
 export async function decompress(data,{ encoding } = {}){
   const stream = new DecompressionStream(encoding);
   return await pipeThrough(data,stream);
