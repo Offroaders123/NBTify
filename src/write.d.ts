@@ -1,8 +1,8 @@
 import TypedArray from "./TypedArray";
 
-export function write(data: object,{ endian, encoding }?: { endian?: "big" | "little", encoding?: "gzip" | "deflate" | "deflate-raw" }): Promise<ArrayBuffer | TypedArray>;
+export declare function write(data: object,{ endian, encoding }?: { endian?: "big" | "little"; encoding?: "gzip" | "deflate" | "deflate-raw"; }): Promise<ArrayBuffer | TypedArray>;
 
-export class Writer {
+export declare class Writer {
   constructor(endian: "big" | "little");
 
   offset: number;

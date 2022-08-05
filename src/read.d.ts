@@ -1,8 +1,8 @@
 import TypedArray from "./TypedArray";
 
-export function read(data: ArrayBuffer | TypedArray,{ endian }?: { endian?: "big" | "little" }): Promise<object>;
+export declare function read(data: ArrayBuffer | TypedArray,{ endian }?: { endian?: "big" | "little"; }): Promise<object>;
 
-export class Reader {
+export declare class Reader {
   constructor(data: Uint8Array,endian: "big" | "little");
 
   offset: number;

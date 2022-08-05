@@ -1,8 +1,4 @@
-import { read, Reader } from "./read.js";
-import { write, Writer } from "./write.js";
-
-import { compress, decompress } from "./compression.js";
-
-import { tags, types } from "./tags.js";
-
-export { read, write, compress, decompress, Reader, Writer, tags, types };
+export * from "./read.js";
+export * from "./write.js";
+export * from "./compression.js";
+export * from "./tags.js";

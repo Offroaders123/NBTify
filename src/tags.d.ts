@@ -1,4 +1,4 @@
-export const tags: {
+export declare const tags: {
   end: number;
   byte: number;
   short: number;
@@ -14,7 +14,7 @@ export const tags: {
   longArray: number;
 };
 
-export const types: {
+export declare const types: {
   0: string;
   1: string;
   2: string;

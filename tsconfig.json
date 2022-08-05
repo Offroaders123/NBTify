@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "./types"
+    "noEmit": true,
+    "target": "ESNext"
   }
 }
