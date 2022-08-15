@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "noEmit": true,
-    "target": "ESNext"
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "module": "ESNext",
+    "target": "ESNext",
+    "declaration": true,
+    "strict": true
   }
 }
