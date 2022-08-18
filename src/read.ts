@@ -100,7 +100,7 @@ export class Reader {
 
   #getListTag() {
     const value = this.#getList();
-    return new ListTag(value);
+    return new ListTag(...value);
   }
 
   #getCompoundTag({ name = "" } = {}) {

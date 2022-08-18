@@ -13,18 +13,20 @@ export class EndTag {
   }
 }
 
-export class ByteTag {
+export class ByteTag extends Number {
   static readonly tag = 1;
   static readonly type = "byte";
-
-  readonly value;
 
   get type() {
     return ByteTag.type;
   }
 
+  get value() {
+    return this.valueOf();
+  }
+
   constructor(byte: number) {
-    this.value = byte;
+    super(byte);
   }
 
   toJSON() {
@@ -32,18 +34,20 @@ export class ByteTag {
   }
 }
 
-export class ShortTag {
+export class ShortTag extends Number {
   static readonly tag = 2;
   static readonly type = "short";
-
-  readonly value;
 
   get type() {
     return ShortTag.type;
   }
 
+  get value() {
+    return this.valueOf();
+  }
+
   constructor(short: number) {
-    this.value = short;
+    super(short);
   }
 
   toJSON() {
@@ -51,18 +55,20 @@ export class ShortTag {
   }
 }
 
-export class IntTag {
+export class IntTag extends Number {
   static readonly tag = 3;
   static readonly type = "int";
-
-  readonly value;
 
   get type() {
     return IntTag.type;
   }
 
+  get value() {
+    return this.valueOf();
+  }
+
   constructor(int: number) {
-    this.value = int;
+    super(int);
   }
 
   toJSON() {
@@ -85,22 +91,24 @@ export class LongTag {
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: `${this.value}` };
   }
 }
 
-export class FloatTag {
+export class FloatTag extends Number {
   static readonly tag = 5;
   static readonly type = "float";
-
-  readonly value;
 
   get type() {
     return FloatTag.type;
   }
 
+  get value() {
+    return this.valueOf();
+  }
+
   constructor(float: number) {
-    this.value = float;
+    super(float);
   }
 
   toJSON() {
@@ -108,18 +116,20 @@ export class FloatTag {
   }
 }
 
-export class DoubleTag {
+export class DoubleTag extends Number {
   static readonly tag = 6;
   static readonly type = "double";
-
-  readonly value;
 
   get type() {
     return DoubleTag.type;
   }
 
+  get value() {
+    return this.valueOf();
+  }
+
   constructor(double: number) {
-    this.value = double;
+    super(double);
   }
 
   toJSON() {
@@ -127,18 +137,20 @@ export class DoubleTag {
   }
 }
 
-export class ByteArrayTag {
+export class ByteArrayTag extends Uint8Array {
   static readonly tag = 7;
   static readonly type = "byteArray";
-
-  readonly value;
 
   get type() {
     return ByteArrayTag.type;
   }
 
+  get value() {
+    return [...this];
+  }
+
   constructor(byteArray: Uint8Array) {
-    this.value = byteArray;
+    super(byteArray);
   }
 
   toJSON() {
@@ -146,18 +158,20 @@ export class ByteArrayTag {
   }
 }
 
-export class StringTag {
+export class StringTag extends String {
   static readonly tag = 8;
   static readonly type = "string";
-
-  readonly value;
 
   get type() {
     return StringTag.type;
   }
 
+  get value() {
+    return this.valueOf();
+  }
+
   constructor(string: string) {
-    this.value = string;
+    super(string);
   }
 
   toJSON() {
@@ -165,18 +179,20 @@ export class StringTag {
   }
 }
 
-export class ListTag {
+export class ListTag extends Array<Tag> {
   static readonly tag = 9;
   static readonly type = "list";
-
-  readonly value;
 
   get type() {
     return ListTag.type;
   }
 
-  constructor(list: Tag[]) {
-    this.value = list;
+  get value(): Tag[] {
+    return [...this];
+  }
+
+  constructor(...list: Tag[]) {
+    super(...list);
   }
 
   toJSON() {
@@ -184,20 +200,23 @@ export class ListTag {
   }
 }
 
-export class CompoundTag {
+export class CompoundTag extends Map<string,Tag> {
   static readonly tag = 10;
   static readonly type = "compound";
 
   readonly name;
-  readonly value;
 
   get type() {
     return CompoundTag.type;
   }
 
+  get value() {
+    return Object.fromEntries(this) as { [key: string]: Tag };
+  }
+
   constructor(name: string, compound: { [key: string]: Tag }) {
+    super(Object.entries(compound));
     this.name = name;
-    this.value = compound;
   }
 
   toJSON() {
@@ -205,18 +224,20 @@ export class CompoundTag {
   }
 }
 
-export class IntArrayTag {
+export class IntArrayTag extends Int32Array {
   static readonly tag = 11;
   static readonly type = "intArray";
-
-  readonly value;
 
   get type() {
     return IntArrayTag.type;
   }
 
+  get value() {
+    return [...this];
+  }
+
   constructor(intArray: Int32Array) {
-    this.value = intArray;
+    super(intArray);
   }
 
   toJSON() {
@@ -224,18 +245,20 @@ export class IntArrayTag {
   }
 }
 
-export class LongArrayTag {
+export class LongArrayTag extends BigInt64Array {
   static readonly tag = 12;
   static readonly type = "longArray";
-
-  readonly value;
 
   get type() {
     return LongArrayTag.type;
   }
 
+  get value() {
+    return [...this].map(item => `${item}`);
+  }
+
   constructor(longArray: BigInt64Array) {
-    this.value = longArray;
+    super(longArray);
   }
 
   toJSON() {
