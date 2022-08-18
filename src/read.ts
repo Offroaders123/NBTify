@@ -26,13 +26,15 @@ export class Reader {
     this.#data = data;
     this.#view = new DataView(this.#data.buffer);
 
-    // const tag = this.#getUint8();
-    // if (tag !== CompoundTag.tag){
-    //   throw new Error(`Encountered unsupported tag byte "${tag}"`);
-    // }
+    const tag = this.#getInt8();
+    if (tag !== CompoundTag.tag){
+      throw new Error(`Encountered unsupported tag byte "${tag}"`);
+    }
 
-    const result = this.#getTag(CompoundTag.tag);
-    return result;
+    const name = this.#getString();
+    const value = this.#getCompoundTag({ name });
+
+    return value;
   }
 
   /**
@@ -41,7 +43,6 @@ export class Reader {
    * tag type.
   */
   #getTag(tag: number): Tag {
-    if (tag === EndTag.tag) return this.#getEndTag();
     if (tag === ByteTag.tag) return this.#getByteTag();
     if (tag === ShortTag.tag) return this.#getShortTag();
     if (tag === IntTag.tag) return this.#getIntTag();
@@ -55,11 +56,6 @@ export class Reader {
     if (tag === IntArrayTag.tag) return this.#getIntArrayTag();
     if (tag === LongArrayTag.tag) return this.#getLongArrayTag();
     throw new Error(`Encountered unsupported tag byte "${tag}"`);
-  }
-
-  #getEndTag() {
-    this.#offset += 1;
-    return new EndTag();
   }
 
   #getByteTag() {
@@ -107,11 +103,7 @@ export class Reader {
     return new ListTag(value);
   }
 
-  #getCompoundTag() {
-    // if ([150,190,198].includes(this.#offset)){
-      const byte = this.#getUint8();
-    // }
-    const name = this.#getString();
+  #getCompoundTag({ name = "" } = {}) {
     const value = this.#getCompound();
     return new CompoundTag(name,value);
   }
@@ -124,12 +116,6 @@ export class Reader {
   #getLongArrayTag() {
     const value = this.#getBigInt64Array();
     return new LongArrayTag(value);
-  }
-
-  #getUint8() {
-    const value = this.#view.getUint8(this.#offset);
-    this.#offset += 1;
-    return value;
   }
 
   /**
@@ -248,7 +234,7 @@ export class Reader {
    * Exclusively used to read List tags.
   */
   #getList() {
-    const tag = this.#getUint8();
+    const tag = this.#getInt8();
     const length = this.#getUint32();
     const value: Tag[] = [];
     for (let i = 0; i < length; i++){
@@ -264,11 +250,8 @@ export class Reader {
   #getCompound() {
     const value: { [name: string]: Tag } = {};
     while (true){
-      const tag = this.#getUint8();
-      if (tag === EndTag.tag){
-        this.#getTag(tag);
-        break;
-      }
+      const tag = this.#getInt8();
+      if (tag === EndTag.tag) break;
       const name = this.#getString();
       const entry = this.#getTag(tag);
       value[name] = entry;
