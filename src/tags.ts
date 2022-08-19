@@ -1,12 +1,13 @@
 export type Tag = EndTag | ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag;
+export type TagByte = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 /**
  * Primitive wrapper object for the NBT `TAG_End` type.
  * Inherits from the built-in `Number` object.
 */
 export class EndTag {
-  static readonly TAG = 0;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 0;
+  static readonly TYPE = "end";
 
   toJSON() {
     return { type: EndTag.TYPE };
@@ -21,8 +22,8 @@ export class ByteTag extends Number {
   static readonly MAX_VALUE = 128;
   static readonly MIN_VALUE = -127;
 
-  static readonly TAG = 1;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 1;
+  static readonly TYPE = "byte";
 
   constructor(value?: any) {
     if (value < ByteTag.MIN_VALUE || value > ByteTag.MAX_VALUE){
@@ -44,8 +45,8 @@ export class ShortTag extends Number {
   static readonly MAX_VALUE = 32767;
   static readonly MIN_VALUE = -32768;
 
-  static readonly TAG = 2;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 2;
+  static readonly TYPE = "short";
 
   constructor(value?: any) {
     if (value < ShortTag.MIN_VALUE || value > ShortTag.MAX_VALUE){
@@ -67,8 +68,8 @@ export class IntTag extends Number {
   static readonly MAX_VALUE = 2147483647;
   static readonly MIN_VALUE = -2147483648;
 
-  static readonly TAG = 3;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 3;
+  static readonly TYPE = "int";
 
   constructor(value?: any) {
     if (value < IntTag.MIN_VALUE || value > IntTag.MAX_VALUE){
@@ -87,8 +88,8 @@ export class IntTag extends Number {
  * *Note: I plan to have this inherit from `BigInt`, but that hasn't found to be possible with the standard ES6 `extends` syntax yet :{
 */
 export class LongTag {
-  static readonly TAG = 4;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 4;
+  static readonly TYPE = "long";
 
   readonly value;
 
@@ -109,8 +110,8 @@ export class FloatTag extends Number {
   static readonly MAX_VALUE = 3.4e+38;
   static readonly MIN_VALUE = -3.4e+38;
 
-  static readonly TAG = 5;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 5;
+  static readonly TYPE = "float";
 
   constructor(value?: any) {
     if (value < FloatTag.MIN_VALUE || value > FloatTag.MAX_VALUE){
@@ -129,8 +130,8 @@ export class FloatTag extends Number {
  * Inherits from the built-in `Number` object.
 */
 export class DoubleTag extends Number {
-  static readonly TAG = 6;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 6;
+  static readonly TYPE = "double";
 
   toJSON() {
     return { type: DoubleTag.TYPE, value: this.valueOf() };
@@ -142,8 +143,8 @@ export class DoubleTag extends Number {
  * Inherits from the built-in `Uint8Array` object.
 */
 export class ByteArrayTag extends Uint8Array {
-  static readonly TAG = 7;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 7;
+  static readonly TYPE = "byteArray";
 
   toJSON() {
     return { type: ByteArrayTag.TYPE, value: [...this] };
@@ -155,8 +156,8 @@ export class ByteArrayTag extends Uint8Array {
  * Inherits from the built-in `String` object.
 */
 export class StringTag extends String {
-  static readonly TAG = 8;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 8;
+  static readonly TYPE = "string";
 
   toJSON() {
     return { type: StringTag.TYPE, value: this.valueOf() };
@@ -168,8 +169,8 @@ export class StringTag extends String {
  * Inherits from the built-in `Array` object.
 */
 export class ListTag extends Array<Tag> {
-  static readonly TAG = 9;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 9;
+  static readonly TYPE = "list";
 
   toJSON() {
     return { type: ListTag.TYPE, value: [...this] as Tag[] };
@@ -181,8 +182,8 @@ export class ListTag extends Array<Tag> {
  * Inherits from the built-in `Map` object.
 */
 export class CompoundTag extends Map<string,Tag> {
-  static readonly TAG = 10;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 10;
+  static readonly TYPE = "compound";
 
   readonly name;
 
@@ -201,8 +202,8 @@ export class CompoundTag extends Map<string,Tag> {
  * Inherits from the built-in `Int32Array` object.
 */
 export class IntArrayTag extends Int32Array {
-  static readonly TAG = 11;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 11;
+  static readonly TYPE = "intArray";
 
   toJSON() {
     return { type: IntArrayTag.TYPE, value: [...this] };
@@ -214,8 +215,8 @@ export class IntArrayTag extends Int32Array {
  * Inherits from the built-in `BigInt64Array` object.
 */
 export class LongArrayTag extends BigInt64Array {
-  static readonly TAG = 12;
-  static readonly TYPE = this.name;
+  static readonly TAG_BYTE: TagByte = 12;
+  static readonly TYPE = "longArray";
 
   toJSON() {
     return { type: LongArrayTag.TYPE, value: [...this].map(entry => `${entry}`) };

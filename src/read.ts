@@ -1,4 +1,4 @@
-import { Tag, EndTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tags.js";
+import { Tag, TagByte, EndTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tags.js";
 import { decompress } from "./compression.js";
 
 /**
@@ -26,8 +26,8 @@ export class Reader {
     this.#data = data;
     this.#view = new DataView(this.#data.buffer);
 
-    const tag = this.#getInt8();
-    if (tag !== CompoundTag.TAG){
+    const tag = this.#getTagByte();
+    if (tag !== CompoundTag.TAG_BYTE){
       throw new Error(`Encountered unsupported tag byte "${tag}"`);
     }
 
@@ -38,23 +38,32 @@ export class Reader {
   }
 
   /**
+   * Reads the tag byte value at the reader's current offset position.
+   * It then returns the byte value from that position.
+  */
+  #getTagByte() {
+    const value = this.#getUint8() as TagByte;
+    return value;
+  }
+
+  /**
    * Reads the tag at the reader's current offset position, based on
    * the supplied tag byte value. It then returns the object for that
    * tag type.
   */
-  #getTag(tag: number): Tag {
-    if (tag === ByteTag.TAG) return this.#getByteTag();
-    if (tag === ShortTag.TAG) return this.#getShortTag();
-    if (tag === IntTag.TAG) return this.#getIntTag();
-    if (tag === LongTag.TAG) return this.#getLongTag();
-    if (tag === FloatTag.TAG) return this.#getFloatTag();
-    if (tag === DoubleTag.TAG) return this.#getDoubleTag();
-    if (tag === ByteArrayTag.TAG) return this.#getByteArrayTag();
-    if (tag === StringTag.TAG) return this.#getStringTag();
-    if (tag === ListTag.TAG) return this.#getListTag();
-    if (tag === CompoundTag.TAG) return this.#getCompoundTag();
-    if (tag === IntArrayTag.TAG) return this.#getIntArrayTag();
-    if (tag === LongArrayTag.TAG) return this.#getLongArrayTag();
+  #getTag(tag: TagByte): Tag {
+    if (tag === ByteTag.TAG_BYTE) return this.#getByteTag();
+    if (tag === ShortTag.TAG_BYTE) return this.#getShortTag();
+    if (tag === IntTag.TAG_BYTE) return this.#getIntTag();
+    if (tag === LongTag.TAG_BYTE) return this.#getLongTag();
+    if (tag === FloatTag.TAG_BYTE) return this.#getFloatTag();
+    if (tag === DoubleTag.TAG_BYTE) return this.#getDoubleTag();
+    if (tag === ByteArrayTag.TAG_BYTE) return this.#getByteArrayTag();
+    if (tag === StringTag.TAG_BYTE) return this.#getStringTag();
+    if (tag === ListTag.TAG_BYTE) return this.#getListTag();
+    if (tag === CompoundTag.TAG_BYTE) return this.#getCompoundTag();
+    if (tag === IntArrayTag.TAG_BYTE) return this.#getIntArrayTag();
+    if (tag === LongArrayTag.TAG_BYTE) return this.#getLongArrayTag();
     throw new Error(`Encountered unsupported tag byte "${tag}"`);
   }
 
@@ -116,6 +125,12 @@ export class Reader {
   #getLongArrayTag() {
     const value = this.#getBigInt64Array();
     return new LongArrayTag(value);
+  }
+
+  #getUint8() {
+    const value = this.#view.getUint8(this.#offset);
+    this.#offset += 1;
+    return value;
   }
 
   /**
@@ -234,7 +249,7 @@ export class Reader {
    * Exclusively used to read List tags.
   */
   #getList() {
-    const tag = this.#getInt8();
+    const tag = this.#getTagByte();
     const length = this.#getUint32();
     const value: Tag[] = [];
     for (let i = 0; i < length; i++){
@@ -250,8 +265,8 @@ export class Reader {
   #getCompound() {
     const value: { [name: string]: Tag } = {};
     while (true){
-      const tag = this.#getInt8();
-      if (tag === EndTag.TAG) break;
+      const tag = this.#getTagByte();
+      if (tag === EndTag.TAG_BYTE) break;
       const name = this.#getString();
       const entry = this.#getTag(tag);
       value[name] = entry;
