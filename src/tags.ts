@@ -2,7 +2,7 @@ export type Tag = EndTag | ByteTag | ShortTag | IntTag | LongTag | FloatTag | Do
 
 export class EndTag {
   static readonly tag = 0;
-  static readonly type = "end";
+  static readonly type = this.name;
 
   get type() {
     return EndTag.type;
@@ -14,8 +14,11 @@ export class EndTag {
 }
 
 export class ByteTag extends Number {
+  static readonly MAX_VALUE = 128;
+  static readonly MIN_VALUE = -127;
+
   static readonly tag = 1;
-  static readonly type = "byte";
+  static readonly type = this.name;
 
   get type() {
     return ByteTag.type;
@@ -26,17 +29,23 @@ export class ByteTag extends Number {
   }
 
   constructor(byte: number) {
+    if (byte < ByteTag.MIN_VALUE || byte > ByteTag.MAX_VALUE){
+      throw new RangeError(`ByteTag value must be between ${ByteTag.MIN_VALUE} and ${ByteTag.MAX_VALUE}`);
+    }
     super(byte);
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
 
 export class ShortTag extends Number {
+  static readonly MAX_VALUE = 32767;
+  static readonly MIN_VALUE = -32768;
+
   static readonly tag = 2;
-  static readonly type = "short";
+  static readonly type = this.name;
 
   get type() {
     return ShortTag.type;
@@ -47,17 +56,23 @@ export class ShortTag extends Number {
   }
 
   constructor(short: number) {
+    if (short < ShortTag.MIN_VALUE || short > ShortTag.MAX_VALUE){
+      throw new RangeError(`ShortTag value must be between ${ShortTag.MIN_VALUE} and ${ShortTag.MAX_VALUE}`);
+    }
     super(short);
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
 
 export class IntTag extends Number {
+  static readonly MAX_VALUE = 2147483647;
+  static readonly MIN_VALUE = -2147483648;
+
   static readonly tag = 3;
-  static readonly type = "int";
+  static readonly type = this.name;
 
   get type() {
     return IntTag.type;
@@ -68,17 +83,20 @@ export class IntTag extends Number {
   }
 
   constructor(int: number) {
+    if (int < IntTag.MIN_VALUE || int > IntTag.MAX_VALUE){
+      throw new RangeError(`IntTag value must be between ${IntTag.MIN_VALUE} and ${IntTag.MAX_VALUE}`);
+    }
     super(int);
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
 
 export class LongTag {
   static readonly tag = 4;
-  static readonly type = "long";
+  static readonly type = this.name;
 
   readonly value;
 
@@ -96,8 +114,11 @@ export class LongTag {
 }
 
 export class FloatTag extends Number {
+  static readonly MAX_VALUE = 3.4e+38;
+  static readonly MIN_VALUE = -3.4e+38;
+
   static readonly tag = 5;
-  static readonly type = "float";
+  static readonly type = this.name;
 
   get type() {
     return FloatTag.type;
@@ -108,17 +129,20 @@ export class FloatTag extends Number {
   }
 
   constructor(float: number) {
+    if (float < FloatTag.MIN_VALUE || float > FloatTag.MAX_VALUE){
+      throw new RangeError(`FloatTag value must be between ${FloatTag.MIN_VALUE} and ${FloatTag.MAX_VALUE}`);
+    }
     super(float);
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
 
 export class DoubleTag extends Number {
   static readonly tag = 6;
-  static readonly type = "double";
+  static readonly type = this.name;
 
   get type() {
     return DoubleTag.type;
@@ -129,17 +153,20 @@ export class DoubleTag extends Number {
   }
 
   constructor(double: number) {
+    if (double < DoubleTag.MIN_VALUE || double > DoubleTag.MAX_VALUE){
+      throw new RangeError(`DoubleTag value must be between ${DoubleTag.MIN_VALUE} and ${DoubleTag.MAX_VALUE}`);
+    }
     super(double);
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
 
 export class ByteArrayTag extends Uint8Array {
   static readonly tag = 7;
-  static readonly type = "byteArray";
+  static readonly type = this.name;
 
   get type() {
     return ByteArrayTag.type;
@@ -154,13 +181,13 @@ export class ByteArrayTag extends Uint8Array {
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
 
 export class StringTag extends String {
   static readonly tag = 8;
-  static readonly type = "string";
+  static readonly type = this.name;
 
   get type() {
     return StringTag.type;
@@ -175,20 +202,16 @@ export class StringTag extends String {
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
 
 export class ListTag extends Array<Tag> {
   static readonly tag = 9;
-  static readonly type = "list";
+  static readonly type = this.name;
 
   get type() {
     return ListTag.type;
-  }
-
-  get value(): Tag[] {
-    return [...this];
   }
 
   constructor(...list: Tag[]) {
@@ -196,13 +219,13 @@ export class ListTag extends Array<Tag> {
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
 
 export class CompoundTag extends Map<string,Tag> {
   static readonly tag = 10;
-  static readonly type = "compound";
+  static readonly type = this.name;
 
   readonly name;
 
@@ -220,13 +243,13 @@ export class CompoundTag extends Map<string,Tag> {
   }
 
   toJSON() {
-    return { name: this.name, type: this.type, value: this.value };
+    return { name: this.name, type: this.type, value: this.valueOf() };
   }
 }
 
 export class IntArrayTag extends Int32Array {
   static readonly tag = 11;
-  static readonly type = "intArray";
+  static readonly type = this.name;
 
   get type() {
     return IntArrayTag.type;
@@ -241,13 +264,13 @@ export class IntArrayTag extends Int32Array {
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
 
 export class LongArrayTag extends BigInt64Array {
   static readonly tag = 12;
-  static readonly type = "longArray";
+  static readonly type = this.name;
 
   get type() {
     return LongArrayTag.type;
@@ -262,6 +285,6 @@ export class LongArrayTag extends BigInt64Array {
   }
 
   toJSON() {
-    return { type: this.type, value: this.value };
+    return { type: this.type, value: this.valueOf() };
   }
 }
