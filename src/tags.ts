@@ -1,5 +1,9 @@
 export type Tag = EndTag | ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag;
 
+/**
+ * Primitive wrapper object for the NBT `TAG_End` type.
+ * Inherits from the built-in `Number` object.
+*/
 export class EndTag {
   static readonly tag = 0;
   static readonly type = this.name;
@@ -13,6 +17,10 @@ export class EndTag {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Byte` type.
+ * Inherits from the built-in `Number` object.
+*/
 export class ByteTag extends Number {
   static readonly MAX_VALUE = 128;
   static readonly MIN_VALUE = -127;
@@ -40,6 +48,10 @@ export class ByteTag extends Number {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Short` type.
+ * Inherits from the built-in `Number` object.
+*/
 export class ShortTag extends Number {
   static readonly MAX_VALUE = 32767;
   static readonly MIN_VALUE = -32768;
@@ -67,6 +79,10 @@ export class ShortTag extends Number {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Int` type.
+ * Inherits from the built-in `Number` object.
+*/
 export class IntTag extends Number {
   static readonly MAX_VALUE = 2147483647;
   static readonly MIN_VALUE = -2147483648;
@@ -94,6 +110,10 @@ export class IntTag extends Number {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Long` type.
+ * *Note: I plan to have this inherit from `BigInt`, but that hasn't found to be possible with the standard ES6 `extends` syntax yet :{
+*/
 export class LongTag {
   static readonly tag = 4;
   static readonly type = this.name;
@@ -113,6 +133,10 @@ export class LongTag {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Float` type.
+ * Inherits from the built-in `Number` object.
+*/
 export class FloatTag extends Number {
   static readonly MAX_VALUE = 3.4e+38;
   static readonly MIN_VALUE = -3.4e+38;
@@ -140,6 +164,10 @@ export class FloatTag extends Number {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Double` type.
+ * Inherits from the built-in `Number` object.
+*/
 export class DoubleTag extends Number {
   static readonly tag = 6;
   static readonly type = this.name;
@@ -164,6 +192,10 @@ export class DoubleTag extends Number {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Byte_Array` type.
+ * Inherits from the built-in `Uint8Array` object.
+*/
 export class ByteArrayTag extends Uint8Array {
   static readonly tag = 7;
   static readonly type = this.name;
@@ -185,6 +217,10 @@ export class ByteArrayTag extends Uint8Array {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_String` type.
+ * Inherits from the built-in `String` object.
+*/
 export class StringTag extends String {
   static readonly tag = 8;
   static readonly type = this.name;
@@ -206,6 +242,10 @@ export class StringTag extends String {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_List` type.
+ * Inherits from the built-in `Array` object.
+*/
 export class ListTag extends Array<Tag> {
   static readonly tag = 9;
   static readonly type = this.name;
@@ -223,6 +263,10 @@ export class ListTag extends Array<Tag> {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Compound` type.
+ * Inherits from the built-in `Map` object.
+*/
 export class CompoundTag extends Map<string,Tag> {
   static readonly tag = 10;
   static readonly type = this.name;
@@ -247,6 +291,10 @@ export class CompoundTag extends Map<string,Tag> {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Int_Array` type.
+ * Inherits from the built-in `Int32Array` object.
+*/
 export class IntArrayTag extends Int32Array {
   static readonly tag = 11;
   static readonly type = this.name;
@@ -268,6 +316,10 @@ export class IntArrayTag extends Int32Array {
   }
 }
 
+/**
+ * Primitive wrapper object for the NBT `TAG_Long_Array` type.
+ * Inherits from the built-in `BigInt64Array` object.
+*/
 export class LongArrayTag extends BigInt64Array {
   static readonly tag = 12;
   static readonly type = this.name;
