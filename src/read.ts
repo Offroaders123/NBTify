@@ -27,7 +27,7 @@ export class Reader {
     this.#view = new DataView(this.#data.buffer);
 
     const tag = this.#getInt8();
-    if (tag !== CompoundTag.tag){
+    if (tag !== CompoundTag.TAG){
       throw new Error(`Encountered unsupported tag byte "${tag}"`);
     }
 
@@ -43,18 +43,18 @@ export class Reader {
    * tag type.
   */
   #getTag(tag: number): Tag {
-    if (tag === ByteTag.tag) return this.#getByteTag();
-    if (tag === ShortTag.tag) return this.#getShortTag();
-    if (tag === IntTag.tag) return this.#getIntTag();
-    if (tag === LongTag.tag) return this.#getLongTag();
-    if (tag === FloatTag.tag) return this.#getFloatTag();
-    if (tag === DoubleTag.tag) return this.#getDoubleTag();
-    if (tag === ByteArrayTag.tag) return this.#getByteArrayTag();
-    if (tag === StringTag.tag) return this.#getStringTag();
-    if (tag === ListTag.tag) return this.#getListTag();
-    if (tag === CompoundTag.tag) return this.#getCompoundTag();
-    if (tag === IntArrayTag.tag) return this.#getIntArrayTag();
-    if (tag === LongArrayTag.tag) return this.#getLongArrayTag();
+    if (tag === ByteTag.TAG) return this.#getByteTag();
+    if (tag === ShortTag.TAG) return this.#getShortTag();
+    if (tag === IntTag.TAG) return this.#getIntTag();
+    if (tag === LongTag.TAG) return this.#getLongTag();
+    if (tag === FloatTag.TAG) return this.#getFloatTag();
+    if (tag === DoubleTag.TAG) return this.#getDoubleTag();
+    if (tag === ByteArrayTag.TAG) return this.#getByteArrayTag();
+    if (tag === StringTag.TAG) return this.#getStringTag();
+    if (tag === ListTag.TAG) return this.#getListTag();
+    if (tag === CompoundTag.TAG) return this.#getCompoundTag();
+    if (tag === IntArrayTag.TAG) return this.#getIntArrayTag();
+    if (tag === LongArrayTag.TAG) return this.#getLongArrayTag();
     throw new Error(`Encountered unsupported tag byte "${tag}"`);
   }
 
@@ -251,7 +251,7 @@ export class Reader {
     const value: { [name: string]: Tag } = {};
     while (true){
       const tag = this.#getInt8();
-      if (tag === EndTag.tag) break;
+      if (tag === EndTag.TAG) break;
       const name = this.#getString();
       const entry = this.#getTag(tag);
       value[name] = entry;
