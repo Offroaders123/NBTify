@@ -107,17 +107,19 @@ export class LongTag {
    * 
    * This property is merely for displaying the tag's value in
    * the console, as a placeholder for being unable to inherit
-   * the `BigInt` object. Don't depend on this for accessing
-   * the value of the tag, as this could be tampered with from
-   * the outside.
-   * 
-   * @deprecated Use `valueOf()` to access the value securely.
+   * the `BigInt` object. Use `valueOf()` to access the value
+   * instead.
   */
   readonly value;
 
   constructor(value: string | number | bigint | boolean) {
     this.#value = BigInt(value);
     this.value = this.#value;
+
+    Object.defineProperty(this,"value",{
+      configurable: false,
+      writable: false
+    });
   }
 
   valueOf() {
