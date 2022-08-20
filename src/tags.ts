@@ -3,6 +3,7 @@ export type TagByte = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 /**
  * Primitive wrapper object for the NBT `TAG_End` type.
+ * 
  * Inherits from the built-in `Number` object.
 */
 export class EndTag {
@@ -16,6 +17,7 @@ export class EndTag {
 
 /**
  * Primitive wrapper object for the NBT `TAG_Byte` type.
+ * 
  * Inherits from the built-in `Number` object.
 */
 export class ByteTag extends Number {
@@ -39,6 +41,7 @@ export class ByteTag extends Number {
 
 /**
  * Primitive wrapper object for the NBT `TAG_Short` type.
+ * 
  * Inherits from the built-in `Number` object.
 */
 export class ShortTag extends Number {
@@ -62,6 +65,7 @@ export class ShortTag extends Number {
 
 /**
  * Primitive wrapper object for the NBT `TAG_Int` type.
+ * 
  * Inherits from the built-in `Number` object.
 */
 export class IntTag extends Number {
@@ -85,25 +89,49 @@ export class IntTag extends Number {
 
 /**
  * Primitive wrapper object for the NBT `TAG_Long` type.
- * *Note: I plan to have this inherit from `BigInt`, but that hasn't found to be possible with the standard ES6 `extends` syntax yet :{
+ * 
+ * Note: Ideally this should inherit from `BigInt`, to be
+ * consistent with how the other tags inheriting from their
+ * built-in equivalents. However, it doesn't seem to be possible
+ * because `BigInt` isn't a constructor.
 */
 export class LongTag {
   static readonly TAG_BYTE: TagByte = 4;
   static readonly TYPE = "long";
 
+  #value;
+
+  /**
+   * A public-facing view of the private `[[PrimitiveValue]]`
+   * for the tag.
+   * 
+   * This property is merely for displaying the tag's value in
+   * the console, as a placeholder for being unable to inherit
+   * the `BigInt` object. Don't depend on this for accessing
+   * the value of the tag, as this could be tampered with from
+   * the outside.
+   * 
+   * @deprecated Use `valueOf()` to access the value securely.
+  */
   readonly value;
 
   constructor(value: string | number | bigint | boolean) {
-    this.value = BigInt(value);
+    this.#value = BigInt(value);
+    this.value = this.#value;
+  }
+
+  valueOf() {
+    return this.#value;
   }
 
   toJSON() {
-    return { type: LongTag.TYPE, value: `${this.value}` };
+    return { type: LongTag.TYPE, value: `${this.valueOf()}` };
   }
 }
 
 /**
  * Primitive wrapper object for the NBT `TAG_Float` type.
+ * 
  * Inherits from the built-in `Number` object.
 */
 export class FloatTag extends Number {
@@ -127,6 +155,7 @@ export class FloatTag extends Number {
 
 /**
  * Primitive wrapper object for the NBT `TAG_Double` type.
+ * 
  * Inherits from the built-in `Number` object.
 */
 export class DoubleTag extends Number {
@@ -140,6 +169,7 @@ export class DoubleTag extends Number {
 
 /**
  * Primitive wrapper object for the NBT `TAG_Byte_Array` type.
+ * 
  * Inherits from the built-in `Uint8Array` object.
 */
 export class ByteArrayTag extends Uint8Array {
@@ -153,6 +183,7 @@ export class ByteArrayTag extends Uint8Array {
 
 /**
  * Primitive wrapper object for the NBT `TAG_String` type.
+ * 
  * Inherits from the built-in `String` object.
 */
 export class StringTag extends String {
@@ -166,6 +197,7 @@ export class StringTag extends String {
 
 /**
  * Primitive wrapper object for the NBT `TAG_List` type.
+ * 
  * Inherits from the built-in `Array` object.
 */
 export class ListTag extends Array<Tag> {
@@ -179,6 +211,7 @@ export class ListTag extends Array<Tag> {
 
 /**
  * Primitive wrapper object for the NBT `TAG_Compound` type.
+ * 
  * Inherits from the built-in `Map` object.
 */
 export class CompoundTag extends Map<string,Tag> {
@@ -199,6 +232,7 @@ export class CompoundTag extends Map<string,Tag> {
 
 /**
  * Primitive wrapper object for the NBT `TAG_Int_Array` type.
+ * 
  * Inherits from the built-in `Int32Array` object.
 */
 export class IntArrayTag extends Int32Array {
@@ -212,6 +246,7 @@ export class IntArrayTag extends Int32Array {
 
 /**
  * Primitive wrapper object for the NBT `TAG_Long_Array` type.
+ * 
  * Inherits from the built-in `BigInt64Array` object.
 */
 export class LongArrayTag extends BigInt64Array {
