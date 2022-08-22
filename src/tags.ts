@@ -2,16 +2,38 @@ export type Tag = EndTag | ByteTag | ShortTag | IntTag | LongTag | FloatTag | Do
 export type TagByte = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
 
 /**
+ * Returns whether a provided value is an instance of a tag class.
+*/
+export function isTag(arg?: any): arg is Tag {
+  switch (true){
+    case arg instanceof EndTag:
+    case arg instanceof ByteTag:
+    case arg instanceof ShortTag:
+    case arg instanceof IntTag:
+    case arg instanceof LongTag:
+    case arg instanceof FloatTag:
+    case arg instanceof DoubleTag:
+    case arg instanceof ByteArrayTag:
+    case arg instanceof StringTag:
+    case arg instanceof ListTag:
+    case arg instanceof CompoundTag:
+    case arg instanceof IntArrayTag:
+    case arg instanceof LongArrayTag:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
  * Primitive wrapper object for the NBT `TAG_End` type.
- * 
- * Inherits from the built-in `Number` object.
 */
 export class EndTag {
   static readonly TAG_BYTE: TagByte = 0;
-  static readonly TYPE = "end";
+  static readonly TAG_TYPE = "end";
 
   toJSON() {
-    return { type: EndTag.TYPE };
+    return { type: EndTag.TAG_TYPE };
   }
 }
 
@@ -25,7 +47,7 @@ export class ByteTag extends Number {
   static readonly MIN_VALUE = -127;
 
   static readonly TAG_BYTE: TagByte = 1;
-  static readonly TYPE = "byte";
+  static readonly TAG_TYPE = "byte";
 
   constructor(value?: any) {
     if (value < ByteTag.MIN_VALUE || value > ByteTag.MAX_VALUE){
@@ -35,7 +57,7 @@ export class ByteTag extends Number {
   }
 
   toJSON() {
-    return { type: ByteTag.TYPE, value: this.valueOf() };
+    return { type: ByteTag.TAG_TYPE, value: this.valueOf() };
   }
 }
 
@@ -49,7 +71,7 @@ export class ShortTag extends Number {
   static readonly MIN_VALUE = -32768;
 
   static readonly TAG_BYTE: TagByte = 2;
-  static readonly TYPE = "short";
+  static readonly TAG_TYPE = "short";
 
   constructor(value?: any) {
     if (value < ShortTag.MIN_VALUE || value > ShortTag.MAX_VALUE){
@@ -59,7 +81,7 @@ export class ShortTag extends Number {
   }
 
   toJSON() {
-    return { type: ShortTag.TYPE, value: this.valueOf() };
+    return { type: ShortTag.TAG_TYPE, value: this.valueOf() };
   }
 }
 
@@ -73,7 +95,7 @@ export class IntTag extends Number {
   static readonly MIN_VALUE = -2147483648;
 
   static readonly TAG_BYTE: TagByte = 3;
-  static readonly TYPE = "int";
+  static readonly TAG_TYPE = "int";
 
   constructor(value?: any) {
     if (value < IntTag.MIN_VALUE || value > IntTag.MAX_VALUE){
@@ -83,21 +105,21 @@ export class IntTag extends Number {
   }
 
   toJSON() {
-    return { type: IntTag.TYPE, value: this.valueOf() };
+    return { type: IntTag.TAG_TYPE, value: this.valueOf() };
   }
 }
 
 /**
  * Primitive wrapper object for the NBT `TAG_Long` type.
  * 
- * Note: Ideally this should inherit from `BigInt`, to be
+ * Ideally this would inherit from `BigInt`, to be
  * consistent with how the other tags inheriting from their
  * built-in equivalents. However, it doesn't seem to be possible
  * because `BigInt` isn't a constructor.
 */
 export class LongTag {
   static readonly TAG_BYTE: TagByte = 4;
-  static readonly TYPE = "long";
+  static readonly TAG_TYPE = "long";
 
   #value;
 
@@ -127,7 +149,7 @@ export class LongTag {
   }
 
   toJSON() {
-    return { type: LongTag.TYPE, value: `${this.valueOf()}` };
+    return { type: LongTag.TAG_TYPE, value: `${this.valueOf()}` };
   }
 }
 
@@ -141,7 +163,7 @@ export class FloatTag extends Number {
   static readonly MIN_VALUE = -3.4e+38;
 
   static readonly TAG_BYTE: TagByte = 5;
-  static readonly TYPE = "float";
+  static readonly TAG_TYPE = "float";
 
   constructor(value?: any) {
     if (value < FloatTag.MIN_VALUE || value > FloatTag.MAX_VALUE){
@@ -151,7 +173,7 @@ export class FloatTag extends Number {
   }
 
   toJSON() {
-    return { type: FloatTag.TYPE, value: this.valueOf() };
+    return { type: FloatTag.TAG_TYPE, value: this.valueOf() };
   }
 }
 
@@ -162,10 +184,10 @@ export class FloatTag extends Number {
 */
 export class DoubleTag extends Number {
   static readonly TAG_BYTE: TagByte = 6;
-  static readonly TYPE = "double";
+  static readonly TAG_TYPE = "double";
 
   toJSON() {
-    return { type: DoubleTag.TYPE, value: this.valueOf() };
+    return { type: DoubleTag.TAG_TYPE, value: this.valueOf() };
   }
 }
 
@@ -176,10 +198,10 @@ export class DoubleTag extends Number {
 */
 export class ByteArrayTag extends Uint8Array {
   static readonly TAG_BYTE: TagByte = 7;
-  static readonly TYPE = "byteArray";
+  static readonly TAG_TYPE = "byteArray";
 
   toJSON() {
-    return { type: ByteArrayTag.TYPE, value: [...this] };
+    return { type: ByteArrayTag.TAG_TYPE, value: [...this] };
   }
 }
 
@@ -190,10 +212,10 @@ export class ByteArrayTag extends Uint8Array {
 */
 export class StringTag extends String {
   static readonly TAG_BYTE: TagByte = 8;
-  static readonly TYPE = "string";
+  static readonly TAG_TYPE = "string";
 
   toJSON() {
-    return { type: StringTag.TYPE, value: this.valueOf() };
+    return { type: StringTag.TAG_TYPE, value: this.valueOf() };
   }
 }
 
@@ -204,10 +226,10 @@ export class StringTag extends String {
 */
 export class ListTag extends Array<Tag> {
   static readonly TAG_BYTE: TagByte = 9;
-  static readonly TYPE = "list";
+  static readonly TAG_TYPE = "list";
 
   toJSON() {
-    return { type: ListTag.TYPE, value: [...this] as Tag[] };
+    return { type: ListTag.TAG_TYPE, value: [...this] as Tag[] };
   }
 }
 
@@ -218,17 +240,39 @@ export class ListTag extends Array<Tag> {
 */
 export class CompoundTag extends Map<string,Tag> {
   static readonly TAG_BYTE: TagByte = 10;
-  static readonly TYPE = "compound";
+  static readonly TAG_TYPE = "compound";
 
-  readonly name;
+  static readonly ROOT_NAME = Symbol("ROOT_NAME");
 
-  constructor(name: string, compound: { [key: string]: Tag }) {
-    super(Object.entries(compound));
-    this.name = name;
+  name?: string;
+
+  /**
+   * Optionally excepts an object as the only parameter.
+   * 
+   * Non-string keys will be automatically converted to their string
+   * equivalents.
+   * 
+   * If the key's value is not an instance of a tag class, the constructor
+   * will be thrown with a `TypeError`.
+   * 
+   * Also optionally accepts a name string for the `CompoundTag` using the `Symbol`
+   * key `[CompoundTag.ROOT_NAME]`. Note that this will only be used for the root
+   * tag if it is present.
+  */
+  constructor(value: { [CompoundTag.ROOT_NAME]?: string, [key: string]: Tag } = {}) {
+    for (const [key,entry] of Object.entries(value)){
+      if (!isTag(entry)){
+        throw new TypeError(`CompoundTag entry values must be instances of valid tag types, instead received type ${typeof entry}`);
+      }
+    }
+    super(Object.entries(value));
+    const { [CompoundTag.ROOT_NAME]: name } = value;
+    name ? this.name = name : delete this.name;
   }
 
   toJSON() {
-    return { name: this.name, type: CompoundTag.TYPE, value: Object.fromEntries(this) };
+    const { name } = this;
+    return { ...name && ({ name }), type: CompoundTag.TAG_TYPE, value: Object.fromEntries(this) };
   }
 }
 
@@ -239,10 +283,10 @@ export class CompoundTag extends Map<string,Tag> {
 */
 export class IntArrayTag extends Int32Array {
   static readonly TAG_BYTE: TagByte = 11;
-  static readonly TYPE = "intArray";
+  static readonly TAG_TYPE = "intArray";
 
   toJSON() {
-    return { type: IntArrayTag.TYPE, value: [...this] };
+    return { type: IntArrayTag.TAG_TYPE, value: [...this] };
   }
 }
 
@@ -253,9 +297,9 @@ export class IntArrayTag extends Int32Array {
 */
 export class LongArrayTag extends BigInt64Array {
   static readonly TAG_BYTE: TagByte = 12;
-  static readonly TYPE = "longArray";
+  static readonly TAG_TYPE = "longArray";
 
   toJSON() {
-    return { type: LongArrayTag.TYPE, value: [...this].map(entry => `${entry}`) };
+    return { type: LongArrayTag.TAG_TYPE, value: [...this].map(entry => `${entry}`) };
   }
 }

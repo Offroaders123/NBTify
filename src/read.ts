@@ -11,14 +11,14 @@ export class Reader {
   #view = new DataView(this.#data.buffer);
 
   /**
-   * Top-level function to initiate the NBT reader on a provided Uint8Array.
+   * Top-level function to initiate the NBT reader on a provided `Uint8Array`.
   */
   read(data: Uint8Array, { endian = "big" }: { endian?: "big" | "little"; } = {}) {
     if (!(data instanceof Uint8Array)){
-      throw new Error("First argument must be a Uint8Array");
+      throw new TypeError("First argument must be a Uint8Array");
     }
     if (endian !== "big" && endian !== "little"){
-      throw new Error(`Endian option must be set to either "big" or "little"`);
+      throw new TypeError(`Endian option must be set to either "big" or "little"`);
     }
 
     this.#offset = 0;
@@ -28,11 +28,11 @@ export class Reader {
 
     const tag = this.#getTagByte();
     if (tag !== CompoundTag.TAG_BYTE){
-      throw new Error(`Encountered unsupported tag byte "${tag}"`);
+      throw new Error(`Encountered unsupported tag byte ${tag} in NBT byte stream`);
     }
 
     const name = this.#getString();
-    const value = this.#getCompoundTag({ name });
+    const value = this.#getCompoundTag(name);
 
     return value;
   }
@@ -48,23 +48,28 @@ export class Reader {
 
   /**
    * Reads the tag at the reader's current offset position, based on
-   * the supplied tag byte value. It then returns the object for that
-   * tag type.
+   * the supplied tag byte value. It then returns the constructed class
+   * for that tag type.
+   * 
+   * If a non-supported tag byte is encountered, the function will
+   * throw.
   */
   #getTag(tag: TagByte): Tag {
-    if (tag === ByteTag.TAG_BYTE) return this.#getByteTag();
-    if (tag === ShortTag.TAG_BYTE) return this.#getShortTag();
-    if (tag === IntTag.TAG_BYTE) return this.#getIntTag();
-    if (tag === LongTag.TAG_BYTE) return this.#getLongTag();
-    if (tag === FloatTag.TAG_BYTE) return this.#getFloatTag();
-    if (tag === DoubleTag.TAG_BYTE) return this.#getDoubleTag();
-    if (tag === ByteArrayTag.TAG_BYTE) return this.#getByteArrayTag();
-    if (tag === StringTag.TAG_BYTE) return this.#getStringTag();
-    if (tag === ListTag.TAG_BYTE) return this.#getListTag();
-    if (tag === CompoundTag.TAG_BYTE) return this.#getCompoundTag();
-    if (tag === IntArrayTag.TAG_BYTE) return this.#getIntArrayTag();
-    if (tag === LongArrayTag.TAG_BYTE) return this.#getLongArrayTag();
-    throw new Error(`Encountered unsupported tag byte "${tag}"`);
+    switch (tag){
+      case ByteTag.TAG_BYTE: return this.#getByteTag();
+      case ShortTag.TAG_BYTE: return this.#getShortTag();
+      case IntTag.TAG_BYTE: return this.#getIntTag();
+      case LongTag.TAG_BYTE: return this.#getLongTag();
+      case FloatTag.TAG_BYTE: return this.#getFloatTag();
+      case DoubleTag.TAG_BYTE: return this.#getDoubleTag();
+      case ByteArrayTag.TAG_BYTE: return this.#getByteArrayTag();
+      case StringTag.TAG_BYTE: return this.#getStringTag();
+      case ListTag.TAG_BYTE: return this.#getListTag();
+      case CompoundTag.TAG_BYTE: return this.#getCompoundTag();
+      case IntArrayTag.TAG_BYTE: return this.#getIntArrayTag();
+      case LongArrayTag.TAG_BYTE: return this.#getLongArrayTag();
+      default: throw new Error(`Encountered unsupported tag byte ${tag} in NBT byte stream`);
+    }
   }
 
   #getByteTag() {
@@ -112,9 +117,14 @@ export class Reader {
     return new ListTag(...value);
   }
 
-  #getCompoundTag({ name = "" } = {}) {
+  /**
+   * Optionally excepts a name string for the resulting
+   * Compound tag.
+  */
+  #getCompoundTag(name?: string) {
     const value = this.#getCompound();
-    return new CompoundTag(name,value);
+    const content = name !== undefined ? { [CompoundTag.ROOT_NAME]: name, ...value } : value;
+    return new CompoundTag(content);
   }
 
   #getIntArrayTag() {
