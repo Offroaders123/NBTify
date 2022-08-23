@@ -12,6 +12,8 @@ export class Reader {
 
   /**
    * Top-level function to initiate the NBT reader on a provided `Uint8Array`.
+   * 
+   * Defaults to reading the byte stream as big endian.
   */
   read(data: Uint8Array, { endian = "big" }: { endian?: "big" | "little"; } = {}) {
     if (!(data instanceof Uint8Array)){
