@@ -244,7 +244,8 @@ export class CompoundTag extends Map<string,Tag> {
 
   static readonly ROOT_NAME = Symbol("ROOT_NAME");
 
-  name?: string;
+  declare name?: string;
+  [metadata: string]: any;
 
   /**
    * Optionally excepts an object as the only parameter.
@@ -260,19 +261,22 @@ export class CompoundTag extends Map<string,Tag> {
    * tag if it is present.
   */
   constructor(value: { [CompoundTag.ROOT_NAME]?: string, [key: string]: Tag } = {}) {
-    for (const [key,entry] of Object.entries(value)){
+    for (const entry of Object.values(value)){
       if (!isTag(entry)){
         throw new TypeError(`CompoundTag entry values must be instances of valid tag types, instead received type ${typeof entry}`);
       }
     }
     super(Object.entries(value));
+
     const { [CompoundTag.ROOT_NAME]: name } = value;
-    name ? this.name = name : delete this.name;
+    if (name !== undefined){
+      this.name = name;
+    }
   }
 
   toJSON() {
-    const { name } = this;
-    return { ...name && ({ name }), type: CompoundTag.TAG_TYPE, value: Object.fromEntries(this) };
+    const metadata = Object.fromEntries(Object.entries(this));
+    return { ...metadata, type: CompoundTag.TAG_TYPE, value: Object.fromEntries(this) };
   }
 }
 

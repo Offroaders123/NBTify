@@ -3,12 +3,10 @@
 import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
-const data = await fs.readFile(new URL("./nbt/bigtest.nbt",import.meta.url)).then(NBT.decompress);
+const data = await fs.readFile(new URL("./nbt/bigtest.nbt",import.meta.url));
 // console.log(...data);
 
-const reader = new NBT.Reader();
-
-const result = reader.read(data);
+const result = await NBT.read(data);
 result.delete("byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...))");
 console.log(result);
 

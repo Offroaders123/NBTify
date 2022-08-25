@@ -2,9 +2,78 @@ import { Tag, TagByte, EndTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, Dou
 import { decompress } from "./compression.js";
 
 /**
+ * The user-facing function to read bytes from an NBT byte stream.
+ * 
+ * If an endian format is not specified, the function will default to
+ * reading the byte stream as big endian, then secondly attempt to
+ * parse as little endian if an error occurred for the first attemp.
+ * 
+ * If a compression format is not specified, the function will check
+ * the byte stream to see if a gzip header is present, and
+ * resultingly decompress the byte stream if so.
+*/
+export async function read(data: Uint8Array, { endian, compression }: { endian?: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; } = {}){
+  if (!(data instanceof Uint8Array)){
+    throw new TypeError(`First argument must be a Uint8Array, received type ${typeof data}`);
+  }
+  if (endian !== undefined && endian !== "big" && endian !== "little"){
+    throw new TypeError(`Endian option must be set to either "big" or "little"`);
+  }
+
+  if (endian !== undefined){
+    const metadata: { endian: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; bedrockLevel?: number; } = { endian, compression };
+
+    if (Reader.hasHeader(data,"bedrock-level") && endian !== "big"){
+      metadata.bedrockLevel = new DataView(data.buffer).getUint32(0,true);
+      data = data.slice(8);
+    }
+    if (Reader.hasHeader(data,"gzip")){
+      metadata.compression = "gzip";
+      data = await decompress(data,{ format: "gzip" });
+    }
+
+    const reader = new Reader();
+    const result = reader.read(data,{ endian });
+
+    for (const [key,value] of Object.entries(metadata)){
+      if (value === undefined) continue;
+      result[key] = value;
+    }
+
+    return result;
+  } else {
+    let result: CompoundTag;
+    try {
+      result = await read(data,{ endian: "big" });
+    } catch (error){
+      try {
+        result = await read(data,{ endian: "little" });
+      } catch {
+        throw error;
+      }
+    }
+    return result;
+  }
+}
+
+/**
  * The bare-bones implementation to read bytes from an NBT byte stream.
 */
 export class Reader {
+  static hasHeader(data: Uint8Array, kind: "bedrock-level" | "gzip") {
+    if (!(data instanceof Uint8Array)){
+      throw new TypeError(`First argument must be a Uint8Array, received type ${typeof data}`);
+    }
+    if (kind !== "bedrock-level" && kind !== "gzip"){
+      throw new TypeError(`Second argument must be set to either "bedrock-level" or "gzip"`);
+    }
+
+    switch (kind){
+      case "bedrock-level": return data.slice(1,4).join("") === "000";
+      case "gzip": return new DataView(data.buffer).getInt16(0) === 0x1f8b;
+    }
+  }
+
   #offset = 0;
   #littleEndian = false;
   #data = new Uint8Array();
@@ -17,7 +86,7 @@ export class Reader {
   */
   read(data: Uint8Array, { endian = "big" }: { endian?: "big" | "little"; } = {}) {
     if (!(data instanceof Uint8Array)){
-      throw new TypeError("First argument must be a Uint8Array");
+      throw new TypeError(`First argument must be a Uint8Array, received type ${typeof data}`);
     }
     if (endian !== "big" && endian !== "little"){
       throw new TypeError(`Endian option must be set to either "big" or "little"`);
@@ -25,7 +94,7 @@ export class Reader {
 
     this.#offset = 0;
     this.#littleEndian = (endian === "little");
-    this.#data = data;
+    this.#data = new Uint8Array(data);
     this.#view = new DataView(this.#data.buffer);
 
     const tag = this.#getTagByte();
