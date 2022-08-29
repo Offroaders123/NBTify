@@ -228,8 +228,12 @@ export class ListTag extends Array<Tag> {
   static readonly TAG_BYTE: TagByte = 9;
   static readonly TAG_TYPE = "list";
 
+  valueOf() {
+    return [...this] as Tag[];
+  }
+
   toJSON() {
-    return { type: ListTag.TAG_TYPE, value: [...this] as Tag[] };
+    return { type: ListTag.TAG_TYPE, value: this.valueOf() };
   }
 }
 
@@ -274,9 +278,13 @@ export class CompoundTag extends Map<string,Tag> {
     }
   }
 
+  valueOf() {
+    return Object.fromEntries(this);
+  }
+
   toJSON() {
     const metadata = Object.fromEntries(Object.entries(this));
-    return { ...metadata, type: CompoundTag.TAG_TYPE, value: Object.fromEntries(this) };
+    return { ...metadata, type: CompoundTag.TAG_TYPE, value: this.valueOf() };
   }
 }
 
