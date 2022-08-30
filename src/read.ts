@@ -174,7 +174,8 @@ export class Reader {
   }
 
   #getByteArrayTag() {
-    const value = this.#getUint8Array();
+    const byteLength = this.#getUint32();
+    const value = this.#getUint8Array(byteLength);
     return new ByteArrayTag(value);
   }
 
@@ -199,12 +200,14 @@ export class Reader {
   }
 
   #getIntArrayTag() {
-    const value = this.#getInt32Array();
+    const byteLength = this.#getUint32();
+    const value = this.#getInt32Array(byteLength);
     return new IntArrayTag(value);
   }
 
   #getLongArrayTag() {
-    const value = this.#getBigInt64Array();
+    const byteLength = this.#getUint32();
+    const value = this.#getBigInt64Array(byteLength);
     return new LongArrayTag(value);
   }
 
@@ -283,20 +286,18 @@ export class Reader {
   /**
    * Commonly used to read ByteArray tags.
   */
-  #getUint8Array() {
-    const length = this.#getUint32();
-    const value = this.#data.slice(this.#offset,this.#offset + length);
-    this.#offset += length;
+  #getUint8Array(byteLength: number) {
+    const value = this.#data.slice(this.#offset,this.#offset + byteLength);
+    this.#offset += byteLength;
     return value;
   }
 
   /**
    * Commonly used to read IntArray tags.
   */
-  #getInt32Array() {
-    const length = this.#getUint32();
-    const value = new Int32Array(length);
-    for (let i = 0; i < length; i++){
+  #getInt32Array(byteLength: number) {
+    const value = new Int32Array(byteLength);
+    for (const i in value){
       const entry = this.#getInt32();
       value[i] = entry;
     }
@@ -306,10 +307,9 @@ export class Reader {
   /**
    * Commonly used to read LongArray tags.
   */
-  #getBigInt64Array() {
-    const length = this.#getUint32();
-    const value = new BigInt64Array(length);
-    for (let i = 0; i < length; i++){
+  #getBigInt64Array(byteLength: number) {
+    const value = new BigInt64Array(byteLength);
+    for (const i in value){
       const entry = this.#getBigInt64();
       value[i] = entry;
     }

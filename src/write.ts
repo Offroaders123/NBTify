@@ -108,7 +108,9 @@ export class Writer {
   }
 
   #setByteArrayTag(tag: ByteArrayTag) {
+    const { byteLength } = tag;
     const value = tag.valueOf();
+    this.#setUint32(byteLength);
     this.#setUint8Array(value);
   }
 
@@ -128,12 +130,16 @@ export class Writer {
   }
 
   #setIntArrayTag(tag: IntArrayTag) {
+    const { byteLength } = tag;
     const value = tag.valueOf();
+    this.#setUint32(byteLength);
     this.#setInt32Array(value);
   }
 
   #setLongArrayTag(tag: LongArrayTag) {
+    const { byteLength } = tag;
     const value = tag.valueOf();
+    this.#setUint32(byteLength);
     this.#setBigInt64Array(value);
   }
 
@@ -168,9 +174,9 @@ export class Writer {
   }
 
   #setUint32(value: number) {
-    this.#accommodate(2);
-    this.#view.setInt16(this.#offset,value,this.#littleEndian);
-    this.#offset += 1;
+    this.#accommodate(4);
+    this.#view.setUint32(this.#offset,value,this.#littleEndian);
+    this.#offset += 4;
   }
 
   /**
@@ -214,7 +220,6 @@ export class Writer {
   */
   #setUint8Array(value: Uint8Array) {
     const { byteLength } = value;
-    this.#setUint32(byteLength);
     this.#accommodate(byteLength);
     this.#data.set(value,this.#offset);
     this.#offset += byteLength;
@@ -224,19 +229,15 @@ export class Writer {
    * Commonly used to write IntArray tags.
   */
   #setInt32Array(value: Int32Array) {
-    const { byteLength } = value;
-    this.#setUint32(byteLength);
-    this.#accommodate(byteLength);
-    this.#data.set(value,this.#offset);
-    this.#offset += byteLength;
+    for (const entry of value){
+      this.#setInt32(entry);
+    }
   }
 
   /**
    * Commonly used to write LongArray tags.
   */
   #setBigInt64Array(value: BigInt64Array) {
-    const { byteLength } = value;
-    this.#setUint32(byteLength);
     for (const entry of value){
       this.#setBigInt64(entry);
     }
