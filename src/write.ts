@@ -11,6 +11,11 @@ export class Writer {
   #view = new DataView(this.#buffer);
   #data = new Uint8Array(this.#buffer);
 
+  /**
+   * Top-level function to initiate the NBT writer on a provided `CompoundTag`.
+   * 
+   * Defaults to writing the byte stream as big endian.
+  */
   write(data: CompoundTag, { endian = "big" }: { endian?: "big" | "little"; } = {}) {
     if (!(data instanceof CompoundTag)){
       throw new TypeError(`First argument must be a CompoundTag, received type ${typeof data}`);
@@ -34,6 +39,10 @@ export class Writer {
     return new Uint8Array(result);
   }
 
+  /**
+   * Increases the byte length of the byte stream to the minimum
+   * length that will be able to hold the length passed in.
+  */
   #accommodate(size: number) {
     const required = this.#offset + size;
     const { byteLength } = this.#buffer;
@@ -56,10 +65,16 @@ export class Writer {
     this.#data = data;
   }
 
+  /**
+   * Writes the tag byte value at the writer's current offset position.
+  */
   #setTagByte(value: TagByte) {
     this.#setUint8(value);
   }
 
+  /**
+   * Writes the tag at the reader's current offset position.
+  */
   #setTag(tag: Tag) {
     switch (true){
       case tag instanceof ByteTag: return this.#setByteTag(tag as ByteTag);
