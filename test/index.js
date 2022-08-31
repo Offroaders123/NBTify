@@ -23,8 +23,7 @@ console.log(result);
 // mojang.set("noice",new NBT.LongTag(10));
 // console.log(mojang);
 
-const writer = new NBT.Writer();
-const composed = writer.write(result);
+const composed = await NBT.write(result);
 // console.log(...Buffer.from(composed));
 
 const result2 = await NBT.read(composed);

@@ -2,14 +2,41 @@ import { Tag, TagByte, EndTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, Dou
 import { compress } from "./compression.js";
 
 /**
+ * The user-facing function to write bytes to an NBT byte stream.
+ * 
+ * If an endian format is not specified, the function will default to
+ * writing the byte stream as big endian.
+ * 
+ * If a compression format format is not specified, the function will
+ * return the raw uncompressed byte stream, as is.
+*/
+export async function write(data: CompoundTag, { endian = "big", format }: { endian?: "big" | "little"; format?: "gzip" | "deflate" | "deflate-raw"; } = {}){
+  if (!(data instanceof CompoundTag)){
+    throw new TypeError(`First argument must be a CompoundTag, received ${typeof data}`);
+  }
+  if (endian !== "big" && endian !== "little"){
+    throw new TypeError(`Endian option must be set to either "big" or "little"`);
+  }
+
+  const writer = new Writer();
+  let result = writer.write(data,{ endian });
+
+  if (format !== undefined){
+    result = await compress(result,{ format });
+  }
+
+  return result;
+}
+
+/**
  * The bare-bones implementation to write data to an NBT byte stream.
 */
 export class Writer {
   #offset = 0;
   #littleEndian = false;
   #buffer = new ArrayBuffer(1024);
-  #view = new DataView(this.#buffer);
   #data = new Uint8Array(this.#buffer);
+  #view = new DataView(this.#buffer);
 
   /**
    * Top-level function to initiate the NBT writer on a provided `CompoundTag`.
@@ -26,6 +53,9 @@ export class Writer {
 
     this.#offset = 0;
     this.#littleEndian = (endian === "little");
+    this.#buffer = new ArrayBuffer(1024);
+    this.#data = new Uint8Array(this.#buffer);
+    this.#view = new DataView(this.#buffer);
 
     const { name } = data;
     const value = data.valueOf();

@@ -6,7 +6,7 @@ import { decompress } from "./compression.js";
  * 
  * If an endian format is not specified, the function will default to
  * reading the byte stream as big endian, then secondly attempt to
- * parse as little endian if an error occurred for the first attemp.
+ * parse as little endian if an error occurred for the first attempt.
  * 
  * If a compression format is not specified, the function will check
  * the byte stream to see if a gzip header is present, and
