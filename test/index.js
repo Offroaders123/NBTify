@@ -1,7 +1,7 @@
 // @ts-check
 
 import * as fs from "node:fs/promises";
-import * as NBT from "../dist/index.js";
+import * as NBT from "../src/index.js";
 
 const data = Buffer.from(await fs.readFile(new URL("./nbt/bigtest.nbt",import.meta.url)).then(NBT.decompress));
 // console.log(...data,"\n");
@@ -28,3 +28,6 @@ const composed = await NBT.write(result);
 
 const result2 = await NBT.read(composed);
 console.log(result2);
+
+const noice = JSON.stringify(new NBT.ByteArrayTag([10,10,10,10,10,0]));
+console.log(noice);

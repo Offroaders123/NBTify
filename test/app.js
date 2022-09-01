@@ -1,6 +1,6 @@
 // @ts-check
 
-import * as NBT from "../dist/index.js";
+import * as NBT from "../src/index.js";
 
 globalThis.NBT = NBT;
 

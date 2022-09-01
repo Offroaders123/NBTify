@@ -1,10 +1,15 @@
-export type Tag = EndTag | ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag;
-export type TagByte = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+/**
+ * @typedef { EndTag | ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag } Tag
+ * @typedef { 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 } TagByte
+*/
 
 /**
  * Returns whether a provided value is an instance of a tag class.
+ * 
+ * @param { any } [arg]
+ * @returns { arg is Tag }
 */
-export function isTag(arg?: any): arg is Tag {
+export function isTag(arg) {
   switch (true){
     case arg instanceof EndTag:
     case arg instanceof ByteTag:
@@ -29,8 +34,10 @@ export function isTag(arg?: any): arg is Tag {
  * Primitive wrapper object for the NBT `TAG_End` type.
 */
 export class EndTag {
-  static readonly TAG_BYTE: TagByte = 0;
-  static readonly TAG_TYPE = "end";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 0;
+  /** @readonly */
+  static TAG_TYPE = "end";
 
   toJSON() {
     return { type: EndTag.TAG_TYPE };
@@ -43,13 +50,18 @@ export class EndTag {
  * Inherits from the built-in `Number` object.
 */
 export class ByteTag extends Number {
-  static readonly MAX_VALUE = 128;
-  static readonly MIN_VALUE = -127;
+  /** @readonly */
+  static MAX_VALUE = 128;
+  /** @readonly */
+  static MIN_VALUE = -127;
 
-  static readonly TAG_BYTE: TagByte = 1;
-  static readonly TAG_TYPE = "byte";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 1;
+  /** @readonly */
+  static TAG_TYPE = "byte";
 
-  constructor(value?: any) {
+  /** @param { any } [value] */
+  constructor(value) {
     if (value < ByteTag.MIN_VALUE || value > ByteTag.MAX_VALUE){
       throw new RangeError(`ByteTag value must be between ${ByteTag.MIN_VALUE} and ${ByteTag.MAX_VALUE}`);
     }
@@ -67,13 +79,18 @@ export class ByteTag extends Number {
  * Inherits from the built-in `Number` object.
 */
 export class ShortTag extends Number {
-  static readonly MAX_VALUE = 32767;
-  static readonly MIN_VALUE = -32768;
+  /** @readonly */
+  static MAX_VALUE = 32767;
+  /** @readonly */
+  static MIN_VALUE = -32768;
 
-  static readonly TAG_BYTE: TagByte = 2;
-  static readonly TAG_TYPE = "short";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 2;
+  /** @readonly */
+  static TAG_TYPE = "short";
 
-  constructor(value?: any) {
+  /** @param { any } [value] */
+  constructor(value) {
     if (value < ShortTag.MIN_VALUE || value > ShortTag.MAX_VALUE){
       throw new RangeError(`ShortTag value must be between ${ShortTag.MIN_VALUE} and ${ShortTag.MAX_VALUE}`);
     }
@@ -91,13 +108,18 @@ export class ShortTag extends Number {
  * Inherits from the built-in `Number` object.
 */
 export class IntTag extends Number {
-  static readonly MAX_VALUE = 2147483647;
-  static readonly MIN_VALUE = -2147483648;
+  /** @readonly */
+  static MAX_VALUE = 2147483647;
+  /** @readonly */
+  static MIN_VALUE = -2147483648;
 
-  static readonly TAG_BYTE: TagByte = 3;
-  static readonly TAG_TYPE = "int";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 3;
+  /** @readonly */
+  static TAG_TYPE = "int";
 
-  constructor(value?: any) {
+  /** @param { any } [value] */
+  constructor(value) {
     if (value < IntTag.MIN_VALUE || value > IntTag.MAX_VALUE){
       throw new RangeError(`IntTag value must be between ${IntTag.MIN_VALUE} and ${IntTag.MAX_VALUE}`);
     }
@@ -118,8 +140,10 @@ export class IntTag extends Number {
  * because `BigInt` isn't a constructor.
 */
 export class LongTag {
-  static readonly TAG_BYTE: TagByte = 4;
-  static readonly TAG_TYPE = "long";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 4;
+  /** @readonly */
+  static TAG_TYPE = "long";
 
   #value;
 
@@ -131,10 +155,13 @@ export class LongTag {
    * the console, as a placeholder for being unable to inherit
    * the `BigInt` object. Use `valueOf()` to access the value
    * instead.
+   * 
+   * @readonly
   */
-  readonly value;
+  value;
 
-  constructor(value: string | number | bigint | boolean) {
+  /** @param { string | number | bigint | boolean } value */
+  constructor(value) {
     this.#value = BigInt(value);
     this.value = this.#value;
 
@@ -159,13 +186,18 @@ export class LongTag {
  * Inherits from the built-in `Number` object.
 */
 export class FloatTag extends Number {
-  static readonly MAX_VALUE = 3.4e+38;
-  static readonly MIN_VALUE = -3.4e+38;
+  /** @readonly */
+  static MAX_VALUE = 3.4e+38;
+  /** @readonly */
+  static MIN_VALUE = -3.4e+38;
 
-  static readonly TAG_BYTE: TagByte = 5;
-  static readonly TAG_TYPE = "float";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 5;
+  /** @readonly */
+  static TAG_TYPE = "float";
 
-  constructor(value?: any) {
+  /** @param { any } [value] */
+  constructor(value) {
     if (value < FloatTag.MIN_VALUE || value > FloatTag.MAX_VALUE){
       throw new RangeError(`FloatTag value must be between ${FloatTag.MIN_VALUE} and ${FloatTag.MAX_VALUE}`);
     }
@@ -183,8 +215,10 @@ export class FloatTag extends Number {
  * Inherits from the built-in `Number` object.
 */
 export class DoubleTag extends Number {
-  static readonly TAG_BYTE: TagByte = 6;
-  static readonly TAG_TYPE = "double";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 6;
+  /** @readonly */
+  static TAG_TYPE = "double";
 
   toJSON() {
     return { type: DoubleTag.TAG_TYPE, value: this.valueOf() };
@@ -197,8 +231,10 @@ export class DoubleTag extends Number {
  * Inherits from the built-in `Uint8Array` object.
 */
 export class ByteArrayTag extends Uint8Array {
-  static readonly TAG_BYTE: TagByte = 7;
-  static readonly TAG_TYPE = "byteArray";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 7;
+  /** @readonly */
+  static TAG_TYPE = "byteArray";
 
   toJSON() {
     return { type: ByteArrayTag.TAG_TYPE, value: [...this] };
@@ -211,8 +247,10 @@ export class ByteArrayTag extends Uint8Array {
  * Inherits from the built-in `String` object.
 */
 export class StringTag extends String {
-  static readonly TAG_BYTE: TagByte = 8;
-  static readonly TAG_TYPE = "string";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 8;
+  /** @readonly */
+  static TAG_TYPE = "string";
 
   toJSON() {
     return { type: StringTag.TAG_TYPE, value: this.valueOf() };
@@ -223,13 +261,17 @@ export class StringTag extends String {
  * Primitive wrapper object for the NBT `TAG_List` type.
  * 
  * Inherits from the built-in `Array` object.
+ * 
+ * @type { Array<Tag> }
 */
-export class ListTag extends Array<Tag> {
-  static readonly TAG_BYTE: TagByte = 9;
-  static readonly TAG_TYPE = "list";
+export class ListTag extends Array {
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 9;
+  /** @readonly */
+  static TAG_TYPE = "list";
 
   valueOf() {
-    return [...this] as Tag[];
+    return /** @type { Tag[] } */ ([...this]);
   }
 
   toJSON() {
@@ -241,15 +283,17 @@ export class ListTag extends Array<Tag> {
  * Primitive wrapper object for the NBT `TAG_Compound` type.
  * 
  * Inherits from the built-in `Map` object.
+ * 
+ * @type { Map<string,Tag> }
 */
-export class CompoundTag extends Map<string,Tag> {
-  static readonly TAG_BYTE: TagByte = 10;
-  static readonly TAG_TYPE = "compound";
+export class CompoundTag extends Map {
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 10;
+  /** @readonly */
+  static TAG_TYPE = "compound";
 
-  static readonly ROOT_NAME = Symbol("ROOT_NAME");
-
-  declare name?: string;
-  [metadata: string]: any;
+  /** @readonly */
+  static ROOT_NAME = Symbol("ROOT_NAME");
 
   /**
    * Optionally excepts an object as the only parameter.
@@ -263,8 +307,10 @@ export class CompoundTag extends Map<string,Tag> {
    * Also optionally accepts a name string for the `CompoundTag` using the `Symbol`
    * key `[CompoundTag.ROOT_NAME]`. Note that this will only be used for the root
    * tag if it is present.
+   * 
+   * @param { { [CompoundTag.ROOT_NAME]?: string, [key: string]: Tag } } [value]
   */
-  constructor(value: { [CompoundTag.ROOT_NAME]?: string, [key: string]: Tag } = {}) {
+  constructor(value = {}) {
     for (const entry of Object.values(value)){
       if (!isTag(entry)){
         throw new TypeError(`CompoundTag entry values must be instances of valid tag types, instead received type ${typeof entry}`);
@@ -274,6 +320,7 @@ export class CompoundTag extends Map<string,Tag> {
 
     const { [CompoundTag.ROOT_NAME]: name } = value;
     if (name !== undefined){
+      /** @type { string | undefined } */
       this.name = name;
     }
   }
@@ -294,8 +341,10 @@ export class CompoundTag extends Map<string,Tag> {
  * Inherits from the built-in `Int32Array` object.
 */
 export class IntArrayTag extends Int32Array {
-  static readonly TAG_BYTE: TagByte = 11;
-  static readonly TAG_TYPE = "intArray";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 11;
+  /** @readonly */
+  static TAG_TYPE = "intArray";
 
   toJSON() {
     return { type: IntArrayTag.TAG_TYPE, value: [...this] };
@@ -308,8 +357,10 @@ export class IntArrayTag extends Int32Array {
  * Inherits from the built-in `BigInt64Array` object.
 */
 export class LongArrayTag extends BigInt64Array {
-  static readonly TAG_BYTE: TagByte = 12;
-  static readonly TAG_TYPE = "longArray";
+  /** @type { TagByte } @readonly */
+  static TAG_BYTE = 12;
+  /** @readonly */
+  static TAG_TYPE = "longArray";
 
   toJSON() {
     return { type: LongArrayTag.TAG_TYPE, value: [...this].map(entry => `${entry}`) };

@@ -1,4 +1,9 @@
-import { Tag, TagByte, EndTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tags.js";
+/**
+ * @typedef { import("./tags.js").Tag } Tag
+ * @typedef { import("./tags.js").TagByte } TagByte
+*/
+
+import { EndTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tags.js";
 import { compress } from "./compression.js";
 
 /**
@@ -9,8 +14,11 @@ import { compress } from "./compression.js";
  * 
  * If a compression format format is not specified, the function will
  * return the raw uncompressed byte stream, as is.
+ * 
+ * @param { CompoundTag } data
+ * @param { { endian?: "big" | "little"; format?: "gzip" | "deflate" | "deflate-raw"; } } [options]
 */
-export async function write(data: CompoundTag, { endian = "big", format }: { endian?: "big" | "little"; format?: "gzip" | "deflate" | "deflate-raw"; } = {}){
+export async function write(data,{ endian = "big", format } = {}){
   if (!(data instanceof CompoundTag)){
     throw new TypeError(`First argument must be a CompoundTag, received ${typeof data}`);
   }
@@ -42,8 +50,11 @@ export class Writer {
    * Top-level function to initiate the NBT writer on a provided `CompoundTag`.
    * 
    * Defaults to writing the byte stream as big endian.
+   * 
+   * @param { CompoundTag } data
+   * @param { { endian?: "big" | "little"; } } [options]
   */
-  write(data: CompoundTag, { endian = "big" }: { endian?: "big" | "little"; } = {}) {
+  write(data,{ endian = "big" } = {}) {
     if (!(data instanceof CompoundTag)){
       throw new TypeError(`First argument must be a CompoundTag, received type ${typeof data}`);
     }
@@ -72,8 +83,10 @@ export class Writer {
   /**
    * Increases the byte length of the byte stream to the minimum
    * length that will be able to hold the length passed in.
+   * 
+   * @param { number } size
   */
-  #accommodate(size: number) {
+  #accommodate(size) {
     const required = this.#offset + size;
     const { byteLength } = this.#buffer;
     if (byteLength >= required) return;
@@ -97,98 +110,115 @@ export class Writer {
 
   /**
    * Writes the tag byte value at the writer's current offset position.
+   * 
+   * @param { TagByte } value
   */
-  #setTagByte(value: TagByte) {
+  #setTagByte(value) {
     this.#setUint8(value);
   }
 
   /**
    * Writes the tag at the reader's current offset position.
+   * 
+   * @param { Tag } tag
   */
-  #setTag(tag: Tag) {
+  #setTag(tag) {
     switch (true){
-      case tag instanceof ByteTag: return this.#setByteTag(tag as ByteTag);
-      case tag instanceof ShortTag: return this.#setShortTag(tag as ShortTag);
-      case tag instanceof IntTag: return this.#setIntTag(tag as IntTag);
-      case tag instanceof LongTag: return this.#setLongTag(tag as LongTag);
-      case tag instanceof FloatTag: return this.#setFloatTag(tag as FloatTag);
-      case tag instanceof DoubleTag: return this.#setDoubleTag(tag as DoubleTag);
-      case tag instanceof ByteArrayTag: return this.#setByteArrayTag(tag as ByteArrayTag);
-      case tag instanceof StringTag: return this.#setStringTag(tag as StringTag);
-      case tag instanceof ListTag: return this.#setListTag(tag as ListTag);
-      case tag instanceof CompoundTag: return this.#setCompoundTag(tag as CompoundTag);
-      case tag instanceof IntArrayTag: return this.#setIntArrayTag(tag as IntArrayTag);
-      case tag instanceof LongArrayTag: return this.#setLongArrayTag(tag as LongArrayTag);
+      case tag instanceof ByteTag: return this.#setByteTag(/** @type { ByteTag } */ (tag));
+      case tag instanceof ShortTag: return this.#setShortTag(/** @type { ShortTag } */ (tag));
+      case tag instanceof IntTag: return this.#setIntTag(/** @type { IntTag } */ (tag));
+      case tag instanceof LongTag: return this.#setLongTag(/** @type { LongTag } */ (tag));
+      case tag instanceof FloatTag: return this.#setFloatTag(/** @type { FloatTag } */ (tag));
+      case tag instanceof DoubleTag: return this.#setDoubleTag(/** @type { DoubleTag } */ (tag));
+      case tag instanceof ByteArrayTag: return this.#setByteArrayTag(/** @type { ByteArrayTag } */ (tag));
+      case tag instanceof StringTag: return this.#setStringTag(/** @type { StringTag } */ (tag));
+      case tag instanceof ListTag: return this.#setListTag(/** @type { ListTag } */ (tag));
+      case tag instanceof CompoundTag: return this.#setCompoundTag(/** @type { CompoundTag } */ (tag));
+      case tag instanceof IntArrayTag: return this.#setIntArrayTag(/** @type { IntArrayTag } */ (tag));
+      case tag instanceof LongArrayTag: return this.#setLongArrayTag(/** @type { LongArrayTag } */ (tag));
     }
   }
 
-  #setByteTag(tag: ByteTag) {
+  /** @param { ByteTag } tag */
+  #setByteTag(tag) {
     const value = tag.valueOf();
     this.#setInt8(value);
   }
   
-  #setShortTag(tag: ShortTag) {
+  /** @param { ShortTag } tag */
+  #setShortTag(tag) {
     const value = tag.valueOf();
     this.#setInt16(value);
   }
   
-  #setIntTag(tag: IntTag) {
+  /** @param { IntTag } tag */
+  #setIntTag(tag) {
     const value = tag.valueOf();
     this.#setInt32(value);
   }
 
-  #setLongTag(tag: LongTag) {
+  /** @param { LongTag } tag */
+  #setLongTag(tag) {
     const value = tag.valueOf();
     this.#setBigInt64(value);
   }
   
-  #setFloatTag(tag: FloatTag) {
+  /** @param { FloatTag } tag */
+  #setFloatTag(tag) {
     const value = tag.valueOf();
     this.#setFloat32(value);
   }
 
-  #setDoubleTag(tag: DoubleTag) {
+  /** @param { DoubleTag } tag */
+  #setDoubleTag(tag) {
     const value = tag.valueOf();
     this.#setFloat64(value);
   }
 
-  #setByteArrayTag(tag: ByteArrayTag) {
+  /** @param { ByteArrayTag } tag */
+  #setByteArrayTag(tag) {
     const { byteLength } = tag;
     const value = tag.valueOf();
     this.#setUint32(byteLength);
     this.#setUint8Array(value);
   }
 
-  #setStringTag(tag: StringTag) {
+  /** @param { StringTag } tag */
+  #setStringTag(tag) {
     const value = tag.valueOf();
     this.#setString(value);
   }
 
-  #setListTag(tag: ListTag) {
+  /** @param { ListTag } tag */
+  #setListTag(tag) {
     const value = tag.valueOf();
     this.#setList(value);
   }
 
-  #setCompoundTag(tag: CompoundTag) {
+  /** @param { CompoundTag } tag */
+  #setCompoundTag(tag) {
     const value = tag.valueOf();
     this.#setCompound(value);
   }
 
-  #setIntArrayTag(tag: IntArrayTag) {
+  /** @param { IntArrayTag } tag */
+  #setIntArrayTag(tag) {
     const { byteLength } = tag;
     const value = tag.valueOf();
     this.#setUint32(byteLength);
     this.#setInt32Array(value);
   }
 
-  #setLongArrayTag(tag: LongArrayTag) {
+  /** @param { LongArrayTag } tag */
+  #setLongArrayTag(tag) {
     const { byteLength } = tag;
     const value = tag.valueOf();
     this.#setUint32(byteLength);
     this.#setBigInt64Array(value);
   }
 
-  #setUint8(value: number) {
+  /** @param { number } value */
+  #setUint8(value) {
     this.#accommodate(1);
     this.#view.setUint8(this.#offset,value);
     this.#offset += 1;
@@ -196,14 +226,17 @@ export class Writer {
 
   /**
    * Commonly used to write Byte tags.
+   * 
+   * @param { number } value
   */
-  #setInt8(value: number) {
+  #setInt8(value) {
     this.#accommodate(1);
     this.#view.setInt8(this.#offset,value);
     this.#offset += 1;
   }
 
-  #setUint16(value: number) {
+  /** @param { number } value */
+  #setUint16(value) {
     this.#accommodate(2);
     this.#view.setUint16(this.#offset,value,this.#littleEndian);
     this.#offset += 2;
@@ -211,14 +244,17 @@ export class Writer {
 
   /**
    * Commonly used to write Short tags.
+   * 
+   * @param { number } value
   */
-  #setInt16(value: number) {
+  #setInt16(value) {
     this.#accommodate(2);
     this.#view.setInt16(this.#offset,value,this.#littleEndian);
     this.#offset += 2;
   }
 
-  #setUint32(value: number) {
+  /** @param { number } value */
+  #setUint32(value) {
     this.#accommodate(4);
     this.#view.setUint32(this.#offset,value,this.#littleEndian);
     this.#offset += 4;
@@ -226,8 +262,10 @@ export class Writer {
 
   /**
    * Commonly used to write Int tags.
+   * 
+   * @param { number } value
   */
-  #setInt32(value: number) {
+  #setInt32(value) {
     this.#accommodate(4);
     this.#view.setInt32(this.#offset,value,this.#littleEndian);
     this.#offset += 4;
@@ -235,8 +273,10 @@ export class Writer {
 
   /**
    * Commonly used to write Float tags.
+   * 
+   * @param { number } value
   */
-  #setFloat32(value: number) {
+  #setFloat32(value) {
     this.#accommodate(4);
     this.#view.setFloat32(this.#offset,value,this.#littleEndian);
     this.#offset += 4;
@@ -244,8 +284,10 @@ export class Writer {
 
   /**
    * Commonly used to write Double tags.
+   * 
+   * @param { number } value
   */
-  #setFloat64(value: number) {
+  #setFloat64(value) {
     this.#accommodate(8);
     this.#view.setFloat64(this.#offset,value,this.#littleEndian);
     this.#offset += 8;
@@ -253,8 +295,10 @@ export class Writer {
 
   /**
    * Commonly used to read Long tags.
+   * 
+   * @param { bigint } value
   */
-  #setBigInt64(value: bigint) {
+  #setBigInt64(value) {
     this.#accommodate(8);
     this.#view.setBigInt64(this.#offset,value,this.#littleEndian);
     this.#offset += 8;
@@ -262,8 +306,10 @@ export class Writer {
 
   /**
    * Commonly used to write ByteArray tags.
+   * 
+   * @param { Uint8Array } value
   */
-  #setUint8Array(value: Uint8Array) {
+  #setUint8Array(value) {
     const { byteLength } = value;
     this.#accommodate(byteLength);
     this.#data.set(value,this.#offset);
@@ -272,8 +318,10 @@ export class Writer {
 
   /**
    * Commonly used to write IntArray tags.
+   * 
+   * @param { Int32Array } value
   */
-  #setInt32Array(value: Int32Array) {
+  #setInt32Array(value) {
     for (const entry of value){
       this.#setInt32(entry);
     }
@@ -281,8 +329,10 @@ export class Writer {
 
   /**
    * Commonly used to write LongArray tags.
+   * 
+   * @param { BigInt64Array } value
   */
-  #setBigInt64Array(value: BigInt64Array) {
+  #setBigInt64Array(value) {
     for (const entry of value){
       this.#setBigInt64(entry);
     }
@@ -290,8 +340,10 @@ export class Writer {
 
   /**
    * Commonly used to write String tags.
+   * 
+   * @param { string } value
   */
-  #setString(value: string) {
+  #setString(value) {
     const entry = new TextEncoder().encode(value);
     const { length } = entry;
     this.#setUint16(length);
@@ -302,8 +354,10 @@ export class Writer {
 
   /**
    * Exclusively used to write List tags.
+   * 
+   * @param { Tag[] } value
   */
-  #setList(value: Tag[]) {
+  #setList(value) {
     const tag = value[0].constructor.TAG_BYTE;
     const { length } = value;
     this.#setTagByte(tag);
@@ -315,8 +369,10 @@ export class Writer {
 
   /**
    * Exclusively used to write Compound tags.
+   * 
+   * @param { { [name: string]: Tag } } value
   */
-  #setCompound(value: { [name: string]: Tag }) {
+  #setCompound(value) {
     for (const [name,entry] of Object.entries(value)){
       const tag = entry.constructor.TAG_BYTE;
       this.#setTagByte(tag);

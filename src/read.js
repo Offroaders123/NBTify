@@ -1,4 +1,9 @@
-import { Tag, TagByte, EndTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tags.js";
+/**
+ * @typedef { import("./tags.js").Tag } Tag
+ * @typedef { import("./tags.js").TagByte } TagByte
+*/
+
+import { EndTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tags.js";
 import { decompress } from "./compression.js";
 
 /**
@@ -11,8 +16,11 @@ import { decompress } from "./compression.js";
  * If a compression format is not specified, the function will check
  * the byte stream to see if a gzip header is present, and
  * resultingly decompress the byte stream if so.
+ * 
+ * @param { Uint8Array } data
+ * @param { { endian?: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; } } [options]
 */
-export async function read(data: Uint8Array, { endian, compression }: { endian?: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; } = {}){
+export async function read(data,{ endian, compression } = {}){
   if (!(data instanceof Uint8Array)){
     throw new TypeError(`First argument must be a Uint8Array, received type ${typeof data}`);
   }
@@ -21,7 +29,8 @@ export async function read(data: Uint8Array, { endian, compression }: { endian?:
   }
 
   if (endian !== undefined){
-    const metadata: { endian: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; bedrockLevel?: number; } = { endian, compression };
+    /** @type { { endian: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; bedrockLevel?: number; } } */
+    const metadata = { endian, compression };
 
     if (Reader.hasHeader(data,"bedrock-level") && endian !== "big"){
       metadata.bedrockLevel = new DataView(data.buffer).getUint32(0,true);
@@ -42,7 +51,8 @@ export async function read(data: Uint8Array, { endian, compression }: { endian?:
 
     return result;
   } else {
-    let result: CompoundTag;
+    /** @type { CompoundTag } */
+    let result;
     try {
       result = await read(data,{ endian: "big" });
     } catch (error){
@@ -60,7 +70,11 @@ export async function read(data: Uint8Array, { endian, compression }: { endian?:
  * The bare-bones implementation to read bytes from an NBT byte stream.
 */
 export class Reader {
-  static hasHeader(data: Uint8Array, kind: "bedrock-level" | "gzip") {
+  /**
+   * @param { Uint8Array } data
+   * @param { "bedrock-level" | "gzip" } kind
+  */
+  static hasHeader(data,kind) {
     if (!(data instanceof Uint8Array)){
       throw new TypeError(`First argument must be a Uint8Array, received type ${typeof data}`);
     }
@@ -83,8 +97,11 @@ export class Reader {
    * Top-level function to initiate the NBT reader on a provided `Uint8Array`.
    * 
    * Defaults to reading the byte stream as big endian.
+   * 
+   * @param { Uint8Array } data
+   * @param { { endian?: "big" | "little"; } } [options]
   */
-  read(data: Uint8Array, { endian = "big" }: { endian?: "big" | "little"; } = {}) {
+  read(data,{ endian = "big" } = {}) {
     if (!(data instanceof Uint8Array)){
       throw new TypeError(`First argument must be a Uint8Array, received type ${typeof data}`);
     }
@@ -113,7 +130,7 @@ export class Reader {
    * It then returns the byte value from that position.
   */
   #getTagByte() {
-    const value = this.#getUint8() as TagByte;
+    const value = /** @type { TagByte } */ (this.#getUint8());
     return value;
   }
 
@@ -124,8 +141,11 @@ export class Reader {
    * 
    * If a non-supported tag byte is encountered, the function will
    * throw.
+   * 
+   * @param { TagByte } tag
+   * @returns { Tag }
   */
-  #getTag(tag: TagByte): Tag {
+  #getTag(tag) {
     switch (tag){
       case ByteTag.TAG_BYTE: return this.#getByteTag();
       case ShortTag.TAG_BYTE: return this.#getShortTag();
@@ -192,8 +212,10 @@ export class Reader {
   /**
    * Optionally excepts a name string for the resulting
    * Compound tag.
+   * 
+   * @param { string } [name]
   */
-  #getCompoundTag(name?: string) {
+  #getCompoundTag(name) {
     const value = this.#getCompound();
     const content = name !== undefined ? { [CompoundTag.ROOT_NAME]: name, ...value } : value;
     return new CompoundTag(content);
@@ -285,8 +307,10 @@ export class Reader {
 
   /**
    * Commonly used to read ByteArray tags.
+   * 
+   * @param { number } byteLength
   */
-  #getUint8Array(byteLength: number) {
+  #getUint8Array(byteLength) {
     const value = this.#data.slice(this.#offset,this.#offset + byteLength);
     this.#offset += byteLength;
     return value;
@@ -294,8 +318,10 @@ export class Reader {
 
   /**
    * Commonly used to read IntArray tags.
+   * 
+   * @param { number } byteLength
   */
-  #getInt32Array(byteLength: number) {
+  #getInt32Array(byteLength) {
     const value = new Int32Array(byteLength);
     for (const i in value){
       const entry = this.#getInt32();
@@ -306,8 +332,10 @@ export class Reader {
 
   /**
    * Commonly used to read LongArray tags.
+   * 
+   * @param { number } byteLength
   */
-  #getBigInt64Array(byteLength: number) {
+  #getBigInt64Array(byteLength) {
     const value = new BigInt64Array(byteLength);
     for (const i in value){
       const entry = this.#getBigInt64();
@@ -332,7 +360,7 @@ export class Reader {
   #getList() {
     const tag = this.#getTagByte();
     const length = this.#getUint32();
-    const value: Tag[] = [];
+    const value = /** @type { Tag[] } */ ([]);
     for (let i = 0; i < length; i++){
       const entry = this.#getTag(tag);
       value.push(entry);
@@ -344,7 +372,7 @@ export class Reader {
    * Exclusively used to read Compound tags.
   */
   #getCompound() {
-    const value: { [name: string]: Tag } = {};
+    const value = /** @type { { [name: string]: Tag } } */ ({});
     while (true){
       const tag = this.#getTagByte();
       if (tag === EndTag.TAG_BYTE) break;
