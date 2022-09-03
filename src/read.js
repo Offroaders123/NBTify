@@ -18,7 +18,7 @@ import { decompress } from "./compression.js";
  * resultingly decompress the byte stream if so.
  * 
  * @param { Uint8Array } data
- * @param { { endian?: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; } } [options]
+ * @param { { endian?: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; } | undefined } options
 */
 export async function read(data,{ endian, compression } = {}){
   if (!(data instanceof Uint8Array)){
@@ -99,7 +99,7 @@ export class Reader {
    * Defaults to reading the byte stream as big endian.
    * 
    * @param { Uint8Array } data
-   * @param { { endian?: "big" | "little"; } } [options]
+   * @param { { endian?: "big" | "little"; } | undefined } options
   */
   read(data,{ endian = "big" } = {}) {
     if (!(data instanceof Uint8Array)){

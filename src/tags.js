@@ -261,8 +261,6 @@ export class StringTag extends String {
  * Primitive wrapper object for the NBT `TAG_List` type.
  * 
  * Inherits from the built-in `Array` object.
- * 
- * @type { Array<Tag> }
 */
 export class ListTag extends Array {
   /** @type { TagByte } @readonly */
@@ -283,8 +281,6 @@ export class ListTag extends Array {
  * Primitive wrapper object for the NBT `TAG_Compound` type.
  * 
  * Inherits from the built-in `Map` object.
- * 
- * @type { Map<string,Tag> }
 */
 export class CompoundTag extends Map {
   /** @type { TagByte } @readonly */
@@ -308,7 +304,7 @@ export class CompoundTag extends Map {
    * key `[CompoundTag.ROOT_NAME]`. Note that this will only be used for the root
    * tag if it is present.
    * 
-   * @param { { [CompoundTag.ROOT_NAME]?: string, [key: string]: Tag } } [value]
+   * @param { { [CompoundTag.ROOT_NAME]?: string, [name: string]: Tag } } [value]
   */
   constructor(value = {}) {
     for (const entry of Object.values(value)){
@@ -326,7 +322,7 @@ export class CompoundTag extends Map {
   }
 
   valueOf() {
-    return Object.fromEntries(this);
+    return /** @type { { [name: string]: Tag } } */ (Object.fromEntries(this));
   }
 
   toJSON() {

@@ -16,7 +16,7 @@ import { compress } from "./compression.js";
  * return the raw uncompressed byte stream, as is.
  * 
  * @param { CompoundTag } data
- * @param { { endian?: "big" | "little"; format?: "gzip" | "deflate" | "deflate-raw"; } } [options]
+ * @param { { endian?: "big" | "little"; format?: "gzip" | "deflate" | "deflate-raw"; } | undefined } options
 */
 export async function write(data,{ endian = "big", format } = {}){
   if (!(data instanceof CompoundTag)){
@@ -52,7 +52,7 @@ export class Writer {
    * Defaults to writing the byte stream as big endian.
    * 
    * @param { CompoundTag } data
-   * @param { { endian?: "big" | "little"; } } [options]
+   * @param { { endian?: "big" | "little"; } | undefined } options
   */
   write(data,{ endian = "big" } = {}) {
     if (!(data instanceof CompoundTag)){
@@ -139,43 +139,57 @@ export class Writer {
     }
   }
 
-  /** @param { ByteTag } tag */
+  /**
+   * @param { ByteTag } tag
+  */
   #setByteTag(tag) {
     const value = tag.valueOf();
     this.#setInt8(value);
   }
   
-  /** @param { ShortTag } tag */
+  /**
+   * @param { ShortTag } tag
+  */
   #setShortTag(tag) {
     const value = tag.valueOf();
     this.#setInt16(value);
   }
   
-  /** @param { IntTag } tag */
+  /**
+   * @param { IntTag } tag
+  */
   #setIntTag(tag) {
     const value = tag.valueOf();
     this.#setInt32(value);
   }
 
-  /** @param { LongTag } tag */
+  /**
+   * @param { LongTag } tag
+  */
   #setLongTag(tag) {
     const value = tag.valueOf();
     this.#setBigInt64(value);
   }
   
-  /** @param { FloatTag } tag */
+  /**
+   * @param { FloatTag } tag
+  */
   #setFloatTag(tag) {
     const value = tag.valueOf();
     this.#setFloat32(value);
   }
 
-  /** @param { DoubleTag } tag */
+  /**
+   * @param { DoubleTag } tag
+  */
   #setDoubleTag(tag) {
     const value = tag.valueOf();
     this.#setFloat64(value);
   }
 
-  /** @param { ByteArrayTag } tag */
+  /**
+   * @param { ByteArrayTag } tag
+  */
   #setByteArrayTag(tag) {
     const { byteLength } = tag;
     const value = tag.valueOf();
@@ -183,25 +197,33 @@ export class Writer {
     this.#setUint8Array(value);
   }
 
-  /** @param { StringTag } tag */
+  /**
+   * @param { StringTag } tag
+  */
   #setStringTag(tag) {
     const value = tag.valueOf();
     this.#setString(value);
   }
 
-  /** @param { ListTag } tag */
+  /**
+   * @param { ListTag } tag
+  */
   #setListTag(tag) {
     const value = tag.valueOf();
     this.#setList(value);
   }
 
-  /** @param { CompoundTag } tag */
+  /**
+   * @param { CompoundTag } tag
+  */
   #setCompoundTag(tag) {
     const value = tag.valueOf();
     this.#setCompound(value);
   }
 
-  /** @param { IntArrayTag } tag */
+  /**
+   * @param { IntArrayTag } tag
+  */
   #setIntArrayTag(tag) {
     const { byteLength } = tag;
     const value = tag.valueOf();
@@ -209,7 +231,9 @@ export class Writer {
     this.#setInt32Array(value);
   }
 
-  /** @param { LongArrayTag } tag */
+  /**
+   * @param { LongArrayTag } tag
+  */
   #setLongArrayTag(tag) {
     const { byteLength } = tag;
     const value = tag.valueOf();
@@ -217,7 +241,9 @@ export class Writer {
     this.#setBigInt64Array(value);
   }
 
-  /** @param { number } value */
+  /**
+   * @param { number } value
+  */
   #setUint8(value) {
     this.#accommodate(1);
     this.#view.setUint8(this.#offset,value);
@@ -235,7 +261,9 @@ export class Writer {
     this.#offset += 1;
   }
 
-  /** @param { number } value */
+  /**
+   * @param { number } value
+  */
   #setUint16(value) {
     this.#accommodate(2);
     this.#view.setUint16(this.#offset,value,this.#littleEndian);
@@ -253,7 +281,9 @@ export class Writer {
     this.#offset += 2;
   }
 
-  /** @param { number } value */
+  /**
+   * @param { number } value
+  */
   #setUint32(value) {
     this.#accommodate(4);
     this.#view.setUint32(this.#offset,value,this.#littleEndian);
@@ -358,7 +388,8 @@ export class Writer {
    * @param { Tag[] } value
   */
   #setList(value) {
-    const tag = value[0].constructor.TAG_BYTE;
+    /** @type { TagByte } */
+    const tag = /** @type { any } */ (value[0].constructor).TAG_BYTE;
     const { length } = value;
     this.#setTagByte(tag);
     this.#setUint32(length);
@@ -374,7 +405,8 @@ export class Writer {
   */
   #setCompound(value) {
     for (const [name,entry] of Object.entries(value)){
-      const tag = entry.constructor.TAG_BYTE;
+      /** @type { TagByte } */
+      const tag = /** @type { any } */ (entry.constructor).TAG_BYTE;
       this.#setTagByte(tag);
       this.#setString(name);
       this.#setTag(entry);

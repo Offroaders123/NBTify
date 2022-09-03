@@ -6,7 +6,7 @@
  * Defaults to using the gzip format.
  * 
  * @param { Uint8Array } data
- * @param { { format?: "gzip" | "deflate" | "deflate-raw"; } } [options]
+ * @param { { format?: "gzip" | "deflate" | "deflate-raw"; } | undefined } options
 */
 export async function compress(data,{ format = "gzip" } = {}){
   const stream = new CompressionStream(format);
@@ -21,7 +21,7 @@ export async function compress(data,{ format = "gzip" } = {}){
  * Defaults to using the gzip format.
  * 
  * @param { Uint8Array } data
- * @param { { format?: "gzip" | "deflate" | "deflate-raw"; } } [options]
+ * @param { { format?: "gzip" | "deflate" | "deflate-raw"; } | undefined } options
 */
 export async function decompress(data,{ format = "gzip" } = {}){
   const stream = new DecompressionStream(format);
