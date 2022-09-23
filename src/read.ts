@@ -1,63 +1,48 @@
-/**
- * @typedef { import("./tags.js").Tag } Tag
- * @typedef { import("./tags.js").TagByte } TagByte
-*/
-
-import { EndTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tags.js";
+import { Metadata, NBTData } from "./index.js";
+import { Tag, ListTag, CompoundTag, Byte, Short, Int, Float, TagByte, TAG_BYTE } from "./tags.js";
 import { decompress } from "./compression.js";
 
-/**
- * The user-facing function to read bytes from an NBT byte stream.
- * 
- * If an endian format is not specified, the function will default to
- * reading the byte stream as big endian, then secondly attempt to
- * parse as little endian if an error occurred for the first attempt.
- * 
- * If a compression format is not specified, the function will check
- * the byte stream to see if a gzip header is present, and
- * resultingly decompress the byte stream if so.
- * 
- * @param { Uint8Array } data
- * @param { { endian?: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; } | undefined } options
-*/
-export async function read(data,{ endian, compression } = {}){
+type ReadOptions = Partial<Pick<Metadata,"endian" | "compression">>;
+
+export async function read(data: Uint8Array, { endian, compression }: ReadOptions = {}){
   if (!(data instanceof Uint8Array)){
-    throw new TypeError(`First argument must be a Uint8Array, received type ${typeof data}`);
+    throw new TypeError("First argument must be a Uint8Array");
   }
   if (endian !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError(`Endian option must be set to either "big" or "little"`);
   }
+  if (compression !== undefined && compression !== "none" && compression !== "gzip" && compression !== "zlib"){
+    throw new TypeError(`Compression option must be set to either "none", "gzip", or "zlib"`);
+  }
 
   if (endian !== undefined){
-    /** @type { { endian: "big" | "little"; compression?: "gzip" | "deflate" | "deflate-raw"; bedrockLevel?: number; } } */
-    const metadata = { endian, compression };
+    let bedrockLevel: Metadata["bedrockLevel"] = false;
 
-    if (Reader.hasHeader(data,"bedrock-level") && endian !== "big"){
-      metadata.bedrockLevel = new DataView(data.buffer).getUint32(0,true);
+    if (endian !== "big" && NBTReader.hasBedrockLevelHeader(data)){
+      const view = new DataView(data.buffer);
+      const version = view.getUint32(0,true);
+      bedrockLevel = new Int(version);
       data = data.slice(8);
     }
-    if (Reader.hasHeader(data,"gzip")){
-      metadata.compression = "gzip";
+    if (compression === "gzip" || NBTReader.hasGzipHeader(data)){
+      compression = "gzip";
       data = await decompress(data,{ format: "gzip" });
     }
 
-    const reader = new Reader();
+    const reader = new NBTReader();
     const result = reader.read(data,{ endian });
 
-    for (const [key,value] of Object.entries(metadata)){
-      if (value === undefined) continue;
-      result[key] = value;
-    }
+    result.compression = compression || "none";
+    result.bedrockLevel = bedrockLevel;
 
     return result;
   } else {
-    /** @type { CompoundTag } */
-    let result;
+    let result: NBTData;
     try {
-      result = await read(data,{ endian: "big" });
+      result = await read(data,{ endian: "big", compression });
     } catch (error){
       try {
-        result = await read(data,{ endian: "little" });
+        result = await read(data,{ endian: "little", compression });
       } catch {
         throw error;
       }
@@ -66,26 +51,25 @@ export async function read(data,{ endian, compression } = {}){
   }
 }
 
-/**
- * The bare-bones implementation to read bytes from an NBT byte stream.
-*/
-export class Reader {
-  /**
-   * @param { Uint8Array } data
-   * @param { "bedrock-level" | "gzip" } kind
-  */
-  static hasHeader(data,kind) {
-    if (!(data instanceof Uint8Array)){
-      throw new TypeError(`First argument must be a Uint8Array, received type ${typeof data}`);
-    }
-    if (kind !== "bedrock-level" && kind !== "gzip"){
-      throw new TypeError(`Second argument must be set to either "bedrock-level" or "gzip"`);
-    }
+type ReaderOptions = Partial<Pick<Metadata,"endian">>;
 
-    switch (kind){
-      case "bedrock-level": return data.slice(1,4).join("") === "000";
-      case "gzip": return new DataView(data.buffer).getInt16(0) === 0x1f8b;
+export class NBTReader {
+  static hasGzipHeader(data: Uint8Array) {
+    if (!(data instanceof Uint8Array)){
+      throw new TypeError("First argument must be a Uint8Array");
     }
+    const view = new DataView(data.buffer);
+    const header = view.getUint16(0,false);
+    return header === 0x1f8b;
+  }
+
+  static hasBedrockLevelHeader(data: Uint8Array) {
+    if (!(data instanceof Uint8Array)){
+      throw new TypeError("First argument must be a Uint8Array");
+    }
+    const view = new DataView(data.buffer);
+    const byteLength = view.getUint32(4,true);
+    return byteLength === data.byteLength - 8;
   }
 
   #offset = 0;
@@ -93,144 +77,43 @@ export class Reader {
   #data = new Uint8Array();
   #view = new DataView(this.#data.buffer);
 
-  /**
-   * Top-level function to initiate the NBT reader on a provided `Uint8Array`.
-   * 
-   * Defaults to reading the byte stream as big endian.
-   * 
-   * @param { Uint8Array } data
-   * @param { { endian?: "big" | "little"; } | undefined } options
-  */
-  read(data,{ endian = "big" } = {}) {
-    if (!(data instanceof Uint8Array)){
-      throw new TypeError(`First argument must be a Uint8Array, received type ${typeof data}`);
-    }
-    if (endian !== "big" && endian !== "little"){
-      throw new TypeError(`Endian option must be set to either "big" or "little"`);
-    }
-
+  read(data: Uint8Array, { endian = "big" }: ReaderOptions = {}) {
     this.#offset = 0;
     this.#littleEndian = (endian === "little");
     this.#data = new Uint8Array(data);
     this.#view = new DataView(this.#data.buffer);
 
     const tag = this.#getTagByte();
-    if (tag !== CompoundTag.TAG_BYTE){
-      throw new Error(`Encountered unsupported tag byte ${tag} in NBT byte stream`);
+    if (tag !== TAG_BYTE.Compound){
+      throw new TypeError(`Encountered unsupported tag type ${tag}`);
     }
 
     const name = this.#getString();
-    const value = this.#getCompoundTag(name);
+    const value = this.#getCompound();
 
-    return value;
+    return new NBTData(value,{ name, endian });
   }
 
-  /**
-   * Reads the tag byte value at the reader's current offset position.
-   * It then returns the byte value from that position.
-  */
-  #getTagByte() {
-    const value = /** @type { TagByte } */ (this.#getUint8());
-    return value;
-  }
-
-  /**
-   * Reads the tag at the reader's current offset position, based on
-   * the supplied tag byte value. It then returns the constructed class
-   * for that tag type.
-   * 
-   * If a non-supported tag byte is encountered, the function will
-   * throw.
-   * 
-   * @param { TagByte } tag
-   * @returns { Tag }
-  */
-  #getTag(tag) {
+  #getTag(tag: TagByte): Tag {
     switch (tag){
-      case ByteTag.TAG_BYTE: return this.#getByteTag();
-      case ShortTag.TAG_BYTE: return this.#getShortTag();
-      case IntTag.TAG_BYTE: return this.#getIntTag();
-      case LongTag.TAG_BYTE: return this.#getLongTag();
-      case FloatTag.TAG_BYTE: return this.#getFloatTag();
-      case DoubleTag.TAG_BYTE: return this.#getDoubleTag();
-      case ByteArrayTag.TAG_BYTE: return this.#getByteArrayTag();
-      case StringTag.TAG_BYTE: return this.#getStringTag();
-      case ListTag.TAG_BYTE: return this.#getListTag();
-      case CompoundTag.TAG_BYTE: return this.#getCompoundTag();
-      case IntArrayTag.TAG_BYTE: return this.#getIntArrayTag();
-      case LongArrayTag.TAG_BYTE: return this.#getLongArrayTag();
-      default: throw new Error(`Encountered unsupported tag byte ${tag} in NBT byte stream`);
+      case TAG_BYTE.Byte: return new Byte(this.#getInt8());
+      case TAG_BYTE.Short: return new Short(this.#getInt16());
+      case TAG_BYTE.Int: return new Int(this.#getInt32());
+      case TAG_BYTE.Long: return this.#getBigInt64();
+      case TAG_BYTE.Float: return new Float(this.#getFloat32());
+      case TAG_BYTE.Double: return this.#getFloat64();
+      case TAG_BYTE.ByteArray: return this.#getUint8Array();
+      case TAG_BYTE.String: return this.#getString();
+      case TAG_BYTE.List: return this.#getList();
+      case TAG_BYTE.Compound: return this.#getCompound();
+      case TAG_BYTE.IntArray: return this.#getInt32Array();
+      case TAG_BYTE.LongArray: return this.#getBigInt64Array();
+      default: throw new TypeError(`Encountered unsupported tag ${tag}`);
     }
   }
 
-  #getByteTag() {
-    const value = this.#getInt8();
-    return new ByteTag(value);
-  }
-
-  #getShortTag() {
-    const value = this.#getInt16();
-    return new ShortTag(value);
-  }
-
-  #getIntTag() {
-    const value = this.#getInt32();
-    return new IntTag(value);
-  }
-
-  #getLongTag() {
-    const value = this.#getBigInt64();
-    return new LongTag(value);
-  }
-
-  #getFloatTag() {
-    const value = this.#getFloat32();
-    return new FloatTag(value);
-  }
-
-  #getDoubleTag() {
-    const value = this.#getFloat64();
-    return new DoubleTag(value);
-  }
-
-  #getByteArrayTag() {
-    const byteLength = this.#getUint32();
-    const value = this.#getUint8Array(byteLength);
-    return new ByteArrayTag(value);
-  }
-
-  #getStringTag() {
-    const value = this.#getString();
-    return new StringTag(value);
-  }
-
-  #getListTag() {
-    const value = this.#getList();
-    return new ListTag(...value);
-  }
-
-  /**
-   * Optionally excepts a name string for the resulting
-   * Compound tag.
-   * 
-   * @param { string } [name]
-  */
-  #getCompoundTag(name) {
-    const value = this.#getCompound();
-    const content = name !== undefined ? { [CompoundTag.ROOT_NAME]: name, ...value } : value;
-    return new CompoundTag(content);
-  }
-
-  #getIntArrayTag() {
-    const byteLength = this.#getUint32();
-    const value = this.#getInt32Array(byteLength);
-    return new IntArrayTag(value);
-  }
-
-  #getLongArrayTag() {
-    const byteLength = this.#getUint32();
-    const value = this.#getBigInt64Array(byteLength);
-    return new LongArrayTag(value);
+  #getTagByte() {
+    return this.#getUint8() as TagByte;
   }
 
   #getUint8() {
@@ -239,9 +122,6 @@ export class Reader {
     return value;
   }
 
-  /**
-   * Commonly used to read Byte tags.
-  */
   #getInt8() {
     const value = this.#view.getInt8(this.#offset);
     this.#offset += 1;
@@ -254,9 +134,6 @@ export class Reader {
     return value;
   }
 
-  /**
-   * Commonly used to read Short tags.
-  */
   #getInt16() {
     const value = this.#view.getInt16(this.#offset,this.#littleEndian);
     this.#offset += 2;
@@ -269,59 +146,39 @@ export class Reader {
     return value;
   }
 
-  /**
-   * Commonly used to read Int tags.
-  */
   #getInt32() {
     const value = this.#view.getInt32(this.#offset,this.#littleEndian);
     this.#offset += 4;
     return value;
   }
 
-  /**
-   * Commonly used to read Float tags.
-  */
   #getFloat32() {
     const value = this.#view.getFloat32(this.#offset,this.#littleEndian);
     this.#offset += 4;
     return value;
   }
 
-  /**
-   * Commonly used to read Double tags.
-  */
   #getFloat64() {
     const value = this.#view.getFloat64(this.#offset,this.#littleEndian);
     this.#offset += 8;
     return value;
   }
 
-  /**
-   * Commonly used to read Long tags.
-  */
   #getBigInt64() {
     const value = this.#view.getBigInt64(this.#offset,this.#littleEndian);
     this.#offset += 8;
     return value;
   }
 
-  /**
-   * Commonly used to read ByteArray tags.
-   * 
-   * @param { number } byteLength
-  */
-  #getUint8Array(byteLength) {
+  #getUint8Array() {
+    const byteLength = this.#getUint32();
     const value = this.#data.slice(this.#offset,this.#offset + byteLength);
     this.#offset += byteLength;
     return value;
   }
 
-  /**
-   * Commonly used to read IntArray tags.
-   * 
-   * @param { number } byteLength
-  */
-  #getInt32Array(byteLength) {
+  #getInt32Array() {
+    const byteLength = this.#getUint32();
     const value = new Int32Array(byteLength);
     for (const i in value){
       const entry = this.#getInt32();
@@ -330,12 +187,8 @@ export class Reader {
     return value;
   }
 
-  /**
-   * Commonly used to read LongArray tags.
-   * 
-   * @param { number } byteLength
-  */
-  #getBigInt64Array(byteLength) {
+  #getBigInt64Array() {
+    const byteLength = this.#getUint32();
     const value = new BigInt64Array(byteLength);
     for (const i in value){
       const entry = this.#getBigInt64();
@@ -344,9 +197,6 @@ export class Reader {
     return value;
   }
 
-  /**
-   * Commonly used to read String tags.
-  */
   #getString() {
     const length = this.#getUint16();
     const value = this.#data.slice(this.#offset,this.#offset + length);
@@ -354,13 +204,10 @@ export class Reader {
     return new TextDecoder().decode(value);
   }
 
-  /**
-   * Exclusively used to read List tags.
-  */
   #getList() {
     const tag = this.#getTagByte();
     const length = this.#getUint32();
-    const value = /** @type { Tag[] } */ ([]);
+    const value: ListTag = [];
     for (let i = 0; i < length; i++){
       const entry = this.#getTag(tag);
       value.push(entry);
@@ -368,14 +215,11 @@ export class Reader {
     return value;
   }
 
-  /**
-   * Exclusively used to read Compound tags.
-  */
   #getCompound() {
-    const value = /** @type { { [name: string]: Tag } } */ ({});
+    const value: CompoundTag = {};
     while (true){
       const tag = this.#getTagByte();
-      if (tag === EndTag.TAG_BYTE) break;
+      if (tag === TAG_BYTE.End) break;
       const name = this.#getString();
       const entry = this.#getTag(tag);
       value[name] = entry;
