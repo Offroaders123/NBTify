@@ -4,6 +4,11 @@ import { decompress } from "./compression.js";
 
 type ReadOptions = Partial<Pick<Metadata,"endian" | "compression">>;
 
+/**
+ * Converts an NBT Uint8Array into an NBTData object. Accepts an endian type and compression format to read the data with.
+ * 
+ * If an option isn't provided, the function will attempt to read the data using all available formats until it either throws or returns successfully.
+*/
 export async function read(data: Uint8Array, { endian, compression }: ReadOptions = {}){
   if (!(data instanceof Uint8Array)){
     throw new TypeError("First argument must be a Uint8Array");
@@ -53,6 +58,9 @@ export async function read(data: Uint8Array, { endian, compression }: ReadOption
 
 type ReaderOptions = Partial<Pick<Metadata,"endian">>;
 
+/**
+ * The base implementation to convert an NBT Uint8Array into an NBTData object.
+*/
 export class NBTReader {
   static hasGzipHeader(data: Uint8Array) {
     if (!(data instanceof Uint8Array)){
@@ -77,6 +85,9 @@ export class NBTReader {
   #data = new Uint8Array();
   #view = new DataView(this.#data.buffer);
 
+  /**
+   * Initiates the reader over an uncompressed NBT Uint8Array. Accepts an endian type to read the data with. If one is not provided, big endian will be used.
+  */
   read(data: Uint8Array, { endian = "big" }: ReaderOptions = {}) {
     this.#offset = 0;
     this.#littleEndian = (endian === "little");

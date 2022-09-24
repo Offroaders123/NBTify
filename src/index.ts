@@ -12,6 +12,9 @@ export type Metadata = {
   bedrockLevel: false | IntTag;
 };
 
+/**
+ * An object which represents a set of NBT data.
+*/
 export class NBTData implements Metadata {
   declare name;
   declare endian;

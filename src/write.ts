@@ -4,6 +4,11 @@ import { compress } from "./compression.js";
 
 type WriteOptions = Partial<Pick<Metadata,"endian" | "compression" | "bedrockLevel">>;
 
+/**
+ * Converts an NBTData object into an NBT Uint8Array. Accepts an endian type, compression format, and file headers to write the data with.
+ * 
+ * If an option isn't provided, the value of the equivalent property on the NBTData object will be used.
+*/
 export async function write(data: NBTData, { endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: WriteOptions = {}){
   if (!(data instanceof NBTData)){
     throw new TypeError("First argument must be an NBTData object");
@@ -34,6 +39,9 @@ export async function write(data: NBTData, { endian = data.endian, compression =
 
 type WriterOptions = Partial<Pick<Metadata,"endian">>;
 
+/**
+ * The base implementation to convert an NBTData object into an NBT Uint8Array.
+*/
 export class NBTWriter {
   #offset = 0;
   #littleEndian = false;
@@ -41,6 +49,9 @@ export class NBTWriter {
   #data = new Uint8Array(this.#buffer);
   #view = new DataView(this.#buffer);
 
+  /**
+   * Initiates the writer over an NBTData object. Accepts an endian type to write the data with. If one is not provided, the value of the endian property on the NBTData object will be used.
+  */
   write(data: NBTData, { endian = data.endian }: WriterOptions = {}) {
     if (!(data instanceof NBTData)){
       throw new TypeError("First argument must be an NBTData object");
