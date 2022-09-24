@@ -13,11 +13,11 @@ export type Metadata = {
 };
 
 export class NBTData implements Metadata {
-  declare public name;
-  declare public endian;
-  declare public compression;
-  declare public bedrockLevel;
-  declare public readonly data;
+  declare name;
+  declare endian;
+  declare compression;
+  declare bedrockLevel;
+  declare readonly data;
 
   constructor(data: CompoundTag, { name = "", endian = "big", compression = "none", bedrockLevel = false }: Partial<Metadata> = {}) {
     this.name = name;
