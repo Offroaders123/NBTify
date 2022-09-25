@@ -1,7 +1,7 @@
 {
-  "name": "nbt-parser",
+  "name": "@offroaders123/nbt-parser",
   "version": "1.0.0",
-  "description": "A library to parse NBT files on the web!",
+  "description": "A library to read and write NBT files on the web!",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,6 +12,7 @@
   "keywords": [
     "javascript",
     "minecraft",
+    "typescript",
     "nbt",
     "nbt-parser",
     "minecraft-bedrock-edition",
