@@ -1,13 +1,13 @@
 {
-  "name": "@offroaders123/nbt-parser",
-  "version": "1.0.0",
+  "name": "nbtify",
+  "version": "1.0.1",
   "description": "A library to read and write NBT files on the web!",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Offroaders123/NBT-Parser.git"
+    "url": "git+https://github.com/Offroaders123/nbtify.git"
   },
   "keywords": [
     "javascript",
@@ -24,9 +24,9 @@
   "author": "Brandon Bennett <offroaders123@gmail.com> (https://github.com/Offroaders123)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Offroaders123/NBT-Parser/issues"
+    "url": "https://github.com/Offroaders123/nbtify/issues"
   },
-  "homepage": "https://github.com/Offroaders123/NBT-Parser#readme",
+  "homepage": "https://github.com/Offroaders123/nbtify#readme",
   "devDependencies": {
     "typescript": "^4.8.3"
   }
