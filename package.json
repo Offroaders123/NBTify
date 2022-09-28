@@ -1,13 +1,13 @@
 {
   "name": "nbtify",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A library to read and write NBT files on the web!",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Offroaders123/nbtify.git"
+    "url": "git+https://github.com/Offroaders123/NBTify.git"
   },
   "keywords": [
     "javascript",
@@ -24,10 +24,10 @@
   "author": "Brandon Bennett <offroaders123@gmail.com> (https://github.com/Offroaders123)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Offroaders123/nbtify/issues"
+    "url": "https://github.com/Offroaders123/NBTify/issues"
   },
-  "homepage": "https://github.com/Offroaders123/nbtify#readme",
+  "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "devDependencies": {
-    "typescript": "^4.8.3"
+    "typescript": "^4.8.4"
   }
 }
