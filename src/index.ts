@@ -1,6 +1,7 @@
 export * from "./read.js";
 export * from "./write.js";
 export * from "./compression.js";
+export * from "./primitive.js";
 export * from "./tags.js";
 
 import { IntTag, CompoundTag } from "./tags.js";
