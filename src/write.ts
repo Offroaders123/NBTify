@@ -1,5 +1,5 @@
 import { Metadata, NBTData } from "./index.js";
-import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TagByte, TAG_BYTE, getTagType, getTagByte } from "./tags.js";
+import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TagByte, TAG_BYTE, getTagType, getTagByte } from "./tag.js";
 import { compress } from "./compression.js";
 
 type WriteOptions = Partial<Pick<Metadata,"endian" | "compression" | "bedrockLevel">>;
