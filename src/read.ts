@@ -1,6 +1,6 @@
 import { Metadata, NBTData } from "./index.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
-import { Tag, ListTag, CompoundTag, TagByte, TAG_BYTE } from "./tags.js";
+import { Tag, ListTag, CompoundTag, TagByte, TAG_BYTE } from "./tag.js";
 import { decompress } from "./compression.js";
 
 type ReadOptions = Partial<Pick<Metadata,"endian" | "compression">>;

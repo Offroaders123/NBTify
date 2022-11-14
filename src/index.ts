@@ -2,9 +2,9 @@ export * from "./read.js";
 export * from "./write.js";
 export * from "./compression.js";
 export * from "./primitive.js";
-export * from "./tags.js";
+export * from "./tag.js";
 
-import { IntTag, CompoundTag } from "./tags.js";
+import { IntTag, CompoundTag } from "./tag.js";
 
 export type Metadata = {
   name: string;
