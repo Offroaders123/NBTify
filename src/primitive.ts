@@ -1,27 +1,43 @@
-export class Byte extends Number {
-  constructor(value?: any) {
+export class Byte<T extends number = number> extends Number {
+  constructor(value: T) {
     const [result] = new Int8Array([value]);
     super(result);
   }
+
+  valueOf() {
+    return super.valueOf() as T;
+  }
 }
 
-export class Short extends Number {
-  constructor(value?: any) {
+export class Short<T extends number = number> extends Number {
+  constructor(value: T) {
     const [result] = new Int16Array([value]);
     super(result);
   }
-}
 
-export class Int extends Number {
-  constructor(value?: any) {
-    const [result] = new Int32Array([value]);
-    super(result);
+  valueOf() {
+    return super.valueOf() as T;
   }
 }
 
-export class Float extends Number {
-  constructor(value?: any) {
+export class Int<T extends number = number> extends Number {
+  constructor(value: T) {
+    const [result] = new Int32Array([value]);
+    super(result);
+  }
+
+  valueOf() {
+    return super.valueOf() as T;
+  }
+}
+
+export class Float<T extends number = number> extends Number {
+  constructor(value: T) {
     const [result] = new Float32Array([value]);
     super(result);
+  }
+
+  valueOf() {
+    return super.valueOf() as T;
   }
 }
