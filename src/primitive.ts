@@ -1,9 +1,11 @@
 export class Byte<T extends number = number> extends Number {
-  declare private PrimitiveValue: number;
-
   constructor(value: T) {
     const [result] = new Int8Array([value]);
     super(result);
+  }
+
+  get [Symbol.toStringTag]() {
+    return "Byte" as "Byte";
   }
 
   valueOf() {
@@ -12,11 +14,13 @@ export class Byte<T extends number = number> extends Number {
 }
 
 export class Short<T extends number = number> extends Number {
-  declare private PrimitiveValue: number;
-
   constructor(value: T) {
     const [result] = new Int16Array([value]);
     super(result);
+  }
+
+  get [Symbol.toStringTag]() {
+    return "Short" as "Short";
   }
 
   valueOf() {
@@ -25,11 +29,13 @@ export class Short<T extends number = number> extends Number {
 }
 
 export class Int<T extends number = number> extends Number {
-  declare private PrimitiveValue: number;
-
   constructor(value: T) {
     const [result] = new Int32Array([value]);
     super(result);
+  }
+
+  get [Symbol.toStringTag]() {
+    return "Int" as "Int";
   }
 
   valueOf() {
@@ -38,11 +44,13 @@ export class Int<T extends number = number> extends Number {
 }
 
 export class Float<T extends number = number> extends Number {
-  declare private PrimitiveValue: number;
-
   constructor(value: T) {
     const [result] = new Float32Array([value]);
     super(result);
+  }
+
+  get [Symbol.toStringTag]() {
+    return "Float" as "Float";
   }
 
   valueOf() {
