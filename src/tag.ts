@@ -2,15 +2,15 @@ import { Byte, Short, Int, Float } from "./primitive.js";
 
 export type Tag = ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag;
 
-export type ByteTag = Byte;
+export type ByteTag<T extends number = number> = Byte<T>;
 
-export type ShortTag = Short;
+export type ShortTag<T extends number = number> = Short<T>;
 
-export type IntTag = Int;
+export type IntTag<T extends number = number> = Int<T>;
 
 export type LongTag = bigint;
 
-export type FloatTag = Float;
+export type FloatTag<T extends number = number> = Float<T>;
 
 export type DoubleTag = number;
 
