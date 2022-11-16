@@ -30,45 +30,48 @@ export type IntArrayTag = Int32Array;
 
 export type LongArrayTag = BigInt64Array;
 
-export type TagType = keyof typeof TAG_BYTE;
+export type TAG_TYPE = typeof TAG_END | typeof TAG_BYTE | typeof TAG_SHORT | typeof TAG_INT | typeof TAG_LONG | typeof TAG_FLOAT | typeof TAG_DOUBLE | typeof TAG_BYTE_ARRAY | typeof TAG_STRING | typeof TAG_LIST | typeof TAG_COMPOUND | typeof TAG_INT_ARRAY | typeof TAG_LONG_ARRAY;
 
-export type TagByte = typeof TAG_BYTE[TagType];
+export const TAG_END = 0;
 
-export const TAG_BYTE = {
-  End: 0,
-  Byte: 1,
-  Short: 2,
-  Int: 3,
-  Long: 4,
-  Float: 5,
-  Double: 6,
-  ByteArray: 7,
-  String: 8,
-  List: 9,
-  Compound: 10,
-  IntArray: 11,
-  LongArray: 12
-} as const;
+export const TAG_BYTE = 1;
 
-export function getTagType(value: Tag): TagType {
+export const TAG_SHORT = 2;
+
+export const TAG_INT = 3;
+
+export const TAG_LONG = 4;
+
+export const TAG_FLOAT = 5;
+
+export const TAG_DOUBLE = 6;
+
+export const TAG_BYTE_ARRAY = 7;
+
+export const TAG_STRING = 8;
+
+export const TAG_LIST = 9;
+
+export const TAG_COMPOUND = 10;
+
+export const TAG_INT_ARRAY = 11;
+
+export const TAG_LONG_ARRAY = 12;
+
+export function getTagType(value: Tag): TAG_TYPE {
   switch (true){
-    case value instanceof Byte: return "Byte";
-    case value instanceof Short: return "Short";
-    case value instanceof Int: return "Int";
-    case typeof value === "bigint": return "Long";
-    case value instanceof Float: return "Float";
-    case typeof value === "number": return "Double";
-    case value instanceof Int8Array: return "ByteArray";
-    case typeof value === "string": return "String";
-    case value instanceof Array: return "List";
-    case typeof value === "object" && Object.getPrototypeOf(value).isPrototypeOf(Object): return "Compound";
-    case value instanceof Int32Array: return "IntArray";
-    case value instanceof BigInt64Array: return "LongArray";
+    case value instanceof Byte: return TAG_BYTE;
+    case value instanceof Short: return TAG_SHORT;
+    case value instanceof Int: return TAG_INT;
+    case typeof value === "bigint": return TAG_LONG;
+    case value instanceof Float: return TAG_FLOAT;
+    case typeof value === "number": return TAG_DOUBLE;
+    case value instanceof Int8Array: return TAG_BYTE_ARRAY;
+    case typeof value === "string": return TAG_STRING;
+    case value instanceof Array: return TAG_LIST;
+    case typeof value === "object" && Object.getPrototypeOf(value).isPrototypeOf(Object): return TAG_COMPOUND;
+    case value instanceof Int32Array: return TAG_INT_ARRAY;
+    case value instanceof BigInt64Array: return TAG_LONG_ARRAY;
     default: throw new TypeError(`Encountered unsupported tag type ${typeof value}`);
   }
-}
-
-export function getTagByte(value: Tag): TagByte {
-  const type = getTagType(value);
-  return TAG_BYTE[type];
 }
