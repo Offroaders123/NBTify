@@ -114,7 +114,7 @@ export class NBTReader {
       case TAG_BYTE.Long: return this.#getBigInt64();
       case TAG_BYTE.Float: return new Float(this.#getFloat32());
       case TAG_BYTE.Double: return this.#getFloat64();
-      case TAG_BYTE.ByteArray: return this.#getUint8Array();
+      case TAG_BYTE.ByteArray: return this.#getInt8Array();
       case TAG_BYTE.String: return this.#getString();
       case TAG_BYTE.List: return this.#getList();
       case TAG_BYTE.Compound: return this.#getCompound();
@@ -182,9 +182,9 @@ export class NBTReader {
     return value;
   }
 
-  #getUint8Array() {
+  #getInt8Array() {
     const byteLength = this.#getUint32();
-    const value = this.#data.slice(this.#offset,this.#offset + byteLength);
+    const value = new Int8Array(this.#data.slice(this.#offset,this.#offset + byteLength));
     this.#offset += byteLength;
     return value;
   }

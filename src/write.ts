@@ -109,7 +109,7 @@ export class NBTWriter {
       case "Long": return this.#setBigInt64(value as LongTag);
       case "Float": return this.#setFloat32((value as FloatTag).valueOf());
       case "Double": return this.#setFloat64(value as DoubleTag);
-      case "ByteArray": return this.#setUint8Array(value as ByteArrayTag);
+      case "ByteArray": return this.#setInt8Array(value as ByteArrayTag);
       case "String": return this.#setString(value as StringTag);
       case "List": return this.#setList(value as ListTag);
       case "Compound": return this.#setCompound(value as CompoundTag);
@@ -176,7 +176,7 @@ export class NBTWriter {
     this.#offset += 8;
   }
 
-  #setUint8Array(value: Uint8Array) {
+  #setInt8Array(value: Int8Array) {
     const { byteLength } = value;
     this.#setUint32(byteLength);
     this.#accommodate(byteLength);

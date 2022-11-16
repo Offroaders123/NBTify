@@ -14,7 +14,7 @@ export type FloatTag = Float;
 
 export type DoubleTag = number;
 
-export type ByteArrayTag = Uint8Array;
+export type ByteArrayTag = Int8Array;
 
 export type StringTag = string;
 
@@ -56,7 +56,7 @@ export function getTagType(value: Tag): TagType {
     case typeof value === "bigint": return "Long";
     case value instanceof Float: return "Float";
     case typeof value === "number": return "Double";
-    case value instanceof Uint8Array: return "ByteArray";
+    case value instanceof Int8Array: return "ByteArray";
     case typeof value === "string": return "String";
     case value instanceof Array: return "List";
     case typeof value === "object" && Object.getPrototypeOf(value).isPrototypeOf(Object): return "Compound";
