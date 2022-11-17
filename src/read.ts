@@ -95,7 +95,7 @@ export class NBTReader {
     this.#data = new Uint8Array(data);
     this.#view = new DataView(this.#data.buffer);
 
-    const tag = this.#getTagByte();
+    const tag = this.#getTagType();
     if (tag !== TAG_COMPOUND){
       throw new TypeError(`Encountered unsupported tag type ${tag}`);
     }
@@ -108,117 +108,117 @@ export class NBTReader {
 
   #getTag(tag: TAG_TYPE): Tag {
     switch (tag){
-      case TAG_BYTE: return new Byte(this.#getInt8());
-      case TAG_SHORT: return new Short(this.#getInt16());
-      case TAG_INT: return new Int(this.#getInt32());
-      case TAG_LONG: return this.#getBigInt64();
-      case TAG_FLOAT: return new Float(this.#getFloat32());
-      case TAG_DOUBLE: return this.#getFloat64();
-      case TAG_BYTE_ARRAY: return this.#getInt8Array();
+      case TAG_BYTE: return new Byte(this.#getByte());
+      case TAG_SHORT: return new Short(this.#getShort());
+      case TAG_INT: return new Int(this.#getInt());
+      case TAG_LONG: return this.#getLong();
+      case TAG_FLOAT: return new Float(this.#getFloat());
+      case TAG_DOUBLE: return this.#getDouble();
+      case TAG_BYTE_ARRAY: return this.#getByteArray();
       case TAG_STRING: return this.#getString();
       case TAG_LIST: return this.#getList();
       case TAG_COMPOUND: return this.#getCompound();
-      case TAG_INT_ARRAY: return this.#getInt32Array();
-      case TAG_LONG_ARRAY: return this.#getBigInt64Array();
+      case TAG_INT_ARRAY: return this.#getIntArray();
+      case TAG_LONG_ARRAY: return this.#getLongArray();
       default: throw new TypeError(`Encountered unsupported tag ${tag}`);
     }
   }
 
-  #getTagByte() {
-    return this.#getUint8() as TAG_TYPE;
+  #getTagType() {
+    return this.#getUByte() as TAG_TYPE;
   }
 
-  #getUint8() {
+  #getUByte() {
     const value = this.#view.getUint8(this.#offset);
     this.#offset += 1;
     return value;
   }
 
-  #getInt8() {
+  #getByte() {
     const value = this.#view.getInt8(this.#offset);
     this.#offset += 1;
     return value;
   }
 
-  #getUint16() {
+  #getUShort() {
     const value = this.#view.getUint16(this.#offset,this.#littleEndian);
     this.#offset += 2;
     return value;
   }
 
-  #getInt16() {
+  #getShort() {
     const value = this.#view.getInt16(this.#offset,this.#littleEndian);
     this.#offset += 2;
     return value;
   }
 
-  #getUint32() {
+  #getUInt() {
     const value = this.#view.getUint32(this.#offset,this.#littleEndian);
     this.#offset += 4;
     return value;
   }
 
-  #getInt32() {
+  #getInt() {
     const value = this.#view.getInt32(this.#offset,this.#littleEndian);
     this.#offset += 4;
     return value;
   }
 
-  #getFloat32() {
+  #getFloat() {
     const value = this.#view.getFloat32(this.#offset,this.#littleEndian);
     this.#offset += 4;
     return value;
   }
 
-  #getFloat64() {
+  #getDouble() {
     const value = this.#view.getFloat64(this.#offset,this.#littleEndian);
     this.#offset += 8;
     return value;
   }
 
-  #getBigInt64() {
+  #getLong() {
     const value = this.#view.getBigInt64(this.#offset,this.#littleEndian);
     this.#offset += 8;
     return value;
   }
 
-  #getInt8Array() {
-    const byteLength = this.#getUint32();
+  #getByteArray() {
+    const byteLength = this.#getUInt();
     const value = new Int8Array(this.#data.slice(this.#offset,this.#offset + byteLength));
     this.#offset += byteLength;
     return value;
   }
 
-  #getInt32Array() {
-    const byteLength = this.#getUint32();
+  #getIntArray() {
+    const byteLength = this.#getUInt();
     const value = new Int32Array(byteLength);
     for (const i in value){
-      const entry = this.#getInt32();
+      const entry = this.#getInt();
       value[i] = entry;
     }
     return value;
   }
 
-  #getBigInt64Array() {
-    const byteLength = this.#getUint32();
+  #getLongArray() {
+    const byteLength = this.#getUInt();
     const value = new BigInt64Array(byteLength);
     for (const i in value){
-      const entry = this.#getBigInt64();
+      const entry = this.#getLong();
       value[i] = entry;
     }
     return value;
   }
 
   #getString() {
-    const length = this.#getUint16();
+    const length = this.#getUShort();
     const value = this.#data.slice(this.#offset,this.#offset + length);
     this.#offset += length;
     return new TextDecoder().decode(value);
   }
 
   #getList() {
-    const tag = this.#getTagByte();
-    const length = this.#getUint32();
+    const tag = this.#getTagType();
+    const length = this.#getUInt();
     const value: ListTag = [];
     for (let i = 0; i < length; i++){
       const entry = this.#getTag(tag);
@@ -230,7 +230,7 @@ export class NBTReader {
   #getCompound() {
     const value: CompoundTag = {};
     while (true){
-      const tag = this.#getTagByte();
+      const tag = this.#getTagType();
       if (tag === TAG_END) break;
       const name = this.#getString();
       const entry = this.#getTag(tag);

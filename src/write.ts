@@ -69,7 +69,7 @@ export class NBTWriter {
     const { name } = data;
     const { data: value } = data;
 
-    this.#setTagByte(TAG_COMPOUND);
+    this.#setTagType(TAG_COMPOUND);
     this.#setString(name);
     this.#setCompound(value);
 
@@ -103,107 +103,107 @@ export class NBTWriter {
   #setTag(value: Tag) {
     const type = getTagType(value);
     switch (type){
-      case TAG_BYTE: return this.#setInt8((value as ByteTag).valueOf());
-      case TAG_SHORT: return this.#setInt16((value as ShortTag).valueOf());
-      case TAG_INT: return this.#setInt32((value as IntTag).valueOf());
-      case TAG_LONG: return this.#setBigInt64(value as LongTag);
-      case TAG_FLOAT: return this.#setFloat32((value as FloatTag).valueOf());
-      case TAG_DOUBLE: return this.#setFloat64(value as DoubleTag);
-      case TAG_BYTE_ARRAY: return this.#setInt8Array(value as ByteArrayTag);
+      case TAG_BYTE: return this.#setByte((value as ByteTag).valueOf());
+      case TAG_SHORT: return this.#setShort((value as ShortTag).valueOf());
+      case TAG_INT: return this.#setInt((value as IntTag).valueOf());
+      case TAG_LONG: return this.#setLong(value as LongTag);
+      case TAG_FLOAT: return this.#setFloat((value as FloatTag).valueOf());
+      case TAG_DOUBLE: return this.#setDouble(value as DoubleTag);
+      case TAG_BYTE_ARRAY: return this.#setByteArray(value as ByteArrayTag);
       case TAG_STRING: return this.#setString(value as StringTag);
       case TAG_LIST: return this.#setList(value as ListTag);
       case TAG_COMPOUND: return this.#setCompound(value as CompoundTag);
-      case TAG_INT_ARRAY: return this.#setInt32Array(value as IntArrayTag);
-      case TAG_LONG_ARRAY: return this.#setBigInt64Array(value as LongArrayTag);
+      case TAG_INT_ARRAY: return this.#setIntArray(value as IntArrayTag);
+      case TAG_LONG_ARRAY: return this.#setLongArray(value as LongArrayTag);
     }
   }
 
-  #setTagByte(tag: TAG_TYPE) {
-    this.#setUint8(tag);
+  #setTagType(tag: TAG_TYPE) {
+    this.#setUByte(tag);
   }
 
-  #setUint8(value: number) {
+  #setUByte(value: number) {
     this.#accommodate(1);
     this.#view.setUint8(this.#offset,value);
     this.#offset += 1;
   }
 
-  #setInt8(value: number) {
+  #setByte(value: number) {
     this.#accommodate(1);
     this.#view.setInt8(this.#offset,value);
     this.#offset += 1;
   }
 
-  #setUint16(value: number) {
+  #setUShort(value: number) {
     this.#accommodate(2);
     this.#view.setUint16(this.#offset,value,this.#littleEndian);
     this.#offset += 2;
   }
 
-  #setInt16(value: number) {
+  #setShort(value: number) {
     this.#accommodate(2);
     this.#view.setInt16(this.#offset,value,this.#littleEndian);
     this.#offset += 2;
   }
 
-  #setUint32(value: number) {
+  #setUInt(value: number) {
     this.#accommodate(4);
     this.#view.setUint32(this.#offset,value,this.#littleEndian);
     this.#offset += 4;
   }
 
-  #setInt32(value: number) {
+  #setInt(value: number) {
     this.#accommodate(4);
     this.#view.setInt32(this.#offset,value,this.#littleEndian);
     this.#offset += 4;
   }
 
-  #setFloat32(value: number) {
+  #setFloat(value: number) {
     this.#accommodate(4);
     this.#view.setFloat32(this.#offset,value,this.#littleEndian);
     this.#offset += 4;
   }
 
-  #setFloat64(value: number) {
+  #setDouble(value: number) {
     this.#accommodate(8);
     this.#view.setFloat64(this.#offset,value,this.#littleEndian);
     this.#offset += 8;
   }
 
-  #setBigInt64(value: bigint) {
+  #setLong(value: bigint) {
     this.#accommodate(8);
     this.#view.setBigInt64(this.#offset,value,this.#littleEndian);
     this.#offset += 8;
   }
 
-  #setInt8Array(value: Int8Array) {
+  #setByteArray(value: Int8Array) {
     const { byteLength } = value;
-    this.#setUint32(byteLength);
+    this.#setUInt(byteLength);
     this.#accommodate(byteLength);
     this.#data.set(value,this.#offset);
     this.#offset += byteLength;
   }
 
-  #setInt32Array(value: Int32Array) {
+  #setIntArray(value: Int32Array) {
     const { byteLength } = value;
-    this.#setUint32(byteLength);
+    this.#setUInt(byteLength);
     for (const entry of value){
-      this.#setInt32(entry);
+      this.#setInt(entry);
     }
   }
 
-  #setBigInt64Array(value: BigInt64Array) {
+  #setLongArray(value: BigInt64Array) {
     const { byteLength } = value;
-    this.#setUint32(byteLength);
+    this.#setUInt(byteLength);
     for (const entry of value){
-      this.#setBigInt64(entry);
+      this.#setLong(entry);
     }
   }
 
   #setString(value: string) {
     const entry = new TextEncoder().encode(value);
     const { length } = entry;
-    this.#setUint16(length);
+    this.#setUShort(length);
     this.#accommodate(length);
     this.#data.set(entry,this.#offset);
     this.#offset += length;
@@ -212,8 +212,8 @@ export class NBTWriter {
   #setList(value: ListTag) {
     const tag = getTagType(value[0]);
     const { length } = value;
-    this.#setTagByte(tag);
-    this.#setUint32(length);
+    this.#setTagType(tag);
+    this.#setUInt(length);
     for (const entry of value){
       this.#setTag(entry);
     }
@@ -222,10 +222,10 @@ export class NBTWriter {
   #setCompound(value: CompoundTag) {
     for (const [name,entry] of Object.entries(value)){
       const tag = getTagType(entry);
-      this.#setTagByte(tag);
+      this.#setTagType(tag);
       this.#setString(name);
       this.#setTag(entry);
     }
-    this.#setTagByte(TAG_END);
+    this.#setTagType(TAG_END);
   }
 }
