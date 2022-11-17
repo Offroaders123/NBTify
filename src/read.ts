@@ -164,6 +164,12 @@ export class NBTReader {
     return value;
   }
 
+  #getLong() {
+    const value = this.#view.getBigInt64(this.#offset,this.#littleEndian);
+    this.#offset += 8;
+    return value;
+  }
+
   #getFloat() {
     const value = this.#view.getFloat32(this.#offset,this.#littleEndian);
     this.#offset += 4;
@@ -176,36 +182,10 @@ export class NBTReader {
     return value;
   }
 
-  #getLong() {
-    const value = this.#view.getBigInt64(this.#offset,this.#littleEndian);
-    this.#offset += 8;
-    return value;
-  }
-
   #getByteArray() {
     const byteLength = this.#getUInt();
     const value = new Int8Array(this.#data.slice(this.#offset,this.#offset + byteLength));
     this.#offset += byteLength;
-    return value;
-  }
-
-  #getIntArray() {
-    const byteLength = this.#getUInt();
-    const value = new Int32Array(byteLength);
-    for (const i in value){
-      const entry = this.#getInt();
-      value[i] = entry;
-    }
-    return value;
-  }
-
-  #getLongArray() {
-    const byteLength = this.#getUInt();
-    const value = new BigInt64Array(byteLength);
-    for (const i in value){
-      const entry = this.#getLong();
-      value[i] = entry;
-    }
     return value;
   }
 
@@ -235,6 +215,26 @@ export class NBTReader {
       const name = this.#getString();
       const entry = this.#getTag(tag);
       value[name] = entry;
+    }
+    return value;
+  }
+
+  #getIntArray() {
+    const byteLength = this.#getUInt();
+    const value = new Int32Array(byteLength);
+    for (const i in value){
+      const entry = this.#getInt();
+      value[i] = entry;
+    }
+    return value;
+  }
+
+  #getLongArray() {
+    const byteLength = this.#getUInt();
+    const value = new BigInt64Array(byteLength);
+    for (const i in value){
+      const entry = this.#getLong();
+      value[i] = entry;
     }
     return value;
   }

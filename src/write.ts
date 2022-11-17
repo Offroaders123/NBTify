@@ -158,6 +158,12 @@ export class NBTWriter {
     this.#offset += 4;
   }
 
+  #setLong(value: bigint) {
+    this.#accommodate(8);
+    this.#view.setBigInt64(this.#offset,value,this.#littleEndian);
+    this.#offset += 8;
+  }
+
   #setFloat(value: number) {
     this.#accommodate(4);
     this.#view.setFloat32(this.#offset,value,this.#littleEndian);
@@ -170,34 +176,12 @@ export class NBTWriter {
     this.#offset += 8;
   }
 
-  #setLong(value: bigint) {
-    this.#accommodate(8);
-    this.#view.setBigInt64(this.#offset,value,this.#littleEndian);
-    this.#offset += 8;
-  }
-
   #setByteArray(value: Int8Array) {
     const { byteLength } = value;
     this.#setUInt(byteLength);
     this.#accommodate(byteLength);
     this.#data.set(value,this.#offset);
     this.#offset += byteLength;
-  }
-
-  #setIntArray(value: Int32Array) {
-    const { byteLength } = value;
-    this.#setUInt(byteLength);
-    for (const entry of value){
-      this.#setInt(entry);
-    }
-  }
-
-  #setLongArray(value: BigInt64Array) {
-    const { byteLength } = value;
-    this.#setUInt(byteLength);
-    for (const entry of value){
-      this.#setLong(entry);
-    }
   }
 
   #setString(value: string) {
@@ -227,5 +211,21 @@ export class NBTWriter {
       this.#setTag(entry);
     }
     this.#setTagType(TAG_END);
+  }
+
+  #setIntArray(value: Int32Array) {
+    const { byteLength } = value;
+    this.#setUInt(byteLength);
+    for (const entry of value){
+      this.#setInt(entry);
+    }
+  }
+
+  #setLongArray(value: BigInt64Array) {
+    const { byteLength } = value;
+    this.#setUInt(byteLength);
+    for (const entry of value){
+      this.#setLong(entry);
+    }
   }
 }
