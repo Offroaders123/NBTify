@@ -1,18 +1,18 @@
 import { Byte, Short, Int, Float } from "./primitive.js";
 
-export type Tag = BooleanTag | ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag;
+export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag;
 
-export type BooleanTag = boolean | 0 | 1;
+export type ByteTag<T extends number = number> = Byte<T>;
 
-export type ByteTag = Byte;
+export type BooleanTag = boolean | ByteTag<0 | 1>;
 
-export type ShortTag = Short;
+export type ShortTag<T extends number = number> = Short<T>;
 
-export type IntTag = Int;
+export type IntTag<T extends number = number> = Int<T>;
 
 export type LongTag = bigint;
 
-export type FloatTag = Float;
+export type FloatTag<T extends number = number> = Float<T>;
 
 export type DoubleTag = number;
 
@@ -57,3 +57,21 @@ export const TAG_COMPOUND = 10;
 export const TAG_INT_ARRAY = 11;
 
 export const TAG_LONG_ARRAY = 12;
+
+export function getTagType(value: Tag): TAG_TYPE {
+  switch (true){
+    case value instanceof Byte: return TAG_BYTE;
+    case value instanceof Short: return TAG_SHORT;
+    case value instanceof Int: return TAG_INT;
+    case typeof value === "bigint": return TAG_LONG;
+    case value instanceof Float: return TAG_FLOAT;
+    case typeof value === "number": return TAG_DOUBLE;
+    case value instanceof Int8Array: return TAG_BYTE_ARRAY;
+    case typeof value === "string": return TAG_STRING;
+    case value instanceof Array: return TAG_LIST;
+    case typeof value === "object" && Object.getPrototypeOf(value).isPrototypeOf(Object): return TAG_COMPOUND;
+    case value instanceof Int32Array: return TAG_INT_ARRAY;
+    case value instanceof BigInt64Array: return TAG_LONG_ARRAY;
+    default: throw new TypeError(`Encountered unsupported tag type ${typeof value}`);
+  }
+}

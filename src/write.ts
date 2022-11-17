@@ -1,5 +1,5 @@
 import { Metadata, NBTData } from "./index.js";
-import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TagByte, TAG_BYTE, getTagType, getTagByte } from "./tag.js";
+import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG_TYPE, TAG_END, TAG_BYTE, TAG_SHORT, TAG_INT, TAG_LONG, TAG_FLOAT, TAG_DOUBLE, TAG_BYTE_ARRAY, TAG_STRING, TAG_LIST, TAG_COMPOUND, TAG_INT_ARRAY, TAG_LONG_ARRAY, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
 
 type WriteOptions = Partial<Pick<Metadata,"endian" | "compression" | "bedrockLevel">>;
@@ -69,7 +69,7 @@ export class NBTWriter {
     const { name } = data;
     const { data: value } = data;
 
-    this.#setTagByte(TAG_BYTE.Compound);
+    this.#setTagByte(TAG_COMPOUND);
     this.#setString(name);
     this.#setCompound(value);
 
@@ -103,22 +103,22 @@ export class NBTWriter {
   #setTag(value: Tag) {
     const type = getTagType(value);
     switch (type){
-      case "Byte": return this.#setInt8((value as ByteTag).valueOf());
-      case "Short": return this.#setInt16((value as ShortTag).valueOf());
-      case "Int": return this.#setInt32((value as IntTag).valueOf());
-      case "Long": return this.#setBigInt64(value as LongTag);
-      case "Float": return this.#setFloat32((value as FloatTag).valueOf());
-      case "Double": return this.#setFloat64(value as DoubleTag);
-      case "ByteArray": return this.#setUint8Array(value as ByteArrayTag);
-      case "String": return this.#setString(value as StringTag);
-      case "List": return this.#setList(value as ListTag);
-      case "Compound": return this.#setCompound(value as CompoundTag);
-      case "IntArray": return this.#setInt32Array(value as IntArrayTag);
-      case "LongArray": return this.#setBigInt64Array(value as LongArrayTag);
+      case TAG_BYTE: return this.#setInt8((value as ByteTag).valueOf());
+      case TAG_SHORT: return this.#setInt16((value as ShortTag).valueOf());
+      case TAG_INT: return this.#setInt32((value as IntTag).valueOf());
+      case TAG_LONG: return this.#setBigInt64(value as LongTag);
+      case TAG_FLOAT: return this.#setFloat32((value as FloatTag).valueOf());
+      case TAG_DOUBLE: return this.#setFloat64(value as DoubleTag);
+      case TAG_BYTE_ARRAY: return this.#setInt8Array(value as ByteArrayTag);
+      case TAG_STRING: return this.#setString(value as StringTag);
+      case TAG_LIST: return this.#setList(value as ListTag);
+      case TAG_COMPOUND: return this.#setCompound(value as CompoundTag);
+      case TAG_INT_ARRAY: return this.#setInt32Array(value as IntArrayTag);
+      case TAG_LONG_ARRAY: return this.#setBigInt64Array(value as LongArrayTag);
     }
   }
 
-  #setTagByte(tag: TagByte) {
+  #setTagByte(tag: TAG_TYPE) {
     this.#setUint8(tag);
   }
 
@@ -176,7 +176,7 @@ export class NBTWriter {
     this.#offset += 8;
   }
 
-  #setUint8Array(value: Uint8Array) {
+  #setInt8Array(value: Int8Array) {
     const { byteLength } = value;
     this.#setUint32(byteLength);
     this.#accommodate(byteLength);
@@ -210,7 +210,7 @@ export class NBTWriter {
   }
 
   #setList(value: ListTag) {
-    const tag = getTagByte(value[0]);
+    const tag = getTagType(value[0]);
     const { length } = value;
     this.#setTagByte(tag);
     this.#setUint32(length);
@@ -221,11 +221,11 @@ export class NBTWriter {
 
   #setCompound(value: CompoundTag) {
     for (const [name,entry] of Object.entries(value)){
-      const tag = getTagByte(entry);
+      const tag = getTagType(entry);
       this.#setTagByte(tag);
       this.#setString(name);
       this.#setTag(entry);
     }
-    this.#setTagByte(TAG_BYTE.End);
+    this.#setTagByte(TAG_END);
   }
 }
