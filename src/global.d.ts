@@ -1,16 +1,10 @@
 declare global {
-  class CompressionStream {
+  class CompressionStream extends TransformStream<Uint8Array,BufferSource> {
     constructor(format: string);
-
-    readonly readable: ReadableStream<BufferSource>;
-    readonly writable: WritableStream<Uint8Array>;
   }
 
-  class DecompressionStream {
+  class DecompressionStream extends TransformStream<Uint8Array,BufferSource> {
     constructor(format: string);
-
-    readonly readable: ReadableStream<BufferSource>;
-    readonly writable: WritableStream<Uint8Array>;
   }
 }
 

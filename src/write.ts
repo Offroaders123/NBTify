@@ -2,14 +2,14 @@ import { Metadata, NBTData } from "./index.js";
 import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG_TYPE, TAG_END, TAG_BYTE, TAG_SHORT, TAG_INT, TAG_LONG, TAG_FLOAT, TAG_DOUBLE, TAG_BYTE_ARRAY, TAG_STRING, TAG_LIST, TAG_COMPOUND, TAG_INT_ARRAY, TAG_LONG_ARRAY, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
 
-type WriteOptions = Partial<Pick<Metadata,"endian" | "compression" | "bedrockLevel">>;
+export interface NBTWriteOptions extends Partial<Pick<Metadata,"endian" | "compression" | "bedrockLevel">> {}
 
 /**
  * Converts an NBTData object into an NBT Uint8Array. Accepts an endian type, compression format, and file headers to write the data with.
  * 
  * If an option isn't provided, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write(data: NBTData, { endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: WriteOptions = {}){
+export async function write(data: NBTData, { endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: NBTWriteOptions = {}){
   if (!(data instanceof NBTData)){
     throw new TypeError("First argument must be an NBTData object");
   }
@@ -37,7 +37,7 @@ export async function write(data: NBTData, { endian = data.endian, compression =
   return result;
 }
 
-type WriterOptions = Partial<Pick<Metadata,"endian">>;
+export interface NBTWriterOptions extends Partial<Pick<Metadata,"endian">> {}
 
 /**
  * The base implementation to convert an NBTData object into an NBT Uint8Array.
@@ -52,7 +52,7 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object. Accepts an endian type to write the data with. If one is not provided, the value of the endian property on the NBTData object will be used.
   */
-  write(data: NBTData, { endian = data.endian }: WriterOptions = {}) {
+  write(data: NBTData, { endian = data.endian }: NBTWriterOptions = {}) {
     if (!(data instanceof NBTData)){
       throw new TypeError("First argument must be an NBTData object");
     }
@@ -118,11 +118,7 @@ export class NBTWriter {
     }
   }
 
-  #setTagType(tag: TAG_TYPE) {
-    this.#setUByte(tag);
-  }
-
-  #setUByte(value: number) {
+  #setTagType(value: TAG_TYPE) {
     this.#accommodate(1);
     this.#view.setUint8(this.#offset,value);
     this.#offset += 1;
@@ -134,7 +130,7 @@ export class NBTWriter {
     this.#offset += 1;
   }
 
-  #setUShort(value: number) {
+  #setStringLength(value: number) {
     this.#accommodate(2);
     this.#view.setUint16(this.#offset,value,this.#littleEndian);
     this.#offset += 2;
@@ -146,7 +142,7 @@ export class NBTWriter {
     this.#offset += 2;
   }
 
-  #setUInt(value: number) {
+  #setArrayLength(value: number) {
     this.#accommodate(4);
     this.#view.setUint32(this.#offset,value,this.#littleEndian);
     this.#offset += 4;
@@ -178,7 +174,7 @@ export class NBTWriter {
 
   #setByteArray(value: Int8Array) {
     const { byteLength } = value;
-    this.#setUInt(byteLength);
+    this.#setArrayLength(byteLength);
     this.#accommodate(byteLength);
     this.#data.set(value,this.#offset);
     this.#offset += byteLength;
@@ -187,7 +183,7 @@ export class NBTWriter {
   #setString(value: string) {
     const entry = new TextEncoder().encode(value);
     const { length } = entry;
-    this.#setUShort(length);
+    this.#setStringLength(length);
     this.#accommodate(length);
     this.#data.set(entry,this.#offset);
     this.#offset += length;
@@ -197,7 +193,7 @@ export class NBTWriter {
     const tag = getTagType(value[0]);
     const { length } = value;
     this.#setTagType(tag);
-    this.#setUInt(length);
+    this.#setArrayLength(length);
     for (const entry of value){
       this.#setTag(entry);
     }
@@ -215,7 +211,7 @@ export class NBTWriter {
 
   #setIntArray(value: Int32Array) {
     const { byteLength } = value;
-    this.#setUInt(byteLength);
+    this.#setArrayLength(byteLength);
     for (const entry of value){
       this.#setInt(entry);
     }
@@ -223,7 +219,7 @@ export class NBTWriter {
 
   #setLongArray(value: BigInt64Array) {
     const { byteLength } = value;
-    this.#setUInt(byteLength);
+    this.#setArrayLength(byteLength);
     for (const entry of value){
       this.#setLong(entry);
     }

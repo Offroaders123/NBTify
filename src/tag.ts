@@ -72,6 +72,6 @@ export function getTagType(value: Tag): TAG_TYPE {
     case typeof value === "object" && Object.getPrototypeOf(value).isPrototypeOf(Object): return TAG_COMPOUND;
     case value instanceof Int32Array: return TAG_INT_ARRAY;
     case value instanceof BigInt64Array: return TAG_LONG_ARRAY;
-    default: throw new TypeError(`Encountered unsupported tag type ${typeof value}`);
+    default: throw new TypeError(`Encountered unsupported tag type ${Object.prototype.toString.call(value)}`);
   }
 }

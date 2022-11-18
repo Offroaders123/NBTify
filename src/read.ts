@@ -3,14 +3,14 @@ import { Byte, Short, Int, Float } from "./primitive.js";
 import { Tag, ListTag, CompoundTag, TAG_TYPE, TAG_END, TAG_BYTE, TAG_SHORT, TAG_INT, TAG_LONG, TAG_FLOAT, TAG_DOUBLE, TAG_BYTE_ARRAY, TAG_STRING, TAG_LIST, TAG_COMPOUND, TAG_INT_ARRAY, TAG_LONG_ARRAY } from "./tag.js";
 import { decompress } from "./compression.js";
 
-type ReadOptions = Partial<Pick<Metadata,"endian" | "compression">>;
+export interface NBTReadOptions extends Partial<Pick<Metadata,"endian" | "compression">> {}
 
 /**
  * Converts an NBT Uint8Array into an NBTData object. Accepts an endian type and compression format to read the data with.
  * 
  * If an option isn't provided, the function will attempt to read the data using all available formats until it either throws or returns successfully.
 */
-export async function read(data: Uint8Array, { endian, compression }: ReadOptions = {}){
+export async function read(data: Uint8Array, { endian, compression }: NBTReadOptions = {}){
   if (!(data instanceof Uint8Array)){
     throw new TypeError("First argument must be a Uint8Array");
   }
@@ -57,7 +57,7 @@ export async function read(data: Uint8Array, { endian, compression }: ReadOption
   }
 }
 
-type ReaderOptions = Partial<Pick<Metadata,"endian">>;
+export interface NBTReaderOptions extends Partial<Pick<Metadata,"endian">> {}
 
 /**
  * The base implementation to convert an NBT Uint8Array into an NBTData object.
@@ -89,7 +89,7 @@ export class NBTReader {
   /**
    * Initiates the reader over an uncompressed NBT Uint8Array. Accepts an endian type to read the data with. If one is not provided, big endian will be used.
   */
-  read(data: Uint8Array, { endian = "big" }: ReaderOptions = {}) {
+  read(data: Uint8Array, { endian = "big" }: NBTReaderOptions = {}) {
     this.#offset = 0;
     this.#littleEndian = (endian === "little");
     this.#data = new Uint8Array(data);
@@ -125,13 +125,9 @@ export class NBTReader {
   }
 
   #getTagType() {
-    return this.#getUByte() as TAG_TYPE;
-  }
-
-  #getUByte() {
     const value = this.#view.getUint8(this.#offset);
     this.#offset += 1;
-    return value;
+    return value as TAG_TYPE;
   }
 
   #getByte() {
@@ -140,7 +136,7 @@ export class NBTReader {
     return value;
   }
 
-  #getUShort() {
+  #getStringLength() {
     const value = this.#view.getUint16(this.#offset,this.#littleEndian);
     this.#offset += 2;
     return value;
@@ -152,7 +148,7 @@ export class NBTReader {
     return value;
   }
 
-  #getUInt() {
+  #getArrayLength() {
     const value = this.#view.getUint32(this.#offset,this.#littleEndian);
     this.#offset += 4;
     return value;
@@ -183,14 +179,14 @@ export class NBTReader {
   }
 
   #getByteArray() {
-    const byteLength = this.#getUInt();
+    const byteLength = this.#getArrayLength();
     const value = new Int8Array(this.#data.slice(this.#offset,this.#offset + byteLength));
     this.#offset += byteLength;
     return value;
   }
 
   #getString() {
-    const length = this.#getUShort();
+    const length = this.#getStringLength();
     const value = this.#data.slice(this.#offset,this.#offset + length);
     this.#offset += length;
     return new TextDecoder().decode(value);
@@ -198,7 +194,7 @@ export class NBTReader {
 
   #getList() {
     const tag = this.#getTagType();
-    const length = this.#getUInt();
+    const length = this.#getArrayLength();
     const value: ListTag = [];
     for (let i = 0; i < length; i++){
       const entry = this.#getTag(tag);
@@ -220,7 +216,7 @@ export class NBTReader {
   }
 
   #getIntArray() {
-    const byteLength = this.#getUInt();
+    const byteLength = this.#getArrayLength();
     const value = new Int32Array(byteLength);
     for (const i in value){
       const entry = this.#getInt();
@@ -230,7 +226,7 @@ export class NBTReader {
   }
 
   #getLongArray() {
-    const byteLength = this.#getUInt();
+    const byteLength = this.#getArrayLength();
     const value = new BigInt64Array(byteLength);
     for (const i in value){
       const entry = this.#getLong();
