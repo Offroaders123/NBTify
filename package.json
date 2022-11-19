@@ -28,6 +28,6 @@
   },
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "optionalDependencies": {
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.3"
   }
 }
