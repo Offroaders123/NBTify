@@ -1,6 +1,6 @@
 import { Metadata, NBTData } from "./index.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
-import { Tag, ListTag, CompoundTag, TAG_TYPE, TAG_END, TAG_BYTE, TAG_SHORT, TAG_INT, TAG_LONG, TAG_FLOAT, TAG_DOUBLE, TAG_BYTE_ARRAY, TAG_STRING, TAG_LIST, TAG_COMPOUND, TAG_INT_ARRAY, TAG_LONG_ARRAY } from "./tag.js";
+import { Tag, ListTag, CompoundTag, TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
 export interface NBTReadOptions extends Partial<Pick<Metadata,"endian" | "compression">> {}
@@ -96,7 +96,7 @@ export class NBTReader {
     this.#view = new DataView(this.#data.buffer);
 
     const tag = this.#getTagType();
-    if (tag !== TAG_COMPOUND){
+    if (tag !== TAG.COMPOUND){
       throw new TypeError(`Encountered unsupported tag type ${tag}`);
     }
 
@@ -106,20 +106,20 @@ export class NBTReader {
     return new NBTData(value,{ name, endian });
   }
 
-  #getTag(tag: TAG_TYPE): Tag {
+  #getTag(tag: TAG): Tag {
     switch (tag){
-      case TAG_BYTE: return new Byte(this.#getByte());
-      case TAG_SHORT: return new Short(this.#getShort());
-      case TAG_INT: return new Int(this.#getInt());
-      case TAG_LONG: return this.#getLong();
-      case TAG_FLOAT: return new Float(this.#getFloat());
-      case TAG_DOUBLE: return this.#getDouble();
-      case TAG_BYTE_ARRAY: return this.#getByteArray();
-      case TAG_STRING: return this.#getString();
-      case TAG_LIST: return this.#getList();
-      case TAG_COMPOUND: return this.#getCompound();
-      case TAG_INT_ARRAY: return this.#getIntArray();
-      case TAG_LONG_ARRAY: return this.#getLongArray();
+      case TAG.BYTE: return new Byte(this.#getByte());
+      case TAG.SHORT: return new Short(this.#getShort());
+      case TAG.INT: return new Int(this.#getInt());
+      case TAG.LONG: return this.#getLong();
+      case TAG.FLOAT: return new Float(this.#getFloat());
+      case TAG.DOUBLE: return this.#getDouble();
+      case TAG.BYTE_ARRAY: return this.#getByteArray();
+      case TAG.STRING: return this.#getString();
+      case TAG.LIST: return this.#getList();
+      case TAG.COMPOUND: return this.#getCompound();
+      case TAG.INT_ARRAY: return this.#getIntArray();
+      case TAG.LONG_ARRAY: return this.#getLongArray();
       default: throw new TypeError(`Encountered unsupported tag ${tag}`);
     }
   }
@@ -127,7 +127,7 @@ export class NBTReader {
   #getTagType() {
     const value = this.#view.getUint8(this.#offset);
     this.#offset += 1;
-    return value as TAG_TYPE;
+    return value as TAG;
   }
 
   #getByte() {
@@ -207,7 +207,7 @@ export class NBTReader {
     const value: CompoundTag = {};
     while (true){
       const tag = this.#getTagType();
-      if (tag === TAG_END) break;
+      if (tag === TAG.END) break;
       const name = this.#getString();
       const entry = this.#getTag(tag);
       value[name] = entry;
