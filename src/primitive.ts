@@ -5,7 +5,7 @@ export class Byte<T extends number = number> extends Number {
   }
 
   get [Symbol.toStringTag]() {
-    return "Byte" as "Byte";
+    return "Byte" as const;
   }
 
   valueOf() {
@@ -20,7 +20,7 @@ export class Short<T extends number = number> extends Number {
   }
 
   get [Symbol.toStringTag]() {
-    return "Short" as "Short";
+    return "Short" as const;
   }
 
   valueOf() {
@@ -35,7 +35,7 @@ export class Int<T extends number = number> extends Number {
   }
 
   get [Symbol.toStringTag]() {
-    return "Int" as "Int";
+    return "Int" as const;
   }
 
   valueOf() {
@@ -50,7 +50,7 @@ export class Float<T extends number = number> extends Number {
   }
 
   get [Symbol.toStringTag]() {
-    return "Float" as "Float";
+    return "Float" as const;
   }
 
   valueOf() {
