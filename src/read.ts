@@ -1,9 +1,12 @@
-import { Metadata, NBTData } from "./index.js";
+import { NBTData, Endian, Compression, BedrockLevel } from "./index.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
 import { Tag, ListTag, CompoundTag, TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
-export interface NBTReadOptions extends Partial<Pick<Metadata,"endian" | "compression">> {}
+export interface NBTReadOptions {
+  endian?: Endian;
+  compression?: Compression;
+}
 
 /**
  * Converts an NBT Uint8Array into an NBTData object. Accepts an endian type and compression format to read the data with.
@@ -12,17 +15,17 @@ export interface NBTReadOptions extends Partial<Pick<Metadata,"endian" | "compre
 */
 export async function read(data: Uint8Array, { endian, compression }: NBTReadOptions = {}){
   if (!(data instanceof Uint8Array)){
-    throw new TypeError("First argument must be a Uint8Array");
+    throw new TypeError("First parameter must be a Uint8Array");
   }
   if (endian !== undefined && endian !== "big" && endian !== "little"){
-    throw new TypeError(`Endian option must be set to either "big" or "little"`);
+    throw new TypeError("Endian option must be a valid endian type");
   }
-  if (compression !== undefined && compression !== "none" && compression !== "gzip" && compression !== "zlib"){
-    throw new TypeError(`Compression option must be set to either "none", "gzip", or "zlib"`);
+  if (compression !== undefined && compression !== "gzip" && compression !== "zlib"){
+    throw new TypeError("Compression option must be a valid compression type");
   }
 
   if (endian !== undefined){
-    let bedrockLevel: Metadata["bedrockLevel"] = false;
+    let bedrockLevel: BedrockLevel | undefined;
 
     if (endian !== "big" && NBTReader.hasBedrockLevelHeader(data)){
       const view = new DataView(data.buffer);
@@ -38,8 +41,8 @@ export async function read(data: Uint8Array, { endian, compression }: NBTReadOpt
     const reader = new NBTReader();
     const result = reader.read(data,{ endian });
 
-    result.compression = compression || "none";
-    result.bedrockLevel = bedrockLevel;
+    if (compression !== undefined) result.compression = compression;
+    if (bedrockLevel !== undefined) result.bedrockLevel = bedrockLevel;
 
     return result;
   } else {
@@ -57,7 +60,9 @@ export async function read(data: Uint8Array, { endian, compression }: NBTReadOpt
   }
 }
 
-export interface NBTReaderOptions extends Partial<Pick<Metadata,"endian">> {}
+export interface NBTReaderOptions {
+  endian?: Endian;
+}
 
 /**
  * The base implementation to convert an NBT Uint8Array into an NBTData object.
@@ -65,7 +70,7 @@ export interface NBTReaderOptions extends Partial<Pick<Metadata,"endian">> {}
 export class NBTReader {
   static hasGzipHeader(data: Uint8Array) {
     if (!(data instanceof Uint8Array)){
-      throw new TypeError("First argument must be a Uint8Array");
+      throw new TypeError("First parameter must be a Uint8Array");
     }
     const view = new DataView(data.buffer);
     const header = view.getUint16(0,false);
@@ -74,7 +79,7 @@ export class NBTReader {
 
   static hasBedrockLevelHeader(data: Uint8Array) {
     if (!(data instanceof Uint8Array)){
-      throw new TypeError("First argument must be a Uint8Array");
+      throw new TypeError("First parameter must be a Uint8Array");
     }
     const view = new DataView(data.buffer);
     const byteLength = view.getUint32(4,true);

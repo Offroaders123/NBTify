@@ -1,8 +1,12 @@
-import { Metadata, NBTData } from "./index.js";
+import { NBTData, Endian, Compression, BedrockLevel } from "./index.js";
 import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getType } from "./tag.js";
 import { compress } from "./compression.js";
 
-export interface NBTWriteOptions extends Partial<Pick<Metadata,"endian" | "compression" | "bedrockLevel">> {}
+export interface NBTWriteOptions {
+  endian?: Endian;
+  compression?: Compression;
+  bedrockLevel?: BedrockLevel;
+}
 
 /**
  * Converts an NBTData object into an NBT Uint8Array. Accepts an endian type, compression format, and file headers to write the data with.
@@ -11,10 +15,10 @@ export interface NBTWriteOptions extends Partial<Pick<Metadata,"endian" | "compr
 */
 export async function write(data: NBTData, { endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: NBTWriteOptions = {}){
   if (!(data instanceof NBTData)){
-    throw new TypeError("First argument must be an NBTData object");
+    throw new TypeError("First parameter must be an NBTData object");
   }
   if (endian !== "big" && endian !== "little"){
-    throw new TypeError(`Endian option must be set to either "big" or "little"`);
+    throw new TypeError("Endian option must be a valid endian type");
   }
 
   const writer = new NBTWriter();
@@ -24,7 +28,7 @@ export async function write(data: NBTData, { endian = data.endian, compression =
     result = await compress(result,{ format: "gzip" });
   }
 
-  if (bedrockLevel !== false){
+  if (bedrockLevel !== undefined){
     const header = new Uint8Array(8);
     const view = new DataView(header.buffer);
     const version = bedrockLevel.valueOf();
@@ -37,7 +41,9 @@ export async function write(data: NBTData, { endian = data.endian, compression =
   return result;
 }
 
-export interface NBTWriterOptions extends Partial<Pick<Metadata,"endian">> {}
+export interface NBTWriterOptions {
+  endian?: Endian;
+}
 
 /**
  * The base implementation to convert an NBTData object into an NBT Uint8Array.
@@ -54,10 +60,10 @@ export class NBTWriter {
   */
   write(data: NBTData, { endian = data.endian }: NBTWriterOptions = {}) {
     if (!(data instanceof NBTData)){
-      throw new TypeError("First argument must be an NBTData object");
+      throw new TypeError("First parameter must be an NBTData object");
     }
     if (endian !== "big" && endian !== "little"){
-      throw new TypeError(`Endian option must be set to either "big" or "little"`);
+      throw new TypeError("Endian option must be a valid endian type");
     }
 
     this.#offset = 0;
