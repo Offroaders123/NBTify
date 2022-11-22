@@ -4,7 +4,7 @@ import * as NBT from "../dist/index.js";
 
 globalThis.NBT = NBT;
 
-const buffer = await fetch("./nbt/bigtest.nbt").then(response => response.arrayBuffer());
+const buffer = await fetch("./nbt/simple_house.nbt").then(response => response.arrayBuffer());
 const data = new Uint8Array(buffer);
 console.log(data);
 

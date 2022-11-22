@@ -75,9 +75,13 @@ export class NBTWriter {
     const { name } = data;
     const { data: value } = data;
 
-    this.#setTagType(TAG.COMPOUND);
-    this.#setString(name);
-    this.#setCompound(value);
+    try {
+      this.#setTagType(TAG.COMPOUND);
+      this.#setString(name);
+      this.#setCompound(value);
+    } catch (error: any){
+      throw new Error(error);
+    }
 
     this.#accommodate(0);
     const result = this.#data.slice(0,this.#offset);
