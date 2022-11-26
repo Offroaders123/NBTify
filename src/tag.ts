@@ -46,7 +46,7 @@ export const enum TAG {
   LONG_ARRAY
 }
 
-export function getType(value: any): TAG {
+export function getType(value: Tag): TAG {
   switch (true){
     case value instanceof Byte: return TAG.BYTE;
     case value instanceof Short: return TAG.SHORT;

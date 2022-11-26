@@ -200,7 +200,8 @@ export class NBTWriter {
   }
 
   #setList(value: ListTag) {
-    const tag = getType(value[0]);
+    const template = value[0] as Tag | undefined;
+    const tag = (template !== undefined) ? getType(template): TAG.END;
     const { length } = value;
     this.#setTagType(tag);
     this.#setArrayLength(length);

@@ -4,12 +4,12 @@ import * as NBT from "../dist/index.js";
 
 globalThis.NBT = NBT;
 
-const buffer = await fetch("./nbt/simple_house.nbt").then(response => response.arrayBuffer());
+const buffer = await fetch("./nbt/empty_list.nbt").then(response => response.arrayBuffer());
 const data = new Uint8Array(buffer);
-console.log(data);
+console.log(...data);
 
 const result = await NBT.read(data);
-console.log(result);
+console.log(result.data);
 
 const recompile = await NBT.write(result);
-console.log(recompile);
+console.log(...recompile);
