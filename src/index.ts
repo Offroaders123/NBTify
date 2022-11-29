@@ -1,23 +1,20 @@
-export * from "./compression.js";
-export * from "./primitive.js";
 export * from "./read.js";
-export * from "./tag.js";
 export * from "./write.js";
+export * from "./primitive.js";
+export * from "./tag.js";
+export * from "./compression.js";
 
 import { Int } from "./primitive.js";
-import { CompoundTag } from "./tag.js";
+import type { CompoundTag } from "./tag.js";
 
-export type Data = CompoundTag | NBTData;
-export type Name = string;
 export type Endian = "big" | "little";
 export type Compression = "gzip" | "zlib";
-export type BedrockLevel = Int;
 
 export interface NBTDataOptions {
-  name?: Name;
+  name?: string;
   endian?: Endian;
   compression?: Compression;
-  bedrockLevel?: BedrockLevel;
+  bedrockLevel?: Int;
 }
 
 /**
@@ -26,12 +23,12 @@ export interface NBTDataOptions {
 export class NBTData {
   // Mark these as readonly!
   declare data: CompoundTag;
-  declare name: Name;
+  declare name: string;
   declare endian: Endian;
   declare compression?: Compression;
-  declare bedrockLevel?: BedrockLevel;
+  declare bedrockLevel?: Int;
 
-  constructor(data: Data, { name = "", endian = "big", compression, bedrockLevel }: NBTDataOptions = {}) {
+  constructor(data: CompoundTag | NBTData, { name = "", endian = "big", compression, bedrockLevel }: NBTDataOptions = {}) {
     const value = (data instanceof NBTData) ? data.data : data;
 
     if (typeof value !== "object"){
