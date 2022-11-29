@@ -58,6 +58,7 @@ export async function read(data: Uint8Array, { endian, compression }: NBTReadOpt
 }
 
 export interface NBTReaderOptions {
+  named?: boolean;
   endian?: Endian;
 }
 
@@ -91,7 +92,7 @@ export class NBTReader {
   /**
    * Initiates the reader over an uncompressed NBT Uint8Array. Accepts an endian type to read the data with. If one is not provided, big endian will be used.
   */
-  read(data: Uint8Array, { endian = "big" }: NBTReaderOptions = {}) {
+  read(data: Uint8Array, { named = true, endian = "big" }: NBTReaderOptions = {}) {
     this.#offset = 0;
     this.#littleEndian = (endian === "little");
     this.#data = new Uint8Array(data);
@@ -102,7 +103,7 @@ export class NBTReader {
       throw new TypeError(`Encountered unsupported tag type ${tag}`);
     }
 
-    const name = this.#getString();
+    const name = (named) ? this.#getString() : null;
     const value = this.#getCompound();
 
     return new NBTData(value,{ name, endian });

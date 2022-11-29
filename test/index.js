@@ -1,15 +1,27 @@
 // @ts-check
 
-import { Int, NBTData } from "../dist/index.js";
+import * as fs from "node:fs/promises";
+import { write, NBTReader, NBTData, Byte, Int } from "../dist/index.js";
 
-const data = new NBTData({ noice: 5 },{ compression: "zlib" });
-console.log(data);
+const base = new NBTData({
+  Cheats: new Byte(0),
+  GameMode: new Int(0),
+  TimePlayed: 1235n
+});
+console.log(base);
 
-const data2 = new NBTData(data,{ name: "noice", endian: "little", compression: null, bedrockLevel: new Int(8) });
-console.log(data2);
+const input = await write(base);
+console.log(...input,"\n");
 
-const data3 = new NBTData(data2,{ name: "noice2", compression: "gzip", bedrockLevel: null });
-console.log(data3);
+// fs.writeFile(new URL("./nbt/input.nbt",import.meta.url),input);
 
-const data4 = new NBTData(data3,{ name: "", endian: "big", compression: null, bedrockLevel: new Int(3) });
-console.log(data4);
+const output = await fs.readFile(new URL("./nbt/unnamed.nbt",import.meta.url));
+console.log(...output);
+
+const result = new NBTReader().read(output,{ named: false });
+console.log(result,"\n");
+
+const recompile = await write(result);
+console.log(...recompile,"\n");
+
+console.log(Buffer.compare(output,recompile));

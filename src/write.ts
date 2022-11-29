@@ -77,7 +77,7 @@ export class NBTWriter {
 
     try {
       this.#setTagType(TAG.COMPOUND);
-      this.#setString(name);
+      if (name !== null) this.#setString(name);
       this.#setCompound(value);
     } catch (error: any){
       throw new Error(error);

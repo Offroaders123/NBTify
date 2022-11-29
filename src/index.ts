@@ -7,12 +7,13 @@ export * from "./compression.js";
 import { Int } from "./primitive.js";
 import type { CompoundTag } from "./tag.js";
 
+export type Name = string | null;
 export type Endian = "big" | "little";
 export type Compression = "gzip" | "zlib";
 export type BedrockLevel = Int;
 
 export interface NBTDataOptions {
-  name?: string;
+  name?: Name;
   endian?: Endian;
   compression?: Compression | null;
   bedrockLevel?: BedrockLevel | null;
@@ -23,7 +24,7 @@ export interface NBTDataOptions {
 */
 export class NBTData {
   declare readonly data: CompoundTag;
-  declare readonly name: string;
+  declare readonly name: Name;
   declare readonly endian: Endian;
   declare readonly compression?: Compression;
   declare readonly bedrockLevel?: BedrockLevel;
@@ -45,8 +46,8 @@ export class NBTData {
     if (typeof data !== "object"){
       throw new TypeError("First parameter must be an object");
     }
-    if (typeof name !== "string"){
-      throw new TypeError("Name option must be a string");
+    if (typeof name !== "string" && name !== null){
+      throw new TypeError("Name option must be a string or null");
     }
     if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
