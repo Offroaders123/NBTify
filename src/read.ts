@@ -1,4 +1,4 @@
-import { NBTData, Endian, Compression } from "./index.js";
+import { NBTData, Endian, Compression, BedrockLevel } from "./index.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
 import { Tag, ListTag, CompoundTag, TAG } from "./tag.js";
 import { decompress } from "./compression.js";
@@ -25,7 +25,7 @@ export async function read(data: Uint8Array, { endian, compression }: NBTReadOpt
   }
 
   if (endian !== undefined){
-    let bedrockLevel: Int | undefined;
+    let bedrockLevel: BedrockLevel | undefined;
 
     if (endian !== "big" && NBTReader.hasBedrockLevelHeader(data)){
       const view = new DataView(data.buffer);
@@ -41,10 +41,7 @@ export async function read(data: Uint8Array, { endian, compression }: NBTReadOpt
     const reader = new NBTReader();
     const result = reader.read(data,{ endian });
 
-    if (compression !== undefined) result.compression = compression;
-    if (bedrockLevel !== undefined) result.bedrockLevel = bedrockLevel;
-
-    return result;
+    return new NBTData(result,{ compression, bedrockLevel });
   } else {
     let result: NBTData;
     try {

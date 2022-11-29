@@ -1,12 +1,11 @@
-import { NBTData, Endian, Compression } from "./index.js";
-import type { Int } from "./primitive.js";
+import { NBTData, Endian, Compression, BedrockLevel } from "./index.js";
 import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getType } from "./tag.js";
 import { compress } from "./compression.js";
 
 export interface NBTWriteOptions {
   endian?: Endian;
   compression?: Compression;
-  bedrockLevel?: Int;
+  bedrockLevel?: BedrockLevel;
 }
 
 /**
