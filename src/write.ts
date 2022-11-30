@@ -129,6 +129,10 @@ export class NBTWriter {
   }
 
   #setTagType(value: TAG) {
+    this.#setUnsignedByte(value);
+  }
+
+  #setUnsignedByte(value: number) {
     this.#accommodate(1);
     this.#view.setUint8(this.#byteOffset,value);
     this.#byteOffset += 1;
@@ -150,12 +154,6 @@ export class NBTWriter {
     this.#accommodate(2);
     this.#view.setInt16(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 2;
-  }
-
-  #setUnsignedInt(value: number) {
-    this.#accommodate(4);
-    this.#view.setUint32(this.#byteOffset,value,this.#littleEndian);
-    this.#byteOffset += 4;
   }
 
   #setInt(value: number) {
@@ -184,7 +182,7 @@ export class NBTWriter {
 
   #setByteArray(value: Int8Array) {
     const { byteLength } = value;
-    this.#setUnsignedInt(byteLength);
+    this.#setInt(byteLength);
     this.#accommodate(byteLength);
     this.#data.set(value,this.#byteOffset);
     this.#byteOffset += byteLength;
@@ -204,7 +202,7 @@ export class NBTWriter {
     const tag = (template !== undefined) ? getType(template): TAG.END;
     const { length } = value;
     this.#setTagType(tag);
-    this.#setUnsignedInt(length);
+    this.#setInt(length);
     for (const entry of value){
       this.#setTag(entry);
     }
@@ -222,7 +220,7 @@ export class NBTWriter {
 
   #setIntArray(value: Int32Array) {
     const { byteLength } = value;
-    this.#setUnsignedInt(byteLength);
+    this.#setInt(byteLength);
     for (const entry of value){
       this.#setInt(entry);
     }
@@ -230,7 +228,7 @@ export class NBTWriter {
 
   #setLongArray(value: BigInt64Array) {
     const { byteLength } = value;
-    this.#setUnsignedInt(byteLength);
+    this.#setInt(byteLength);
     for (const entry of value){
       this.#setLong(entry);
     }

@@ -130,9 +130,13 @@ export class NBTReader {
   }
 
   #getTagType() {
+    return this.#getUnsignedByte() as TAG;
+  }
+
+  #getUnsignedByte() {
     const value = this.#view.getUint8(this.#byteOffset);
     this.#byteOffset += 1;
-    return value as TAG;
+    return value;
   }
 
   #getByte() {
@@ -150,12 +154,6 @@ export class NBTReader {
   #getShort() {
     const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
-    return value;
-  }
-
-  #getUnsignedInt() {
-    const value = this.#view.getUint32(this.#byteOffset,this.#littleEndian);
-    this.#byteOffset += 4;
     return value;
   }
 
@@ -184,7 +182,7 @@ export class NBTReader {
   }
 
   #getByteArray() {
-    const byteLength = this.#getUnsignedInt();
+    const byteLength = this.#getInt();
     const value = new Int8Array(this.#data.slice(this.#byteOffset,this.#byteOffset + byteLength));
     this.#byteOffset += byteLength;
     return value;
@@ -199,7 +197,7 @@ export class NBTReader {
 
   #getList() {
     const tag = this.#getTagType();
-    const length = this.#getUnsignedInt();
+    const length = this.#getInt();
     const value: ListTag = [];
     for (let i = 0; i < length; i++){
       const entry = this.#getTag(tag);
@@ -221,7 +219,7 @@ export class NBTReader {
   }
 
   #getIntArray() {
-    const byteLength = this.#getUnsignedInt();
+    const byteLength = this.#getInt();
     const value = new Int32Array(byteLength);
     for (const i in value){
       const entry = this.#getInt();
@@ -231,7 +229,7 @@ export class NBTReader {
   }
 
   #getLongArray() {
-    const byteLength = this.#getUnsignedInt();
+    const byteLength = this.#getInt();
     const value = new BigInt64Array(byteLength);
     for (const i in value){
       const entry = this.#getLong();
