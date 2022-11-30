@@ -86,10 +86,10 @@ export interface NBTReaderOptions {
  * The base implementation to convert an NBT Uint8Array into an NBTData object.
 */
 export class NBTReader {
-  #byteOffset = 0;
-  #littleEndian = false;
-  #data = new Uint8Array();
-  #view = new DataView(this.#data.buffer);
+  #byteOffset!: number;
+  #littleEndian!: boolean;
+  #view!: DataView;
+  #decoder = new TextDecoder();
 
   /**
    * Initiates the reader over an uncompressed NBT Uint8Array. Accepts an endian type to read the data with. If one is not provided, big endian will be used.
@@ -97,8 +97,7 @@ export class NBTReader {
   read(data: Uint8Array, { named = true, endian = "big" }: NBTReaderOptions = {}) {
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
-    this.#data = new Uint8Array(data);
-    this.#view = new DataView(this.#data.buffer);
+    this.#view = new DataView(data.buffer);
 
     const tag = this.#getTagType();
     if (tag !== TAG.COMPOUND){
@@ -113,6 +112,7 @@ export class NBTReader {
 
   #getTag(tag: TAG): Tag {
     switch (tag){
+      case TAG.END: throw new TypeError(`Encountered unexpected TAG_End`);
       case TAG.BYTE: return new Byte(this.#getByte());
       case TAG.SHORT: return new Short(this.#getShort());
       case TAG.INT: return new Int(this.#getInt());
@@ -183,16 +183,16 @@ export class NBTReader {
 
   #getByteArray() {
     const byteLength = this.#getInt();
-    const value = new Int8Array(this.#data.slice(this.#byteOffset,this.#byteOffset + byteLength));
+    const value = new Int8Array(this.#view.buffer.slice(this.#byteOffset,this.#byteOffset + byteLength));
     this.#byteOffset += byteLength;
     return value;
   }
 
   #getString() {
     const length = this.#getUnsignedShort();
-    const value = this.#data.slice(this.#byteOffset,this.#byteOffset + length);
+    const value = this.#view.buffer.slice(this.#byteOffset,this.#byteOffset + length);
     this.#byteOffset += length;
-    return new TextDecoder().decode(value);
+    return this.#decoder.decode(value);
   }
 
   #getList() {

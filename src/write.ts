@@ -49,11 +49,10 @@ export interface NBTWriterOptions {
  * The base implementation to convert an NBTData object into an NBT Uint8Array.
 */
 export class NBTWriter {
-  #byteOffset = 0;
-  #littleEndian = false;
-  #buffer = new ArrayBuffer(1024);
-  #data = new Uint8Array(this.#buffer);
-  #view = new DataView(this.#buffer);
+  #byteOffset!: number;
+  #littleEndian!: boolean;
+  #view!: DataView;
+  #encoder = new TextEncoder();
 
   /**
    * Initiates the writer over an NBTData object. Accepts an endian type to write the data with. If one is not provided, the value of the endian property on the NBTData object will be used.
@@ -68,9 +67,7 @@ export class NBTWriter {
 
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
-    this.#buffer = new ArrayBuffer(1024);
-    this.#data = new Uint8Array(this.#buffer);
-    this.#view = new DataView(this.#buffer);
+    this.#view = new DataView(new ArrayBuffer(1024));
 
     const { name } = data;
     const { data: value } = data;
@@ -84,13 +81,13 @@ export class NBTWriter {
     }
 
     this.#accommodate(0);
-    const result = this.#data.slice(0,this.#byteOffset);
+    const result = this.#view.buffer.slice(0,this.#byteOffset);
     return new Uint8Array(result);
   }
 
   #accommodate(size: number) {
     const required = this.#byteOffset + size;
-    const { byteLength } = this.#buffer;
+    const { byteLength } = this.#view.buffer;
     if (byteLength >= required) return;
 
     let length = byteLength;
@@ -99,15 +96,13 @@ export class NBTWriter {
     }
 
     const data = new Uint8Array(length);
-    data.set(this.#data);
+    data.set(new Uint8Array(this.#view.buffer));
 
     if (this.#byteOffset > byteLength){
       data.fill(0,byteLength,this.#byteOffset);
     }
 
-    this.#buffer = data.buffer;
-    this.#view = new DataView(this.#buffer);
-    this.#data = data;
+    this.#view = new DataView(data.buffer);
   }
 
   #setTag(value: Tag) {
@@ -184,16 +179,24 @@ export class NBTWriter {
     const { byteLength } = value;
     this.#setInt(byteLength);
     this.#accommodate(byteLength);
-    this.#data.set(value,this.#byteOffset);
+
+    const data = new Uint8Array(this.#view.buffer);
+    data.set(value,this.#byteOffset);
+
+    this.#view = new DataView(data.buffer);
     this.#byteOffset += byteLength;
   }
 
   #setString(value: string) {
-    const entry = new TextEncoder().encode(value);
+    const entry = this.#encoder.encode(value);
     const { length } = entry;
     this.#setUnsignedShort(length);
     this.#accommodate(length);
-    this.#data.set(entry,this.#byteOffset);
+
+    const data = new Uint8Array(this.#view.buffer);
+    data.set(entry,this.#byteOffset);
+
+    this.#view = new DataView(data.buffer);
     this.#byteOffset += length;
   }
 
