@@ -27,13 +27,13 @@ export async function read(data: Uint8Array, { endian, compression }: NBTReadOpt
   if (endian !== undefined){
     let bedrockLevel: BedrockLevel | undefined;
 
-    if (endian !== "big" && NBTReader.hasBedrockLevelHeader(data)){
+    if (endian !== "big" && hasBedrockLevelHeader(data)){
       const view = new DataView(data.buffer);
       const version = view.getUint32(0,true);
       bedrockLevel = new Int(version);
       data = data.slice(8);
     }
-    if (compression === "gzip" || NBTReader.hasGzipHeader(data)){
+    if (compression === "gzip" || hasGzipHeader(data)){
       compression = "gzip";
       data = await decompress(data,{ format: "gzip" });
     }
@@ -57,6 +57,26 @@ export async function read(data: Uint8Array, { endian, compression }: NBTReadOpt
   }
 }
 
+export function hasGzipHeader(data: Uint8Array) {
+  if (!(data instanceof Uint8Array)){
+    throw new TypeError("First parameter must be a Uint8Array");
+  }
+
+  const view = new DataView(data.buffer);
+  const header = view.getUint16(0,false);
+  return header === 0x1f8b;
+}
+
+export function hasBedrockLevelHeader(data: Uint8Array) {
+  if (!(data instanceof Uint8Array)){
+    throw new TypeError("First parameter must be a Uint8Array");
+  }
+
+  const view = new DataView(data.buffer);
+  const byteLength = view.getUint32(4,true);
+  return byteLength === data.byteLength - 8;
+}
+
 export interface NBTReaderOptions {
   named?: boolean;
   endian?: Endian;
@@ -66,24 +86,6 @@ export interface NBTReaderOptions {
  * The base implementation to convert an NBT Uint8Array into an NBTData object.
 */
 export class NBTReader {
-  static hasGzipHeader(data: Uint8Array) {
-    if (!(data instanceof Uint8Array)){
-      throw new TypeError("First parameter must be a Uint8Array");
-    }
-    const view = new DataView(data.buffer);
-    const header = view.getUint16(0,false);
-    return header === 0x1f8b;
-  }
-
-  static hasBedrockLevelHeader(data: Uint8Array) {
-    if (!(data instanceof Uint8Array)){
-      throw new TypeError("First parameter must be a Uint8Array");
-    }
-    const view = new DataView(data.buffer);
-    const byteLength = view.getUint32(4,true);
-    return byteLength === data.byteLength - 8;
-  }
-
   #offset = 0;
   #littleEndian = false;
   #data = new Uint8Array();
