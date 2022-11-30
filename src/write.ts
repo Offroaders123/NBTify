@@ -49,7 +49,7 @@ export interface NBTWriterOptions {
  * The base implementation to convert an NBTData object into an NBT Uint8Array.
 */
 export class NBTWriter {
-  #offset = 0;
+  #byteOffset = 0;
   #littleEndian = false;
   #buffer = new ArrayBuffer(1024);
   #data = new Uint8Array(this.#buffer);
@@ -66,7 +66,7 @@ export class NBTWriter {
       throw new TypeError("Endian option must be a valid endian type");
     }
 
-    this.#offset = 0;
+    this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
     this.#buffer = new ArrayBuffer(1024);
     this.#data = new Uint8Array(this.#buffer);
@@ -84,12 +84,12 @@ export class NBTWriter {
     }
 
     this.#accommodate(0);
-    const result = this.#data.slice(0,this.#offset);
+    const result = this.#data.slice(0,this.#byteOffset);
     return new Uint8Array(result);
   }
 
   #accommodate(size: number) {
-    const required = this.#offset + size;
+    const required = this.#byteOffset + size;
     const { byteLength } = this.#buffer;
     if (byteLength >= required) return;
 
@@ -101,8 +101,8 @@ export class NBTWriter {
     const data = new Uint8Array(length);
     data.set(this.#data);
 
-    if (this.#offset > byteLength){
-      data.fill(0,byteLength,this.#offset);
+    if (this.#byteOffset > byteLength){
+      data.fill(0,byteLength,this.#byteOffset);
     }
 
     this.#buffer = data.buffer;
@@ -130,73 +130,73 @@ export class NBTWriter {
 
   #setTagType(value: TAG) {
     this.#accommodate(1);
-    this.#view.setUint8(this.#offset,value);
-    this.#offset += 1;
+    this.#view.setUint8(this.#byteOffset,value);
+    this.#byteOffset += 1;
   }
 
   #setByte(value: number) {
     this.#accommodate(1);
-    this.#view.setInt8(this.#offset,value);
-    this.#offset += 1;
+    this.#view.setInt8(this.#byteOffset,value);
+    this.#byteOffset += 1;
   }
 
-  #setStringLength(value: number) {
+  #setUnsignedShort(value: number) {
     this.#accommodate(2);
-    this.#view.setUint16(this.#offset,value,this.#littleEndian);
-    this.#offset += 2;
+    this.#view.setUint16(this.#byteOffset,value,this.#littleEndian);
+    this.#byteOffset += 2;
   }
 
   #setShort(value: number) {
     this.#accommodate(2);
-    this.#view.setInt16(this.#offset,value,this.#littleEndian);
-    this.#offset += 2;
+    this.#view.setInt16(this.#byteOffset,value,this.#littleEndian);
+    this.#byteOffset += 2;
   }
 
-  #setArrayLength(value: number) {
+  #setUnsignedInt(value: number) {
     this.#accommodate(4);
-    this.#view.setUint32(this.#offset,value,this.#littleEndian);
-    this.#offset += 4;
+    this.#view.setUint32(this.#byteOffset,value,this.#littleEndian);
+    this.#byteOffset += 4;
   }
 
   #setInt(value: number) {
     this.#accommodate(4);
-    this.#view.setInt32(this.#offset,value,this.#littleEndian);
-    this.#offset += 4;
+    this.#view.setInt32(this.#byteOffset,value,this.#littleEndian);
+    this.#byteOffset += 4;
   }
 
   #setLong(value: bigint) {
     this.#accommodate(8);
-    this.#view.setBigInt64(this.#offset,value,this.#littleEndian);
-    this.#offset += 8;
+    this.#view.setBigInt64(this.#byteOffset,value,this.#littleEndian);
+    this.#byteOffset += 8;
   }
 
   #setFloat(value: number) {
     this.#accommodate(4);
-    this.#view.setFloat32(this.#offset,value,this.#littleEndian);
-    this.#offset += 4;
+    this.#view.setFloat32(this.#byteOffset,value,this.#littleEndian);
+    this.#byteOffset += 4;
   }
 
   #setDouble(value: number) {
     this.#accommodate(8);
-    this.#view.setFloat64(this.#offset,value,this.#littleEndian);
-    this.#offset += 8;
+    this.#view.setFloat64(this.#byteOffset,value,this.#littleEndian);
+    this.#byteOffset += 8;
   }
 
   #setByteArray(value: Int8Array) {
     const { byteLength } = value;
-    this.#setArrayLength(byteLength);
+    this.#setUnsignedInt(byteLength);
     this.#accommodate(byteLength);
-    this.#data.set(value,this.#offset);
-    this.#offset += byteLength;
+    this.#data.set(value,this.#byteOffset);
+    this.#byteOffset += byteLength;
   }
 
   #setString(value: string) {
     const entry = new TextEncoder().encode(value);
     const { length } = entry;
-    this.#setStringLength(length);
+    this.#setUnsignedShort(length);
     this.#accommodate(length);
-    this.#data.set(entry,this.#offset);
-    this.#offset += length;
+    this.#data.set(entry,this.#byteOffset);
+    this.#byteOffset += length;
   }
 
   #setList(value: ListTag) {
@@ -204,7 +204,7 @@ export class NBTWriter {
     const tag = (template !== undefined) ? getType(template): TAG.END;
     const { length } = value;
     this.#setTagType(tag);
-    this.#setArrayLength(length);
+    this.#setUnsignedInt(length);
     for (const entry of value){
       this.#setTag(entry);
     }
@@ -222,7 +222,7 @@ export class NBTWriter {
 
   #setIntArray(value: Int32Array) {
     const { byteLength } = value;
-    this.#setArrayLength(byteLength);
+    this.#setUnsignedInt(byteLength);
     for (const entry of value){
       this.#setInt(entry);
     }
@@ -230,7 +230,7 @@ export class NBTWriter {
 
   #setLongArray(value: BigInt64Array) {
     const { byteLength } = value;
-    this.#setArrayLength(byteLength);
+    this.#setUnsignedInt(byteLength);
     for (const entry of value){
       this.#setLong(entry);
     }
