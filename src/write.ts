@@ -1,8 +1,8 @@
-import { NBTData, Endian, Compression, BedrockLevel } from "./index.js";
+import { Endian, Compression, BedrockLevel, NBTData } from "./index.js";
 import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getType } from "./tag.js";
 import { compress } from "./compression.js";
 
-export interface NBTWriteOptions {
+export interface WriteOptions {
   endian?: Endian;
   compression?: Compression;
   bedrockLevel?: BedrockLevel;
@@ -13,7 +13,7 @@ export interface NBTWriteOptions {
  * 
  * If an option isn't provided, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write(data: NBTData, { endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: NBTWriteOptions = {}){
+export async function write(data: NBTData, { endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: WriteOptions = {}){
   if (!(data instanceof NBTData)){
     throw new TypeError("First parameter must be an NBTData object");
   }
@@ -41,7 +41,7 @@ export async function write(data: NBTData, { endian = data.endian, compression =
   return result;
 }
 
-export interface NBTWriterOptions {
+export interface WriterOptions {
   endian?: Endian;
 }
 
@@ -57,7 +57,7 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object. Accepts an endian type to write the data with. If one is not provided, the value of the endian property on the NBTData object will be used.
   */
-  write(data: NBTData, { endian = data.endian }: NBTWriterOptions = {}) {
+  write(data: NBTData, { endian = data.endian }: WriterOptions = {}) {
     if (!(data instanceof NBTData)){
       throw new TypeError("First parameter must be an NBTData object");
     }
@@ -73,9 +73,9 @@ export class NBTWriter {
     const { data: value } = data;
 
     try {
-      this.#setTagType(TAG.COMPOUND);
-      if (name !== null) this.#setString(name);
-      this.#setCompound(value);
+      this.#writeTagType(TAG.COMPOUND);
+      if (name !== null) this.#writeString(name);
+      this.#writeCompound(value);
     } catch (error: any){
       throw new Error(error);
     }
@@ -105,79 +105,79 @@ export class NBTWriter {
     this.#view = new DataView(data.buffer);
   }
 
-  #setTag(value: Tag) {
+  #writeTag(value: Tag) {
     const type = getType(value);
     switch (type){
-      case TAG.BYTE: return this.#setByte((value as ByteTag).valueOf());
-      case TAG.SHORT: return this.#setShort((value as ShortTag).valueOf());
-      case TAG.INT: return this.#setInt((value as IntTag).valueOf());
-      case TAG.LONG: return this.#setLong(value as LongTag);
-      case TAG.FLOAT: return this.#setFloat((value as FloatTag).valueOf());
-      case TAG.DOUBLE: return this.#setDouble(value as DoubleTag);
-      case TAG.BYTE_ARRAY: return this.#setByteArray(value as ByteArrayTag);
-      case TAG.STRING: return this.#setString(value as StringTag);
-      case TAG.LIST: return this.#setList(value as ListTag);
-      case TAG.COMPOUND: return this.#setCompound(value as CompoundTag);
-      case TAG.INT_ARRAY: return this.#setIntArray(value as IntArrayTag);
-      case TAG.LONG_ARRAY: return this.#setLongArray(value as LongArrayTag);
+      case TAG.BYTE: return this.#writeByte((value as ByteTag).valueOf());
+      case TAG.SHORT: return this.#writeShort((value as ShortTag).valueOf());
+      case TAG.INT: return this.#writeInt((value as IntTag).valueOf());
+      case TAG.LONG: return this.#writeLong(value as LongTag);
+      case TAG.FLOAT: return this.#writeFloat((value as FloatTag).valueOf());
+      case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
+      case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
+      case TAG.STRING: return this.#writeString(value as StringTag);
+      case TAG.LIST: return this.#writeList(value as ListTag);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
+      case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
+      case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
     }
   }
 
-  #setTagType(value: TAG) {
-    this.#setUnsignedByte(value);
+  #writeTagType(type: TAG) {
+    this.#writeUnsignedByte(type);
   }
 
-  #setUnsignedByte(value: number) {
+  #writeUnsignedByte(value: number) {
     this.#accommodate(1);
     this.#view.setUint8(this.#byteOffset,value);
     this.#byteOffset += 1;
   }
 
-  #setByte(value: number) {
+  #writeByte(value: number) {
     this.#accommodate(1);
     this.#view.setInt8(this.#byteOffset,value);
     this.#byteOffset += 1;
   }
 
-  #setUnsignedShort(value: number) {
+  #writeUnsignedShort(value: number) {
     this.#accommodate(2);
     this.#view.setUint16(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 2;
   }
 
-  #setShort(value: number) {
+  #writeShort(value: number) {
     this.#accommodate(2);
     this.#view.setInt16(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 2;
   }
 
-  #setInt(value: number) {
+  #writeInt(value: number) {
     this.#accommodate(4);
     this.#view.setInt32(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 4;
   }
 
-  #setLong(value: bigint) {
+  #writeLong(value: bigint) {
     this.#accommodate(8);
     this.#view.setBigInt64(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 8;
   }
 
-  #setFloat(value: number) {
+  #writeFloat(value: number) {
     this.#accommodate(4);
     this.#view.setFloat32(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 4;
   }
 
-  #setDouble(value: number) {
+  #writeDouble(value: number) {
     this.#accommodate(8);
     this.#view.setFloat64(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 8;
   }
 
-  #setByteArray(value: Int8Array) {
+  #writeByteArray(value: Int8Array) {
     const { byteLength } = value;
-    this.#setInt(byteLength);
+    this.#writeInt(byteLength);
     this.#accommodate(byteLength);
 
     const data = new Uint8Array(this.#view.buffer);
@@ -187,10 +187,10 @@ export class NBTWriter {
     this.#byteOffset += byteLength;
   }
 
-  #setString(value: string) {
+  #writeString(value: string) {
     const entry = this.#encoder.encode(value);
     const { length } = entry;
-    this.#setUnsignedShort(length);
+    this.#writeUnsignedShort(length);
     this.#accommodate(length);
 
     const data = new Uint8Array(this.#view.buffer);
@@ -200,40 +200,40 @@ export class NBTWriter {
     this.#byteOffset += length;
   }
 
-  #setList(value: ListTag) {
+  #writeList(value: ListTag) {
     const template = value[0] as Tag | undefined;
     const tag = (template !== undefined) ? getType(template): TAG.END;
     const { length } = value;
-    this.#setTagType(tag);
-    this.#setInt(length);
+    this.#writeTagType(tag);
+    this.#writeInt(length);
     for (const entry of value){
-      this.#setTag(entry);
+      this.#writeTag(entry);
     }
   }
 
-  #setCompound(value: CompoundTag) {
+  #writeCompound(value: CompoundTag) {
     for (const [name,entry] of Object.entries(value)){
       const tag = getType(entry);
-      this.#setTagType(tag);
-      this.#setString(name);
-      this.#setTag(entry);
+      this.#writeTagType(tag);
+      this.#writeString(name);
+      this.#writeTag(entry);
     }
-    this.#setTagType(TAG.END);
+    this.#writeTagType(TAG.END);
   }
 
-  #setIntArray(value: Int32Array) {
+  #writeIntArray(value: Int32Array) {
     const { byteLength } = value;
-    this.#setInt(byteLength);
+    this.#writeInt(byteLength);
     for (const entry of value){
-      this.#setInt(entry);
+      this.#writeInt(entry);
     }
   }
 
-  #setLongArray(value: BigInt64Array) {
+  #writeLongArray(value: BigInt64Array) {
     const { byteLength } = value;
-    this.#setInt(byteLength);
+    this.#writeInt(byteLength);
     for (const entry of value){
-      this.#setLong(entry);
+      this.#writeLong(entry);
     }
   }
 }

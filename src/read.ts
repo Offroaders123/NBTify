@@ -1,9 +1,9 @@
-import { NBTData, Endian, Compression, BedrockLevel } from "./index.js";
+import { Endian, Compression, BedrockLevel, NBTData } from "./index.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
 import { Tag, ListTag, CompoundTag, TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
-export interface NBTReadOptions {
+export interface ReadOptions {
   endian?: Endian;
   compression?: Compression;
 }
@@ -13,7 +13,7 @@ export interface NBTReadOptions {
  * 
  * If an option isn't provided, the function will attempt to read the data using all available formats until it either throws or returns successfully.
 */
-export async function read(data: Uint8Array, { endian, compression }: NBTReadOptions = {}){
+export async function read(data: Uint8Array, { endian, compression }: ReadOptions = {}){
   if (!(data instanceof Uint8Array)){
     throw new TypeError("First parameter must be a Uint8Array");
   }
@@ -57,17 +57,17 @@ export async function read(data: Uint8Array, { endian, compression }: NBTReadOpt
   }
 }
 
-export function hasGzipHeader(data: Uint8Array) {
+export function hasGzipHeader(data: Uint8Array){
   if (!(data instanceof Uint8Array)){
     throw new TypeError("First parameter must be a Uint8Array");
   }
 
   const view = new DataView(data.buffer);
   const header = view.getUint16(0,false);
-  return header === 0x1f8b;
+  return header === 0x1F8B;
 }
 
-export function hasBedrockLevelHeader(data: Uint8Array) {
+export function hasBedrockLevelHeader(data: Uint8Array){
   if (!(data instanceof Uint8Array)){
     throw new TypeError("First parameter must be a Uint8Array");
   }
@@ -77,9 +77,9 @@ export function hasBedrockLevelHeader(data: Uint8Array) {
   return byteLength === data.byteLength - 8;
 }
 
-export interface NBTReaderOptions {
-  named?: boolean;
+export interface ReaderOptions {
   endian?: Endian;
+  named?: boolean;
 }
 
 /**
@@ -94,145 +94,145 @@ export class NBTReader {
   /**
    * Initiates the reader over an uncompressed NBT Uint8Array. Accepts an endian type to read the data with. If one is not provided, big endian will be used.
   */
-  read(data: Uint8Array, { named = true, endian = "big" }: NBTReaderOptions = {}) {
+  read(data: Uint8Array, { endian = "big", named = true }: ReaderOptions = {}) {
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
     this.#view = new DataView(data.buffer);
 
-    const tag = this.#getTagType();
-    if (tag !== TAG.COMPOUND){
-      throw new TypeError(`Encountered unsupported tag type ${tag}`);
+    const type = this.#readTagType();
+    if (type !== TAG.COMPOUND){
+      throw new Error(`Expected an opening Compound tag at the start of the buffer, encountered tag type ${type}`);
     }
 
-    const name = (named) ? this.#getString() : null;
-    const value = this.#getCompound();
+    const name = (named) ? this.#readString() : null;
+    const value = this.#readCompound();
 
     return new NBTData(value,{ name, endian });
   }
 
-  #getTag(tag: TAG): Tag {
-    switch (tag){
-      case TAG.END: throw new TypeError(`Encountered unexpected TAG_End`);
-      case TAG.BYTE: return new Byte(this.#getByte());
-      case TAG.SHORT: return new Short(this.#getShort());
-      case TAG.INT: return new Int(this.#getInt());
-      case TAG.LONG: return this.#getLong();
-      case TAG.FLOAT: return new Float(this.#getFloat());
-      case TAG.DOUBLE: return this.#getDouble();
-      case TAG.BYTE_ARRAY: return this.#getByteArray();
-      case TAG.STRING: return this.#getString();
-      case TAG.LIST: return this.#getList();
-      case TAG.COMPOUND: return this.#getCompound();
-      case TAG.INT_ARRAY: return this.#getIntArray();
-      case TAG.LONG_ARRAY: return this.#getLongArray();
-      default: throw new TypeError(`Encountered unsupported tag ${tag}`);
+  #readTag(type: TAG): Tag {
+    switch (type){
+      case TAG.END: throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}`);
+      case TAG.BYTE: return new Byte(this.#readByte());
+      case TAG.SHORT: return new Short(this.#readShort());
+      case TAG.INT: return new Int(this.#readInt());
+      case TAG.LONG: return this.#readLong();
+      case TAG.FLOAT: return new Float(this.#readFloat());
+      case TAG.DOUBLE: return this.#readDouble();
+      case TAG.BYTE_ARRAY: return this.#readByteArray();
+      case TAG.STRING: return this.#readString();
+      case TAG.LIST: return this.#readList();
+      case TAG.COMPOUND: return this.#readCompound();
+      case TAG.INT_ARRAY: return this.#readIntArray();
+      case TAG.LONG_ARRAY: return this.#readLongArray();
+      default: throw new Error(`Encountered unsupported tag type ${type} at byte offset ${this.#byteOffset}`);
     }
   }
 
-  #getTagType() {
-    return this.#getUnsignedByte() as TAG;
+  #readTagType() {
+    return this.#readUnsignedByte() as TAG;
   }
 
-  #getUnsignedByte() {
+  #readUnsignedByte() {
     const value = this.#view.getUint8(this.#byteOffset);
     this.#byteOffset += 1;
     return value;
   }
 
-  #getByte() {
+  #readByte() {
     const value = this.#view.getInt8(this.#byteOffset);
     this.#byteOffset += 1;
     return value;
   }
 
-  #getUnsignedShort() {
+  #readUnsignedShort() {
     const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
 
-  #getShort() {
+  #readShort() {
     const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
 
-  #getInt() {
+  #readInt() {
     const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
 
-  #getLong() {
+  #readLong() {
     const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
 
-  #getFloat() {
+  #readFloat() {
     const value = this.#view.getFloat32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
 
-  #getDouble() {
+  #readDouble() {
     const value = this.#view.getFloat64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
 
-  #getByteArray() {
-    const byteLength = this.#getInt();
+  #readByteArray() {
+    const byteLength = this.#readInt();
     const value = new Int8Array(this.#view.buffer.slice(this.#byteOffset,this.#byteOffset + byteLength));
     this.#byteOffset += byteLength;
     return value;
   }
 
-  #getString() {
-    const length = this.#getUnsignedShort();
+  #readString() {
+    const length = this.#readUnsignedShort();
     const value = this.#view.buffer.slice(this.#byteOffset,this.#byteOffset + length);
     this.#byteOffset += length;
     return this.#decoder.decode(value);
   }
 
-  #getList() {
-    const tag = this.#getTagType();
-    const length = this.#getInt();
+  #readList() {
+    const tag = this.#readTagType();
+    const length = this.#readInt();
     const value: ListTag = [];
     for (let i = 0; i < length; i++){
-      const entry = this.#getTag(tag);
+      const entry = this.#readTag(tag);
       value.push(entry);
     }
     return value;
   }
 
-  #getCompound() {
+  #readCompound() {
     const value: CompoundTag = {};
     while (true){
-      const tag = this.#getTagType();
+      const tag = this.#readTagType();
       if (tag === TAG.END) break;
-      const name = this.#getString();
-      const entry = this.#getTag(tag);
+      const name = this.#readString();
+      const entry = this.#readTag(tag);
       value[name] = entry;
     }
     return value;
   }
 
-  #getIntArray() {
-    const byteLength = this.#getInt();
+  #readIntArray() {
+    const byteLength = this.#readInt();
     const value = new Int32Array(byteLength);
     for (const i in value){
-      const entry = this.#getInt();
+      const entry = this.#readInt();
       value[i] = entry;
     }
     return value;
   }
 
-  #getLongArray() {
-    const byteLength = this.#getInt();
+  #readLongArray() {
+    const byteLength = this.#readInt();
     const value = new BigInt64Array(byteLength);
     for (const i in value){
-      const entry = this.#getLong();
+      const entry = this.#readLong();
       value[i] = entry;
     }
     return value;
