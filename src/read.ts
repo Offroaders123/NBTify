@@ -28,7 +28,7 @@ export async function read(data: Uint8Array, { endian, compression }: ReadOption
     let bedrockLevel: BedrockLevel | undefined;
 
     if (endian !== "big" && hasBedrockLevelHeader(data)){
-      const view = new DataView(data.buffer);
+      const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
       const version = view.getUint32(0,true);
       bedrockLevel = new Int(version);
       data = data.slice(8);
@@ -58,13 +58,13 @@ export async function read(data: Uint8Array, { endian, compression }: ReadOption
 }
 
 function hasGzipHeader(data: Uint8Array){
-  const view = new DataView(data.buffer);
+  const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
   const header = view.getUint16(0,false);
   return header === 0x1F8B;
 }
 
 function hasBedrockLevelHeader(data: Uint8Array){
-  const view = new DataView(data.buffer);
+  const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
   const byteLength = view.getUint32(4,true);
   return byteLength === data.byteLength - 8;
 }
@@ -100,7 +100,7 @@ export class NBTReader {
 
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
-    this.#view = new DataView(data.buffer);
+    this.#view = new DataView(data.buffer,data.byteOffset,data.byteLength);
 
     const type = this.#readTagType();
     if (type !== TAG.COMPOUND){
@@ -193,7 +193,7 @@ export class NBTReader {
 
   #readString() {
     const length = this.#readUnsignedShort();
-    const value = this.#view.buffer.slice(this.#byteOffset,this.#byteOffset + length);
+    const value = this.#view.buffer.slice(this.#byteOffset + this.#view.byteOffset,this.#byteOffset + this.#view.byteOffset + length);
     this.#byteOffset += length;
     return decoder.decode(value);
   }
