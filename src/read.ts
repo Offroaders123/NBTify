@@ -1,4 +1,4 @@
-import { Endian, Compression, BedrockLevel, NBTData } from "./index.js";
+import { Name, Endian, Compression, BedrockLevel, NBTData } from "./index.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
 import { Tag, ListTag, CompoundTag, TAG } from "./tag.js";
 import { decompress } from "./compression.js";
@@ -57,25 +57,19 @@ export async function read(data: Uint8Array, { endian, compression }: ReadOption
   }
 }
 
-export function hasGzipHeader(data: Uint8Array){
-  if (!(data instanceof Uint8Array)){
-    throw new TypeError("First parameter must be a Uint8Array");
-  }
-
+function hasGzipHeader(data: Uint8Array){
   const view = new DataView(data.buffer);
   const header = view.getUint16(0,false);
   return header === 0x1F8B;
 }
 
-export function hasBedrockLevelHeader(data: Uint8Array){
-  if (!(data instanceof Uint8Array)){
-    throw new TypeError("First parameter must be a Uint8Array");
-  }
-
+function hasBedrockLevelHeader(data: Uint8Array){
   const view = new DataView(data.buffer);
   const byteLength = view.getUint32(4,true);
   return byteLength === data.byteLength - 8;
 }
+
+const decoder = new TextDecoder();
 
 export interface ReaderOptions {
   endian?: Endian;
@@ -89,12 +83,21 @@ export class NBTReader {
   #byteOffset!: number;
   #littleEndian!: boolean;
   #view!: DataView;
-  #decoder = new TextDecoder();
 
   /**
    * Initiates the reader over an uncompressed NBT Uint8Array. Accepts an endian type to read the data with. If one is not provided, big endian will be used.
   */
   read(data: Uint8Array, { endian = "big", named = true }: ReaderOptions = {}) {
+    if (!(data instanceof Uint8Array)){
+      throw new TypeError("First parameter must be a Uint8Array");
+    }
+    if (endian !== "big" && endian !== "little"){
+      throw new TypeError("Endian option must be a valid endian type");
+    }
+    if (typeof named !== "boolean"){
+      throw new TypeError("Named option must be a boolean");
+    }
+
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
     this.#view = new DataView(data.buffer);
@@ -104,7 +107,7 @@ export class NBTReader {
       throw new Error(`Expected an opening Compound tag at the start of the buffer, encountered tag type ${type}`);
     }
 
-    const name = (named) ? this.#readString() : null;
+    const name: Name = (named) ? this.#readString() : null;
     const value = this.#readCompound();
 
     return new NBTData(value,{ name, endian });
@@ -192,7 +195,7 @@ export class NBTReader {
     const length = this.#readUnsignedShort();
     const value = this.#view.buffer.slice(this.#byteOffset,this.#byteOffset + length);
     this.#byteOffset += length;
-    return this.#decoder.decode(value);
+    return decoder.decode(value);
   }
 
   #readList() {
