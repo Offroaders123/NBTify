@@ -51,6 +51,7 @@ export interface WriterOptions {
 export class NBTWriter {
   #byteOffset!: number;
   #littleEndian!: boolean;
+  #data!: Uint8Array;
   #view!: DataView;
   #encoder = new TextEncoder();
 
@@ -67,7 +68,8 @@ export class NBTWriter {
 
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
-    this.#view = new DataView(new ArrayBuffer(1024));
+    this.#data = new Uint8Array(1024);
+    this.#view = new DataView(this.#data.buffer);
 
     const { name } = data;
     const { data: value } = data;
@@ -81,13 +83,12 @@ export class NBTWriter {
     }
 
     this.#accommodate(0);
-    const result = this.#view.buffer.slice(0,this.#byteOffset);
-    return new Uint8Array(result);
+    return this.#data.subarray(0,this.#byteOffset);
   }
 
   #accommodate(size: number) {
     const required = this.#byteOffset + size;
-    const { byteLength } = this.#view.buffer;
+    const { byteLength } = this.#data;
     if (byteLength >= required) return;
 
     let length = byteLength;
@@ -96,12 +97,13 @@ export class NBTWriter {
     }
 
     const data = new Uint8Array(length);
-    data.set(new Uint8Array(this.#view.buffer));
+    data.set(this.#data);
 
     if (this.#byteOffset > byteLength){
       data.fill(0,byteLength,this.#byteOffset);
     }
 
+    this.#data = data;
     this.#view = new DataView(data.buffer);
   }
 
@@ -179,11 +181,7 @@ export class NBTWriter {
     const { byteLength } = value;
     this.#writeInt(byteLength);
     this.#accommodate(byteLength);
-
-    const data = new Uint8Array(this.#view.buffer);
-    data.set(value,this.#byteOffset);
-
-    this.#view = new DataView(data.buffer);
+    this.#data.set(value,this.#byteOffset);
     this.#byteOffset += byteLength;
   }
 
@@ -192,11 +190,7 @@ export class NBTWriter {
     const { length } = entry;
     this.#writeUnsignedShort(length);
     this.#accommodate(length);
-
-    const data = new Uint8Array(this.#view.buffer);
-    data.set(entry,this.#byteOffset);
-
-    this.#view = new DataView(data.buffer);
+    this.#data.set(entry,this.#byteOffset);
     this.#byteOffset += length;
   }
 

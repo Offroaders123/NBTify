@@ -31,7 +31,7 @@ export async function read(data: Uint8Array, { endian, compression }: ReadOption
       const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
       const version = view.getUint32(0,true);
       bedrockLevel = new Int(version);
-      data = data.slice(8);
+      data = data.subarray(8);
     }
     if (compression === "gzip" || hasGzipHeader(data)){
       compression = "gzip";
@@ -82,6 +82,7 @@ export interface ReaderOptions {
 export class NBTReader {
   #byteOffset!: number;
   #littleEndian!: boolean;
+  #data!: Uint8Array;
   #view!: DataView;
 
   /**
@@ -100,6 +101,7 @@ export class NBTReader {
 
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
+    this.#data = data;
     this.#view = new DataView(data.buffer,data.byteOffset,data.byteLength);
 
     const type = this.#readTagType();
@@ -186,14 +188,14 @@ export class NBTReader {
 
   #readByteArray() {
     const byteLength = this.#readInt();
-    const value = new Int8Array(this.#view.buffer.slice(this.#byteOffset,this.#byteOffset + byteLength));
+    const value = new Int8Array(this.#data.subarray(this.#byteOffset,this.#byteOffset + byteLength));
     this.#byteOffset += byteLength;
     return value;
   }
 
   #readString() {
     const length = this.#readUnsignedShort();
-    const value = this.#view.buffer.slice(this.#byteOffset + this.#view.byteOffset,this.#byteOffset + this.#view.byteOffset + length);
+    const value = this.#data.subarray(this.#byteOffset,this.#byteOffset + length);
     this.#byteOffset += length;
     return decoder.decode(value);
   }
