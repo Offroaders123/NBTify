@@ -50,7 +50,7 @@ export const TAG = {
 
 Object.freeze(TAG);
 
-export function getType(value: Tag): TAG {
+export function getTagType(value: Tag): TAG {
   switch (true){
     case value instanceof Byte: return TAG.BYTE;
     case value instanceof Short: return TAG.SHORT;

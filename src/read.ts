@@ -195,17 +195,17 @@ export class NBTReader {
 
   #readString() {
     const length = this.#readUnsignedShort();
-    const value = this.#data.subarray(this.#byteOffset,this.#byteOffset + length);
+    const value = decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
     this.#byteOffset += length;
-    return decoder.decode(value);
+    return value;
   }
 
   #readList() {
-    const tag = this.#readTagType();
+    const type = this.#readTagType();
     const length = this.#readInt();
     const value: ListTag = [];
     for (let i = 0; i < length; i++){
-      const entry = this.#readTag(tag);
+      const entry = this.#readTag(type);
       value.push(entry);
     }
     return value;
@@ -214,10 +214,10 @@ export class NBTReader {
   #readCompound() {
     const value: CompoundTag = {};
     while (true){
-      const tag = this.#readTagType();
-      if (tag === TAG.END) break;
+      const type = this.#readTagType();
+      if (type === TAG.END) break;
       const name = this.#readString();
-      const entry = this.#readTag(tag);
+      const entry = this.#readTag(type);
       value[name] = entry;
     }
     return value;

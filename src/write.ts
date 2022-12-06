@@ -1,5 +1,5 @@
 import { Endian, Compression, BedrockLevel, NBTData } from "./index.js";
-import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getType } from "./tag.js";
+import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
 
 export interface WriteOptions {
@@ -41,6 +41,8 @@ export async function write(data: NBTData, { endian = data.endian, compression =
   return result;
 }
 
+const encoder = new TextEncoder();
+
 export interface WriterOptions {
   endian?: Endian;
 }
@@ -53,7 +55,6 @@ export class NBTWriter {
   #littleEndian!: boolean;
   #data!: Uint8Array;
   #view!: DataView;
-  #encoder = new TextEncoder();
 
   /**
    * Initiates the writer over an NBTData object. Accepts an endian type to write the data with. If one is not provided, the value of the endian property on the NBTData object will be used.
@@ -83,7 +84,7 @@ export class NBTWriter {
     }
 
     this.#accommodate(0);
-    return this.#data.subarray(0,this.#byteOffset);
+    return this.#data.slice(0,this.#byteOffset);
   }
 
   #accommodate(size: number) {
@@ -108,7 +109,7 @@ export class NBTWriter {
   }
 
   #writeTag(value: Tag) {
-    const type = getType(value);
+    const type = getTagType(value);
     switch (type){
       case TAG.BYTE: return this.#writeByte((value as ByteTag).valueOf());
       case TAG.SHORT: return this.#writeShort((value as ShortTag).valueOf());
@@ -186,7 +187,7 @@ export class NBTWriter {
   }
 
   #writeString(value: string) {
-    const entry = this.#encoder.encode(value);
+    const entry = encoder.encode(value);
     const { length } = entry;
     this.#writeUnsignedShort(length);
     this.#accommodate(length);
@@ -196,9 +197,9 @@ export class NBTWriter {
 
   #writeList(value: ListTag) {
     const template = value[0] as Tag | undefined;
-    const tag = (template !== undefined) ? getType(template): TAG.END;
+    const type = (template !== undefined) ? getTagType(template): TAG.END;
     const { length } = value;
-    this.#writeTagType(tag);
+    this.#writeTagType(type);
     this.#writeInt(length);
     for (const entry of value){
       this.#writeTag(entry);
@@ -207,8 +208,8 @@ export class NBTWriter {
 
   #writeCompound(value: CompoundTag) {
     for (const [name,entry] of Object.entries(value)){
-      const tag = getType(entry);
-      this.#writeTagType(tag);
+      const type = getTagType(entry);
+      this.#writeTagType(type);
       this.#writeString(name);
       this.#writeTag(entry);
     }
