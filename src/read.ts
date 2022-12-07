@@ -46,6 +46,20 @@ export async function read(data: Uint8Array, { endian, compression, isNamed, isB
     return result;
   }
 
+  if (isNamed === undefined){
+    let result: NBTData;
+    try {
+      result = await read(data,{ endian, compression, isNamed: true, isBedrockLevel });
+    } catch (error){
+      try {
+        result = await read(data,{ endian, compression, isNamed: false, isBedrockLevel });
+      } catch {
+        throw error;
+      }
+    }
+    return result;
+  }
+
   let bedrockLevel: BedrockLevel | undefined;
 
   if (isBedrockLevel || endian !== "big" && isBedrockLevel === undefined && hasBedrockLevelHeader(data)){
