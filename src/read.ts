@@ -6,6 +6,7 @@ import { decompress } from "./compression.js";
 export interface ReadOptions {
   endian?: Endian;
   compression?: Compression | null;
+  isNamed?: boolean;
   isBedrockLevel?: boolean;
 }
 
@@ -14,7 +15,7 @@ export interface ReadOptions {
  * 
  * If an option isn't provided, the function will attempt to read the data using all available formats until it either throws or returns successfully.
 */
-export async function read(data: Uint8Array, { endian, compression, isBedrockLevel }: ReadOptions = {}){
+export async function read(data: Uint8Array, { endian, compression, isNamed, isBedrockLevel }: ReadOptions = {}){
   if (!(data instanceof Uint8Array)){
     throw new TypeError("First parameter must be a Uint8Array");
   }
@@ -24,6 +25,9 @@ export async function read(data: Uint8Array, { endian, compression, isBedrockLev
   if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "zlib"){
     throw new TypeError("Compression option must be a valid compression type");
   }
+  if (isNamed !== undefined && typeof isNamed !== "boolean"){
+    throw new TypeError("Named option must be a boolean");
+  }
   if (isBedrockLevel !== undefined && typeof isBedrockLevel !== "boolean"){
     throw new TypeError("Bedrock Level option must be a boolean");
   }
@@ -31,10 +35,10 @@ export async function read(data: Uint8Array, { endian, compression, isBedrockLev
   if (endian === undefined){
     let result: NBTData;
     try {
-      result = await read(data,{ endian: "big", compression, isBedrockLevel });
+      result = await read(data,{ endian: "big", compression, isNamed, isBedrockLevel });
     } catch (error){
       try {
-        result = await read(data,{ endian: "little", compression, isBedrockLevel });
+        result = await read(data,{ endian: "little", compression, isNamed, isBedrockLevel });
       } catch {
         throw error;
       }
@@ -56,7 +60,7 @@ export async function read(data: Uint8Array, { endian, compression, isBedrockLev
   }
 
   const reader = new NBTReader();
-  const result = reader.read(data,{ endian });
+  const result = reader.read(data,{ endian, isNamed });
 
   return new NBTData(result,{ compression, bedrockLevel });
 }
@@ -77,7 +81,7 @@ const decoder = new TextDecoder();
 
 export interface ReaderOptions {
   endian?: Endian;
-  named?: boolean;
+  isNamed?: boolean;
 }
 
 /**
@@ -92,14 +96,14 @@ export class NBTReader {
   /**
    * Initiates the reader over an uncompressed NBT Uint8Array. Accepts an endian type to read the data with. If one is not provided, big endian will be used.
   */
-  read(data: Uint8Array, { endian = "big", named = true }: ReaderOptions = {}) {
+  read(data: Uint8Array, { endian = "big", isNamed = true }: ReaderOptions = {}) {
     if (!(data instanceof Uint8Array)){
       throw new TypeError("First parameter must be a Uint8Array");
     }
     if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
     }
-    if (typeof named !== "boolean"){
+    if (typeof isNamed !== "boolean"){
       throw new TypeError("Named option must be a boolean");
     }
 
@@ -113,7 +117,7 @@ export class NBTReader {
       throw new Error(`Expected an opening Compound tag at the start of the buffer, encountered tag type ${type}`);
     }
 
-    const name: Name = (named) ? this.#readString() : null;
+    const name: Name = (isNamed) ? this.#readString() : null;
     const value = this.#readCompound();
 
     return new NBTData(value,{ name, endian });
