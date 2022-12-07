@@ -5,7 +5,8 @@ import { decompress } from "./compression.js";
 
 export interface ReadOptions {
   endian?: Endian;
-  compression?: Compression;
+  compression?: Compression | null;
+  isBedrockLevel?: boolean;
 }
 
 /**
@@ -13,24 +14,27 @@ export interface ReadOptions {
  * 
  * If an option isn't provided, the function will attempt to read the data using all available formats until it either throws or returns successfully.
 */
-export async function read(data: Uint8Array, { endian, compression }: ReadOptions = {}){
+export async function read(data: Uint8Array, { endian, compression, isBedrockLevel }: ReadOptions = {}){
   if (!(data instanceof Uint8Array)){
     throw new TypeError("First parameter must be a Uint8Array");
   }
   if (endian !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
-  if (compression !== undefined && compression !== "gzip" && compression !== "zlib"){
+  if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "zlib"){
     throw new TypeError("Compression option must be a valid compression type");
+  }
+  if (isBedrockLevel !== undefined && typeof isBedrockLevel !== "boolean"){
+    throw new TypeError("Bedrock Level option must be a boolean");
   }
 
   if (endian === undefined){
     let result: NBTData;
     try {
-      result = await read(data,{ endian: "big", compression });
+      result = await read(data,{ endian: "big", compression, isBedrockLevel });
     } catch (error){
       try {
-        result = await read(data,{ endian: "little", compression });
+        result = await read(data,{ endian: "little", compression, isBedrockLevel });
       } catch {
         throw error;
       }
@@ -40,13 +44,13 @@ export async function read(data: Uint8Array, { endian, compression }: ReadOption
 
   let bedrockLevel: BedrockLevel | undefined;
 
-  if (endian !== "big" && hasBedrockLevelHeader(data)){
+  if (isBedrockLevel || endian !== "big" && isBedrockLevel === undefined && hasBedrockLevelHeader(data)){
     const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
     const version = view.getUint32(0,true);
     bedrockLevel = new Int(version);
     data = data.subarray(8);
   }
-  if (compression === "gzip" || hasGzipHeader(data)){
+  if (compression === "gzip" || compression === undefined && hasGzipHeader(data)){
     compression = "gzip";
     data = await decompress(data,{ format: "gzip" });
   }

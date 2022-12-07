@@ -3,10 +3,10 @@
 import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
-const data = await fs.readFile(new URL("./nbt/bigtest.nbt",import.meta.url));
+const data = await fs.readFile(new URL("./nbt/level.dat",import.meta.url));
 console.log(data,"\n");
 
-const result = await NBT.read(data);
+const result = await NBT.read(data,{ isBedrockLevel: false });
 console.log(result,"\n");
 
 const recompile = Buffer.from(await NBT.write(result));
