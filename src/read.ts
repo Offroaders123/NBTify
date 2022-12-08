@@ -93,7 +93,7 @@ function hasBedrockLevelHeader(data: Uint8Array){
 
 const decoder = new TextDecoder();
 
-export interface ReaderOptions {
+export interface NBTReaderOptions {
   endian?: Endian;
   isNamed?: boolean;
 }
@@ -110,7 +110,7 @@ export class NBTReader {
   /**
    * Initiates the reader over an uncompressed NBT Uint8Array. Accepts an endian type to read the data with. If one is not provided, big endian will be used.
   */
-  read(data: Uint8Array, { endian = "big", isNamed = true }: ReaderOptions = {}) {
+  read(data: Uint8Array, { endian = "big", isNamed = true }: NBTReaderOptions = {}) {
     if (!(data instanceof Uint8Array)){
       throw new TypeError("First parameter must be a Uint8Array");
     }

@@ -43,7 +43,7 @@ export async function write(data: NBTData, { endian = data.endian, compression =
 
 const encoder = new TextEncoder();
 
-export interface WriterOptions {
+export interface NBTWriterOptions {
   endian?: Endian;
 }
 
@@ -59,7 +59,7 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object. Accepts an endian type to write the data with. If one is not provided, the value of the endian property on the NBTData object will be used.
   */
-  write(data: NBTData, { endian = data.endian }: WriterOptions = {}) {
+  write(data: NBTData, { endian = data.endian }: NBTWriterOptions = {}) {
     if (!(data instanceof NBTData)){
       throw new TypeError("First parameter must be an NBTData object");
     }
