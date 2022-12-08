@@ -16,8 +16,6 @@ export interface ReadOptions {
  * If an option isn't provided, the function will attempt to read the data using all available formats until it either throws or returns successfully.
 */
 export async function read(data: Uint8Array, { endian, compression, isNamed, isBedrockLevel }: ReadOptions = {}){
-  console.log({ endian, compression, isNamed, isBedrockLevel });
-
   if (!(data instanceof Uint8Array)){
     throw new TypeError("First parameter must be a Uint8Array");
   }

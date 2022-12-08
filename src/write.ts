@@ -25,13 +25,14 @@ export async function write(data: NBTData, { endian = data.endian, compression =
   let result = writer.write(data,{ endian });
 
   if (bedrockLevel !== undefined){
-    const header = new Uint8Array(8);
-    const view = new DataView(header.buffer);
-    const version = bedrockLevel.valueOf();
     const { byteLength } = result;
+    const data = new Uint8Array(byteLength + 8);
+    const view = new DataView(data.buffer);
+    const version = bedrockLevel.valueOf();
     view.setUint32(0,version,true);
     view.setUint32(4,byteLength,true);
-    result = new Uint8Array([...header,...result]);
+    data.set(result,8);
+    result = data;
   }
 
   if (compression === "gzip"){
