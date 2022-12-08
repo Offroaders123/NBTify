@@ -24,10 +24,6 @@ export async function write(data: NBTData, { endian = data.endian, compression =
   const writer = new NBTWriter();
   let result = writer.write(data,{ endian });
 
-  if (compression === "gzip"){
-    result = await compress(result,{ format: "gzip" });
-  }
-
   if (bedrockLevel !== undefined){
     const header = new Uint8Array(8);
     const view = new DataView(header.buffer);
@@ -36,6 +32,10 @@ export async function write(data: NBTData, { endian = data.endian, compression =
     view.setUint32(0,version,true);
     view.setUint32(4,byteLength,true);
     result = new Uint8Array([...header,...result]);
+  }
+
+  if (compression === "gzip"){
+    result = await compress(result,{ format: "gzip" });
   }
 
   return result;

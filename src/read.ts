@@ -52,10 +52,6 @@ export async function read(data: Uint8Array, { endian, compression, isNamed, isB
     return result;
   }
 
-  if (isBedrockLevel === undefined){
-    isBedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
-  }
-
   if (isNamed === undefined){
     let result: NBTData;
     try {
@@ -72,6 +68,10 @@ export async function read(data: Uint8Array, { endian, compression, isNamed, isB
 
   if (compression === "gzip"){
     data = await decompress(data,{ format: "gzip" });
+  }
+
+  if (isBedrockLevel === undefined){
+    isBedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
   }
 
   let bedrockLevel: BedrockLevel | null;
