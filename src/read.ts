@@ -11,9 +11,9 @@ export interface ReadOptions {
 }
 
 /**
- * Converts an NBT Uint8Array into an NBTData object. Accepts an endian type and compression format to read the data with.
+ * Converts an NBT buffer into an NBTData object. Accepts an endian type, compression format, and file headers to read the data with.
  * 
- * If an option isn't provided, the function will attempt to read the data using all available formats until it either throws or returns successfully.
+ * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
 export async function read(data: Uint8Array, { endian, compression, isNamed, isBedrockLevel }: ReadOptions = {}){
   if (!(data instanceof Uint8Array)){
@@ -109,7 +109,7 @@ export interface NBTReaderOptions {
 }
 
 /**
- * The base implementation to convert an NBT Uint8Array into an NBTData object.
+ * The base implementation to convert an NBT buffer into an NBTData object.
 */
 export class NBTReader {
   #byteOffset!: number;
@@ -118,7 +118,7 @@ export class NBTReader {
   #view!: DataView;
 
   /**
-   * Initiates the reader over an uncompressed NBT Uint8Array. Accepts an endian type to read the data with. If one is not provided, big endian will be used.
+   * Initiates the reader over an NBT buffer.
   */
   read(data: Uint8Array, { endian = "big", isNamed = true }: NBTReaderOptions = {}) {
     if (!(data instanceof Uint8Array)){

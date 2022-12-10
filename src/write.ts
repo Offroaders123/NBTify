@@ -9,9 +9,9 @@ export interface WriteOptions {
 }
 
 /**
- * Converts an NBTData object into an NBT Uint8Array. Accepts an endian type, compression format, and file headers to write the data with.
+ * Converts an NBTData object into an NBT buffer. Accepts an endian type, compression format, and file headers to write the data with.
  * 
- * If an option isn't provided, the value of the equivalent property on the NBTData object will be used.
+ * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
 export async function write(data: NBTData, { endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: WriteOptions = {}){
   if (!(data instanceof NBTData)){
@@ -49,7 +49,7 @@ export interface NBTWriterOptions {
 }
 
 /**
- * The base implementation to convert an NBTData object into an NBT Uint8Array.
+ * The base implementation to convert an NBTData object into an NBT buffer.
 */
 export class NBTWriter {
   #byteOffset!: number;
@@ -58,7 +58,7 @@ export class NBTWriter {
   #view!: DataView;
 
   /**
-   * Initiates the writer over an NBTData object. Accepts an endian type to write the data with. If one is not provided, the value of the endian property on the NBTData object will be used.
+   * Initiates the writer over an NBTData object.
   */
   write(data: NBTData, { endian = data.endian }: NBTWriterOptions = {}) {
     if (!(data instanceof NBTData)){

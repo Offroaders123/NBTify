@@ -56,7 +56,7 @@ export class NBTData {
       throw new TypeError("Compression option must be a valid compression type");
     }
     if (bedrockLevel !== null && !(bedrockLevel instanceof Int)){
-      throw new TypeError("Bedrock level option must be an Int");
+      throw new TypeError("Bedrock Level option must be an Int");
     }
 
     this.data = data;
