@@ -9,7 +9,7 @@ console.log(data,"\n");
 const result = await NBT.read(data);
 console.log(result,"\n");
 
-const result2 = await NBT.write(result,{ bedrockLevel: null })
+const result2 = await NBT.write(result,{ name: "fart!", bedrockLevel: null })
 .then(buffer => NBT.read(buffer,{ endian: "little" }));
 console.log(result2,"\n");
 

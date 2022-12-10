@@ -1,9 +1,10 @@
-import { Endian, Compression, BedrockLevel, NBTData } from "./index.js";
+import { Name, Endian, Compression, BedrockLevel, NBTData } from "./index.js";
 import { Int } from "./primitive.js";
 import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
 
 export interface WriteOptions {
+  name?: Name;
   endian?: Endian;
   compression?: Compression | null;
   bedrockLevel?: BedrockLevel | null;
@@ -14,9 +15,12 @@ export interface WriteOptions {
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write(data: NBTData, { endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: WriteOptions = {}){
+export async function write(data: NBTData, { name = data.name, endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: WriteOptions = {}){
   if (!(data instanceof NBTData)){
     throw new TypeError("First parameter must be an NBTData object");
+  }
+  if (typeof name !== "string" && name !== null){
+    throw new TypeError("Name option must be a string or null");
   }
   if (endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
@@ -29,7 +33,7 @@ export async function write(data: NBTData, { endian = data.endian, compression =
   }
 
   const writer = new NBTWriter();
-  let result = writer.write(data,{ endian });
+  let result = writer.write(data,{ name, endian });
 
   if (bedrockLevel !== undefined && bedrockLevel !== null){
     const { byteLength } = result;
@@ -52,6 +56,7 @@ export async function write(data: NBTData, { endian = data.endian, compression =
 const encoder = new TextEncoder();
 
 export interface NBTWriterOptions {
+  name?: Name;
   endian?: Endian;
 }
 
@@ -67,9 +72,12 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: NBTData, { endian = data.endian }: NBTWriterOptions = {}) {
+  write(data: NBTData, { name = data.name, endian = data.endian }: NBTWriterOptions = {}) {
     if (!(data instanceof NBTData)){
       throw new TypeError("First parameter must be an NBTData object");
+    }
+    if (typeof name !== "string" && name !== null){
+      throw new TypeError("Name option must be a string or null");
     }
     if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
@@ -80,7 +88,6 @@ export class NBTWriter {
     this.#data = new Uint8Array(1024);
     this.#view = new DataView(this.#data.buffer);
 
-    const { name } = data;
     const { data: value } = data;
 
     this.#writeTagType(TAG.COMPOUND);
