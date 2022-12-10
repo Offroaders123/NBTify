@@ -1,11 +1,12 @@
 import { Endian, Compression, BedrockLevel, NBTData } from "./index.js";
+import { Int } from "./primitive.js";
 import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
 
 export interface WriteOptions {
   endian?: Endian;
-  compression?: Compression;
-  bedrockLevel?: BedrockLevel;
+  compression?: Compression | null;
+  bedrockLevel?: BedrockLevel | null;
 }
 
 /**
@@ -20,11 +21,17 @@ export async function write(data: NBTData, { endian = data.endian, compression =
   if (endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
+  if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "zlib"){
+    throw new TypeError("Compression option must be a valid compression type");
+  }
+  if (bedrockLevel !== undefined && bedrockLevel !== null && !(bedrockLevel instanceof Int)){
+    throw new TypeError("Bedrock Level option must be an Int");
+  }
 
   const writer = new NBTWriter();
   let result = writer.write(data,{ endian });
 
-  if (bedrockLevel !== undefined){
+  if (bedrockLevel !== undefined && bedrockLevel !== null){
     const { byteLength } = result;
     const data = new Uint8Array(byteLength + 8);
     const view = new DataView(data.buffer);
@@ -76,13 +83,9 @@ export class NBTWriter {
     const { name } = data;
     const { data: value } = data;
 
-    try {
-      this.#writeTagType(TAG.COMPOUND);
-      if (name !== null) this.#writeString(name);
-      this.#writeCompound(value);
-    } catch (error: any){
-      throw new Error(error);
-    }
+    this.#writeTagType(TAG.COMPOUND);
+    if (name !== null) this.#writeString(name);
+    this.#writeCompound(value);
 
     this.#accommodate(0);
     return this.#data.slice(0,this.#byteOffset);

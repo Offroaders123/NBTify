@@ -61,7 +61,7 @@ export function getTagType(value: Tag): TAG {
     case value instanceof Int8Array: return TAG.BYTE_ARRAY;
     case typeof value === "string": return TAG.STRING;
     case value instanceof Array: return TAG.LIST;
-    case typeof value === "object" && Object.getPrototypeOf(value).isPrototypeOf(Object): return TAG.COMPOUND;
+    case (value ?? false) && typeof value === "object" && Object.getPrototypeOf(value).isPrototypeOf(Object): return TAG.COMPOUND;
     case value instanceof Int32Array: return TAG.INT_ARRAY;
     case value instanceof BigInt64Array: return TAG.LONG_ARRAY;
     default: throw new TypeError(`${Object.prototype.toString.call(value)} is not a valid NBT primitive`);
