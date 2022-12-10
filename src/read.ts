@@ -144,6 +144,11 @@ export class NBTReader {
     const name: Name = (isNamed) ? this.#readString() : null;
     const value = this.#readCompound();
 
+    if (data.byteLength > this.#byteOffset){
+      const remaining = data.byteLength - this.#byteOffset;
+      throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
+    }
+
     return new NBTData(value,{ name, endian });
   }
 

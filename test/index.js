@@ -9,8 +9,8 @@ console.log(data,"\n");
 const result = await NBT.read(data);
 console.log(result,"\n");
 
-const result2 = await NBT.write(result,{ name: "fart!", bedrockLevel: null })
-.then(buffer => NBT.read(buffer,{ endian: "little" }));
+const result2 = await NBT.write(result,{ bedrockLevel: null })
+.then(buffer => NBT.read(buffer,{ endian: "big", isNamed: false }));
 console.log(result2,"\n");
 
 const recompile = Buffer.from(await NBT.write(result2));
