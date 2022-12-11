@@ -154,7 +154,11 @@ export class NBTReader {
 
   #readTag(type: TAG): Tag {
     switch (type){
-      case TAG.END: throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}`);
+      case TAG.END: {
+        const remaining = this.#data.byteLength - this.#byteOffset;
+        throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
+      }
+
       case TAG.BYTE: return new Byte(this.#readByte());
       case TAG.SHORT: return new Short(this.#readShort());
       case TAG.INT: return new Int(this.#readInt());
@@ -167,6 +171,7 @@ export class NBTReader {
       case TAG.COMPOUND: return this.#readCompound();
       case TAG.INT_ARRAY: return this.#readIntArray();
       case TAG.LONG_ARRAY: return this.#readLongArray();
+
       default: throw new Error(`Encountered unsupported tag type ${type} at byte offset ${this.#byteOffset}`);
     }
   }
