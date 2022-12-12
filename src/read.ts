@@ -158,7 +158,6 @@ export class NBTReader {
         const remaining = this.#data.byteLength - this.#byteOffset;
         throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
       }
-
       case TAG.BYTE: return new Byte(this.#readByte());
       case TAG.SHORT: return new Short(this.#readShort());
       case TAG.INT: return new Int(this.#readInt());
@@ -171,7 +170,6 @@ export class NBTReader {
       case TAG.COMPOUND: return this.#readCompound();
       case TAG.INT_ARRAY: return this.#readIntArray();
       case TAG.LONG_ARRAY: return this.#readLongArray();
-
       default: throw new Error(`Encountered unsupported tag type ${type} at byte offset ${this.#byteOffset}`);
     }
   }
@@ -181,48 +179,72 @@ export class NBTReader {
   }
 
   #readUnsignedByte() {
+    if (this.#byteOffset + 1 > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = this.#view.getUint8(this.#byteOffset);
     this.#byteOffset += 1;
     return value;
   }
 
   #readByte() {
+    if (this.#byteOffset + 1 > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = this.#view.getInt8(this.#byteOffset);
     this.#byteOffset += 1;
     return value;
   }
 
   #readUnsignedShort() {
+    if (this.#byteOffset + 2 > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
 
   #readShort() {
+    if (this.#byteOffset + 2 > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
 
   #readInt() {
+    if (this.#byteOffset + 4 > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
 
   #readLong() {
+    if (this.#byteOffset + 8 > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
 
   #readFloat() {
+    if (this.#byteOffset + 4 > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = this.#view.getFloat32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
 
   #readDouble() {
+    if (this.#byteOffset + 8 > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = this.#view.getFloat64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
     return value;
@@ -230,6 +252,9 @@ export class NBTReader {
 
   #readByteArray() {
     const byteLength = this.#readInt();
+    if (this.#byteOffset + byteLength > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = new Int8Array(this.#data.subarray(this.#byteOffset,this.#byteOffset + byteLength));
     this.#byteOffset += byteLength;
     return value;
@@ -237,6 +262,9 @@ export class NBTReader {
 
   #readString() {
     const length = this.#readUnsignedShort();
+    if (this.#byteOffset + length > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
     const value = decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
     this.#byteOffset += length;
     return value;
