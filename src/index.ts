@@ -43,7 +43,7 @@ export class NBTData {
     if (compression === undefined) compression = null;
     if (bedrockLevel === undefined) bedrockLevel = null;
 
-    if (typeof data !== "object"){
+    if (typeof data !== "object" || data === null){
       throw new TypeError("First parameter must be an object");
     }
     if (typeof name !== "string" && name !== null){

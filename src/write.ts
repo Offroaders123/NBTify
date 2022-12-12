@@ -15,9 +15,17 @@ export interface WriteOptions {
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write(data: NBTData, { name = data.name, endian = data.endian, compression = data.compression, bedrockLevel = data.bedrockLevel }: WriteOptions = {}){
-  if (!(data instanceof NBTData)){
-    throw new TypeError("First parameter must be an NBTData object");
+export async function write(data: CompoundTag | NBTData, { name, endian, compression, bedrockLevel }: WriteOptions = {}){
+  if (data instanceof NBTData){
+    if (name === undefined) name = data.name;
+    if (endian === undefined) endian = data.endian;
+    if (compression === undefined) compression = data.compression;
+    if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
+    data = data.data;
+  }
+
+  if (typeof data !== "object" || data === null){
+    throw new TypeError("First parameter must be an object");
   }
   if (typeof name !== "string" && name !== null){
     throw new TypeError("Name option must be a string or null");
@@ -72,9 +80,15 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: NBTData, { name = data.name, endian = data.endian }: NBTWriterOptions = {}) {
-    if (!(data instanceof NBTData)){
-      throw new TypeError("First parameter must be an NBTData object");
+  write(data: CompoundTag | NBTData, { name, endian }: NBTWriterOptions = {}) {
+    if (data instanceof NBTData){
+      if (name === undefined) name = data.name;
+      if (endian === undefined) endian = data.endian;
+      data = data.data;
+    }
+
+    if (typeof data !== "object" || data === null){
+      throw new TypeError("First parameter must be an object");
     }
     if (typeof name !== "string" && name !== null){
       throw new TypeError("Name option must be a string or null");
@@ -88,11 +102,9 @@ export class NBTWriter {
     this.#data = new Uint8Array(1024);
     this.#view = new DataView(this.#data.buffer);
 
-    const { data: value } = data;
-
     this.#writeTagType(TAG.COMPOUND);
     if (name !== null) this.#writeString(name);
-    this.#writeCompound(value);
+    this.#writeCompound(data);
 
     this.#accommodate(0);
     return this.#data.slice(0,this.#byteOffset);
