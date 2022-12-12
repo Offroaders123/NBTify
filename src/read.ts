@@ -267,6 +267,7 @@ export class NBTReader {
     }
     const value = decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
     this.#byteOffset += length;
+    console.log(value);
     return value;
   }
 
