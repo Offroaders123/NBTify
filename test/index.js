@@ -10,8 +10,8 @@ const value = {
 };
 console.log(value,"\n");
 
-const result = Buffer.from(await NBT.write(value,{ name: null, endian: "big" }));
+const result = Buffer.from(await NBT.write(value));
 console.log(result,"\n");
 
 const decompile = await NBT.read(result);
-console.log(decompile.data);
+console.log(decompile);

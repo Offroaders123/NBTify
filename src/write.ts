@@ -27,10 +27,10 @@ export async function write(data: CompoundTag | NBTData, { name, endian, compres
   if (typeof data !== "object" || data === null){
     throw new TypeError("First parameter must be an object");
   }
-  if (typeof name !== "string" && name !== null){
+  if (name !== undefined && typeof name !== "string" && name !== null){
     throw new TypeError("Name option must be a string or null");
   }
-  if (endian !== "big" && endian !== "little"){
+  if (name !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
   if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "zlib"){
@@ -86,6 +86,9 @@ export class NBTWriter {
       if (endian === undefined) endian = data.endian;
       data = data.data as CompoundTag;
     }
+
+    if (name === undefined) name = "";
+    if (endian === undefined) endian = "big";
 
     if (typeof data !== "object" || data === null){
       throw new TypeError("First parameter must be an object");
