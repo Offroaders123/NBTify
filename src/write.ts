@@ -21,7 +21,7 @@ export async function write(data: CompoundTag | NBTData, { name, endian, compres
     if (endian === undefined) endian = data.endian;
     if (compression === undefined) compression = data.compression;
     if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
-    data = data.data;
+    data = data.data as CompoundTag;
   }
 
   if (typeof data !== "object" || data === null){
@@ -84,7 +84,7 @@ export class NBTWriter {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
-      data = data.data;
+      data = data.data as CompoundTag;
     }
 
     if (typeof data !== "object" || data === null){

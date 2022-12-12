@@ -23,7 +23,7 @@ export interface NBTDataOptions {
  * An object which represents a set of NBT data.
 */
 export class NBTData {
-  declare readonly data: CompoundTag;
+  declare readonly data: any;
   declare readonly name: Name;
   declare readonly endian: Endian;
   declare readonly compression?: Compression;

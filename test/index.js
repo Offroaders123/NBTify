@@ -1,28 +1,23 @@
 // @ts-check
 
-import { Buffer } from "node:buffer";
+import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
-/** @type { NBT.CompoundTag } */
-const value = {
-  IsFancy: new NBT.Byte(0),
-  Noice: new Int8Array([55,32,4,125,8,99,57,4])
-};
-console.log(value,"\n");
+const data = await fs.readFile(new URL("./nbt/level.dat",import.meta.url));
+console.log(data,"\n");
 
-/** @type { NBT.WriteOptions } */
-const options = { name: null, endian: "little" };
-console.log(options,"\n");
-
-const data = new NBT.NBTData(value,options);
-// console.log(data,"\n");
-
-const writer = new NBT.NBTWriter();
-
-const result = Buffer.from(writer.write(data));
+const result = await NBT.read(data);
 console.log(result,"\n");
 
-const result2 = Buffer.from(await NBT.write(value,options));
-console.log(result2,"\n");
+const { LevelName, hasBeenLoadedInCreative } = result.data;
 
-console.log(Buffer.compare(result,result2));
+console.log(LevelName);
+console.log(hasBeenLoadedInCreative,"\n");
+
+result.data.LevelName = "Custom World Name!";
+result.data.hasBeenLoadedInCreative = new NBT.Byte(0);
+
+const recompile = Buffer.from(await NBT.write(result));
+console.log(recompile,"\n");
+
+console.log(Buffer.compare(data,recompile));
