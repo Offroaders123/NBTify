@@ -1,6 +1,6 @@
 import { Name, Endian, Compression, BedrockLevel, NBTData } from "./index.js";
 import { Int } from "./primitive.js";
-import { Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
+import { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
 
 export interface WriteOptions {
@@ -134,7 +134,7 @@ export class NBTWriter {
   #writeTag(value: Tag) {
     const type = getTagType(value);
     switch (type){
-      case TAG.BYTE: return this.#writeByte((value as ByteTag).valueOf());
+      case TAG.BYTE: return this.#writeByte((value as ByteTag | BooleanTag).valueOf());
       case TAG.SHORT: return this.#writeShort((value as ShortTag).valueOf());
       case TAG.INT: return this.#writeInt((value as IntTag).valueOf());
       case TAG.LONG: return this.#writeLong(value as LongTag);
@@ -159,9 +159,9 @@ export class NBTWriter {
     this.#byteOffset += 1;
   }
 
-  #writeByte(value: number) {
+  #writeByte(value: number | boolean) {
     this.#accommodate(1);
-    this.#view.setInt8(this.#byteOffset,value);
+    this.#view.setInt8(this.#byteOffset,Number(value));
     this.#byteOffset += 1;
   }
 

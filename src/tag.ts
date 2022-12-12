@@ -52,7 +52,8 @@ Object.freeze(TAG);
 
 export function getTagType(value: Tag): TAG {
   switch (true){
-    case value instanceof Byte: return TAG.BYTE;
+    case value instanceof Byte:
+    case typeof value === "boolean": return TAG.BYTE;
     case value instanceof Short: return TAG.SHORT;
     case value instanceof Int: return TAG.INT;
     case typeof value === "bigint": return TAG.LONG;
