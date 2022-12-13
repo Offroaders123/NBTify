@@ -1,5 +1,7 @@
+export type CompressionFormat = "gzip" | "deflate" | "deflate-raw";
+
 export interface CompressionOptions {
-  format?: "gzip" | "deflate" | "deflate-raw";
+  format?: CompressionFormat;
 }
 
 /**
@@ -8,7 +10,8 @@ export interface CompressionOptions {
 export async function compress(data: Uint8Array, { format = "gzip" }: CompressionOptions = {}){
   const stream = new CompressionStream(format);
   const readable = new Blob([data]).stream().pipeThrough(stream);
-  return new Uint8Array(await new Response(readable).arrayBuffer());
+  const buffer = await new Response(readable).arrayBuffer();
+  return new Uint8Array(buffer);
 }
 
 /**
@@ -17,5 +20,6 @@ export async function compress(data: Uint8Array, { format = "gzip" }: Compressio
 export async function decompress(data: Uint8Array, { format = "gzip" }: CompressionOptions = {}){
   const stream = new DecompressionStream(format);
   const readable = new Blob([data]).stream().pipeThrough(stream);
-  return new Uint8Array(await new Response(readable).arrayBuffer());
+  const buffer = await new Response(readable).arrayBuffer();
+  return new Uint8Array(buffer);
 }

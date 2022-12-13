@@ -1,20 +1,15 @@
 // @ts-check
 
-import { Buffer } from "node:buffer";
+import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
-/** @type { NBT.CompoundTag } */
-const value = {
-  list: [
-    "a str!",
-    5,
-    "prev mst b str"
-  ]
-};
-console.log(value,"\n");
+const data = await fs.readFile(new URL("./nbt/bigtest.nbt",import.meta.url))
+console.log(data,"\n");
 
-const result = Buffer.from(await NBT.write(value));
+const result = await NBT.read(data);
 console.log(result,"\n");
 
-const decompile = await NBT.read(result);
-console.log(decompile);
+const recompile = Buffer.from(await NBT.write(result));
+console.log(recompile,"\n");
+
+console.log(Buffer.compare(data,recompile));
