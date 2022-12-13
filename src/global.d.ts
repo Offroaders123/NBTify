@@ -1,4 +1,8 @@
 declare global {
+  interface ArrayBuffer {
+    toString(): "[object ArrayBuffer]";
+  }
+
   interface CompressionStream extends TransformStream<Uint8Array,BufferSource> {}
 
   interface CompressionStreamConstructor {

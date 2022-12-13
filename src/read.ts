@@ -15,9 +15,13 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read(data: Uint8Array, { endian, compression, isNamed, isBedrockLevel }: ReadOptions = {}){
+export async function read(data: Uint8Array | ArrayBufferLike, { endian, compression, isNamed, isBedrockLevel }: ReadOptions = {}){
+  if (data instanceof ArrayBuffer || data instanceof SharedArrayBuffer){
+    data = new Uint8Array(data);
+  }
+
   if (!(data instanceof Uint8Array)){
-    throw new TypeError("First parameter must be a Uint8Array");
+    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
   }
   if (endian !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
@@ -120,9 +124,13 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read(data: Uint8Array, { endian = "big", isNamed = true }: NBTReaderOptions = {}) {
+  read(data: Uint8Array | ArrayBufferLike, { endian = "big", isNamed = true }: NBTReaderOptions = {}) {
+    if (data instanceof ArrayBuffer || data instanceof SharedArrayBuffer){
+      data = new Uint8Array(data);
+    }
+
     if (!(data instanceof Uint8Array)){
-      throw new TypeError("First parameter must be a Uint8Array");
+      throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
     }
     if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
