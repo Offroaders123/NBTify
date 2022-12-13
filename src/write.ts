@@ -137,7 +137,7 @@ export class NBTWriter {
   #writeTag(value: Tag) {
     const type = getTagType(value);
     switch (type){
-      case TAG.BYTE: return this.#writeByte((value as ByteTag | BooleanTag).valueOf());
+      case TAG.BYTE: return this.#writeByte(Number(value as ByteTag | BooleanTag));
       case TAG.SHORT: return this.#writeShort((value as ShortTag).valueOf());
       case TAG.INT: return this.#writeInt((value as IntTag).valueOf());
       case TAG.LONG: return this.#writeLong(value as LongTag);
@@ -162,9 +162,9 @@ export class NBTWriter {
     this.#byteOffset += 1;
   }
 
-  #writeByte(value: number | boolean) {
+  #writeByte(value: number) {
     this.#accommodate(1);
-    this.#view.setInt8(this.#byteOffset,Number(value));
+    this.#view.setInt8(this.#byteOffset,value);
     this.#byteOffset += 1;
   }
 
@@ -228,6 +228,9 @@ export class NBTWriter {
     this.#writeTagType(type);
     this.#writeInt(length);
     for (const entry of value){
+      if (getTagType(entry) !== type){
+        throw new Error("Encountered unexpected tag type in List tag, all items must be the same tag type");
+      }
       this.#writeTag(entry);
     }
   }

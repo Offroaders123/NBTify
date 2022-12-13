@@ -5,8 +5,11 @@ import * as NBT from "../dist/index.js";
 
 /** @type { NBT.CompoundTag } */
 const value = {
-  IsNotAThing: true,
-  IsAThing: false
+  list: [
+    "a str!",
+    5,
+    "prev mst b str"
+  ]
 };
 console.log(value,"\n");
 
