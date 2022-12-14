@@ -2,14 +2,15 @@
 
 import * as NBT from "../dist/index.js";
 
-globalThis.NBT = NBT;
+// @ts-ignore
+delete window.SharedArrayBuffer;
 
-const buffer = await fetch("./nbt/empty_list.nbt").then(response => response.arrayBuffer());
-const data = new Uint8Array(buffer);
-console.log(...data);
+const buffer = await fetch("./nbt/bigtest.nbt")
+  .then(response => response.arrayBuffer());
+console.log(buffer);
 
-const result = await NBT.read(data);
+const result = await NBT.read(buffer);
 console.log(result.data);
 
-const recompile = await NBT.write(result);
-console.log(...recompile);
+const { buffer: recompile } = await NBT.write(result);
+console.log(recompile);
