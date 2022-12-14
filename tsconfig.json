@@ -5,6 +5,7 @@
     "module": "ESNext",
     "target": "ESNext",
     "declaration": true,
+    "sourceMap": true,
     "strict": true
   }
 }

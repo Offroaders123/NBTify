@@ -29,5 +29,6 @@
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "devDependencies": {
     "typescript": "^4.9.3"
-  }
+  },
+  "sideEffects": false
 }
