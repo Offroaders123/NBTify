@@ -1,11 +1,5 @@
-export * from "./read.js";
-export * from "./write.js";
-export * from "./primitive.js";
-export * from "./tag.js";
-export * from "./compression.js";
-
-import { Int } from "./primitive.js";
 import type { CompoundTag } from "./tag.js";
+import { Int } from "./primitive.js";
 
 export type Name = string | null;
 export type Endian = "big" | "little";
