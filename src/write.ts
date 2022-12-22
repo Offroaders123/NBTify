@@ -1,4 +1,4 @@
-import { Name, Endian, Compression, BedrockLevel, NBTData } from "./index.js";
+import { Name, Endian, Compression, BedrockLevel, NBTData } from "./data.js";
 import { Int } from "./primitive.js";
 import { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
