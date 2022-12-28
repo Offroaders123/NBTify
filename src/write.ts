@@ -109,24 +109,24 @@ export class NBTWriter {
     if (name !== null) this.#writeString(name);
     this.#writeCompound(data);
 
-    this.#accommodate(0);
+    this.#allocate(0);
     return this.#data.slice(0,this.#byteOffset);
   }
 
-  #accommodate(size: number) {
-    const required = this.#byteOffset + size;
-    const { byteLength } = this.#data;
-    if (byteLength >= required) return;
+  #allocate(byteLength: number) {
+    const required = this.#byteOffset + byteLength;
+    if (this.#data.byteLength >= required) return;
 
-    let length = byteLength;
+    let length = this.#data.byteLength;
+
     while (length < required){
       length *= 2;
     }
 
     const data = new Uint8Array(length);
-    data.set(this.#data);
+    data.set(this.#data,0);
 
-    if (this.#byteOffset > byteLength){
+    if (this.#byteOffset > this.#data.byteLength){
       data.fill(0,byteLength,this.#byteOffset);
     }
 
@@ -157,49 +157,49 @@ export class NBTWriter {
   }
 
   #writeUnsignedByte(value: number) {
-    this.#accommodate(1);
+    this.#allocate(1);
     this.#view.setUint8(this.#byteOffset,value);
     this.#byteOffset += 1;
   }
 
   #writeByte(value: number) {
-    this.#accommodate(1);
+    this.#allocate(1);
     this.#view.setInt8(this.#byteOffset,value);
     this.#byteOffset += 1;
   }
 
   #writeUnsignedShort(value: number) {
-    this.#accommodate(2);
+    this.#allocate(2);
     this.#view.setUint16(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 2;
   }
 
   #writeShort(value: number) {
-    this.#accommodate(2);
+    this.#allocate(2);
     this.#view.setInt16(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 2;
   }
 
   #writeInt(value: number) {
-    this.#accommodate(4);
+    this.#allocate(4);
     this.#view.setInt32(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 4;
   }
 
   #writeLong(value: bigint) {
-    this.#accommodate(8);
+    this.#allocate(8);
     this.#view.setBigInt64(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 8;
   }
 
   #writeFloat(value: number) {
-    this.#accommodate(4);
+    this.#allocate(4);
     this.#view.setFloat32(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 4;
   }
 
   #writeDouble(value: number) {
-    this.#accommodate(8);
+    this.#allocate(8);
     this.#view.setFloat64(this.#byteOffset,value,this.#littleEndian);
     this.#byteOffset += 8;
   }
@@ -207,7 +207,7 @@ export class NBTWriter {
   #writeByteArray(value: Int8Array) {
     const { byteLength } = value;
     this.#writeInt(byteLength);
-    this.#accommodate(byteLength);
+    this.#allocate(byteLength);
     this.#data.set(value,this.#byteOffset);
     this.#byteOffset += byteLength;
   }
@@ -216,7 +216,7 @@ export class NBTWriter {
     const entry = encoder.encode(value);
     const { length } = entry;
     this.#writeUnsignedShort(length);
-    this.#accommodate(length);
+    this.#allocate(length);
     this.#data.set(entry,this.#byteOffset);
     this.#byteOffset += length;
   }

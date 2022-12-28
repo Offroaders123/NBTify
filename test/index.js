@@ -3,10 +3,10 @@
 import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
-const data = await fs.readFile(new URL("./nbt/bigtest.nbt",import.meta.url));
+const data = await fs.readFile(new URL("./nbt/ridiculous.nbt",import.meta.url));
 console.log(data.buffer,"\n");
 
-const result = await NBT.read(data.buffer,{ endian: "little" });
+const result = await NBT.read(data.buffer);
 console.log(result,"\n");
 
 const recompile = await NBT.write(result);
