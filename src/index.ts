@@ -4,5 +4,3 @@ export * from "./data.js";
 export * from "./tag.js";
 export * from "./primitive.js";
 export * from "./compression.js";
-
-export * as NBT from "./index.js";
