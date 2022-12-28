@@ -160,6 +160,12 @@ export class NBTReader {
     return new NBTData(value,{ name, endian });
   }
 
+  #allocate(byteLength: number) {
+    if (this.#byteOffset + byteLength > this.#data.byteLength){
+      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+    }
+  }
+
   #readTag(type: TAG): Tag {
     switch (type){
       case TAG.END: {
@@ -187,72 +193,56 @@ export class NBTReader {
   }
 
   #readUnsignedByte() {
-    if (this.#byteOffset + 1 > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(1);
     const value = this.#view.getUint8(this.#byteOffset);
     this.#byteOffset += 1;
     return value;
   }
 
   #readByte() {
-    if (this.#byteOffset + 1 > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(1);
     const value = this.#view.getInt8(this.#byteOffset);
     this.#byteOffset += 1;
     return value;
   }
 
   #readUnsignedShort() {
-    if (this.#byteOffset + 2 > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(2);
     const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
 
   #readShort() {
-    if (this.#byteOffset + 2 > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(2);
     const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
 
   #readInt() {
-    if (this.#byteOffset + 4 > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(4);
     const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
 
   #readLong() {
-    if (this.#byteOffset + 8 > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(8);
     const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
 
   #readFloat() {
-    if (this.#byteOffset + 4 > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(4);
     const value = this.#view.getFloat32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
 
   #readDouble() {
-    if (this.#byteOffset + 8 > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(8);
     const value = this.#view.getFloat64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
     return value;
@@ -260,9 +250,7 @@ export class NBTReader {
 
   #readByteArray() {
     const byteLength = this.#readInt();
-    if (this.#byteOffset + byteLength > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(byteLength);
     const value = new Int8Array(this.#data.subarray(this.#byteOffset,this.#byteOffset + byteLength));
     this.#byteOffset += byteLength;
     return value;
@@ -270,9 +258,7 @@ export class NBTReader {
 
   #readString() {
     const length = this.#readUnsignedShort();
-    if (this.#byteOffset + length > this.#data.byteLength){
-      throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-    }
+    this.#allocate(length);
     const value = decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
     this.#byteOffset += length;
     return value;
