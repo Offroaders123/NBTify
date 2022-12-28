@@ -3,21 +3,27 @@ declare global {
     toString(): "[object ArrayBuffer]";
   }
 
-  interface CompressionStream extends TransformStream<Uint8Array,BufferSource> {}
+  type CompressionFormat = "gzip" | "deflate" | "deflate-raw";
 
-  interface CompressionStreamConstructor {
-    new(format: string): CompressionStream;
+  interface CompressionStream {
+    readable: ReadableStream<Uint8Array>;
+    writable: WritableStream<BufferSource>;
   }
 
-  var CompressionStream: CompressionStreamConstructor;
+  var CompressionStream: {
+    prototype: CompressionStream;
+    new(format: CompressionFormat): CompressionStream;
+  };
 
-  interface DecompressionStream extends TransformStream<Uint8Array,BufferSource> {}
-
-  interface DecompressionStreamConstructor {
-    new(format: string): DecompressionStream;
+  interface DecompressionStream {
+    readable: ReadableStream<Uint8Array>;
+    writable: WritableStream<BufferSource>;
   }
 
-  var DecompressionStream: DecompressionStreamConstructor;
+  var DecompressionStream: {
+    prototype: DecompressionStream;
+    new(format: CompressionFormat): DecompressionStream;
+  };
 }
 
 export {};
