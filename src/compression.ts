@@ -1,3 +1,5 @@
+export type CompressionFormat = "gzip" | "deflate" | "deflate-raw";
+
 export interface CompressionOptions {
   format?: CompressionFormat;
 }
