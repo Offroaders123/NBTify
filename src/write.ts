@@ -205,11 +205,11 @@ export class NBTWriter {
   }
 
   #writeByteArray(value: Int8Array) {
-    const { byteLength } = value;
-    this.#writeInt(byteLength);
-    this.#allocate(byteLength);
+    const { length } = value;
+    this.#writeInt(length);
+    this.#allocate(length);
     this.#data.set(value,this.#byteOffset);
-    this.#byteOffset += byteLength;
+    this.#byteOffset += length;
   }
 
   #writeString(value: string) {
@@ -246,16 +246,16 @@ export class NBTWriter {
   }
 
   #writeIntArray(value: Int32Array) {
-    const { byteLength } = value;
-    this.#writeInt(byteLength);
+    const { length } = value;
+    this.#writeInt(length);
     for (const entry of value){
       this.#writeInt(entry);
     }
   }
 
   #writeLongArray(value: BigInt64Array) {
-    const { byteLength } = value;
-    this.#writeInt(byteLength);
+    const { length } = value;
+    this.#writeInt(length);
     for (const entry of value){
       this.#writeLong(entry);
     }

@@ -249,10 +249,10 @@ export class NBTReader {
   }
 
   #readByteArray() {
-    const byteLength = this.#readInt();
-    this.#allocate(byteLength);
-    const value = new Int8Array(this.#data.subarray(this.#byteOffset,this.#byteOffset + byteLength));
-    this.#byteOffset += byteLength;
+    const length = this.#readInt();
+    this.#allocate(length);
+    const value = new Int8Array(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
+    this.#byteOffset += length;
     return value;
   }
 
@@ -288,8 +288,8 @@ export class NBTReader {
   }
 
   #readIntArray() {
-    const byteLength = this.#readInt();
-    const value = new Int32Array(byteLength);
+    const length = this.#readInt();
+    const value = new Int32Array(length);
     for (const i in value){
       const entry = this.#readInt();
       value[i] = entry;
@@ -298,8 +298,8 @@ export class NBTReader {
   }
 
   #readLongArray() {
-    const byteLength = this.#readInt();
-    const value = new BigInt64Array(byteLength);
+    const length = this.#readInt();
+    const value = new BigInt64Array(length);
     for (const i in value){
       const entry = this.#readLong();
       value[i] = entry;
