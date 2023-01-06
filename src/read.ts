@@ -26,7 +26,7 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   if (endian !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
-  if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "zlib"){
+  if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "deflate"){
     throw new TypeError("Compression option must be a valid compression type");
   }
   if (isNamed !== undefined && typeof isNamed !== "boolean"){
@@ -39,7 +39,7 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   if (compression === undefined){
     switch (true){
       case hasGzipHeader(data): compression = "gzip"; break;
-      case hasZlibHeader(data): compression = "zlib"; break;
+      case hasZlibHeader(data): compression = "deflate"; break;
       default: compression = null; break;
     }
   }
@@ -76,7 +76,7 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
     data = await decompress(data,{ format: "gzip" });
   }
 
-  if (compression === "zlib"){
+  if (compression === "deflate"){
     data = await decompress(data,{ format: "deflate" });
   }
 

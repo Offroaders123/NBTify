@@ -33,7 +33,7 @@ export async function write(data: CompoundTag | NBTData, { name, endian, compres
   if (name !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
-  if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "zlib"){
+  if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "deflate"){
     throw new TypeError("Compression option must be a valid compression type");
   }
   if (bedrockLevel !== undefined && bedrockLevel !== null && !(bedrockLevel instanceof Int)){
@@ -58,7 +58,7 @@ export async function write(data: CompoundTag | NBTData, { name, endian, compres
     result = await compress(result,{ format: "gzip" });
   }
 
-  if (compression === "zlib"){
+  if (compression === "deflate"){
     result = await compress(result,{ format: "deflate" });
   }
 

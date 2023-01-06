@@ -3,7 +3,7 @@ import { Int } from "./primitive.js";
 
 export type Name = string | null;
 export type Endian = "big" | "little";
-export type Compression = "gzip" | "zlib";
+export type Compression = "gzip" | "deflate";
 export type BedrockLevel = Int;
 
 export interface NBTDataOptions {
@@ -46,7 +46,7 @@ export class NBTData {
     if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
     }
-    if (compression !== null && compression !== "gzip" && compression !== "zlib"){
+    if (compression !== null && compression !== "gzip" && compression !== "deflate"){
       throw new TypeError("Compression option must be a valid compression type");
     }
     if (bedrockLevel !== null && !(bedrockLevel instanceof Int)){
