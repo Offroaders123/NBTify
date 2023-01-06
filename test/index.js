@@ -3,7 +3,7 @@
 import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
-const data = await fs.readFile(new URL("./nbt/ridiculous.nbt",import.meta.url));
+const data = await fs.readFile(new URL("./nbt/mca-chunk.nbt",import.meta.url));
 console.log(data.buffer,"\n");
 
 const result = await NBT.read(data.buffer);

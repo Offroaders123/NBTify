@@ -37,7 +37,11 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   }
 
   if (compression === undefined){
-    compression = (hasGzipHeader(data)) ? "gzip" : null;
+    switch (true){
+      case hasGzipHeader(data): compression = "gzip"; break;
+      case hasZlibHeader(data): compression = "zlib"; break;
+      default: compression = null; break;
+    }
   }
 
   if (endian === undefined){
@@ -72,6 +76,10 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
     data = await decompress(data,{ format: "gzip" });
   }
 
+  if (compression === "zlib"){
+    data = await decompress(data,{ format: "deflate" });
+  }
+
   if (isBedrockLevel === undefined){
     isBedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
   }
@@ -97,6 +105,12 @@ function hasGzipHeader(data: Uint8Array){
   const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
   const header = view.getUint16(0,false);
   return header === 0x1F8B;
+}
+
+function hasZlibHeader(data: Uint8Array) {
+  const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
+  const header = view.getUint8(0);
+  return header === 0x78;
 }
 
 function hasBedrockLevelHeader(data: Uint8Array){

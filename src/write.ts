@@ -58,6 +58,10 @@ export async function write(data: CompoundTag | NBTData, { name, endian, compres
     result = await compress(result,{ format: "gzip" });
   }
 
+  if (compression === "zlib"){
+    result = await compress(result,{ format: "deflate" });
+  }
+
   return result;
 }
 
