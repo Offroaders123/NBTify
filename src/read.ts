@@ -119,8 +119,6 @@ function hasBedrockLevelHeader(data: Uint8Array){
   return byteLength === data.byteLength - 8;
 }
 
-const decoder = new TextDecoder();
-
 export interface NBTReaderOptions {
   endian?: Endian;
   isNamed?: boolean;
@@ -134,6 +132,7 @@ export class NBTReader {
   #littleEndian!: boolean;
   #data!: Uint8Array;
   #view!: DataView;
+  #decoder = new TextDecoder();
 
   /**
    * Initiates the reader over an NBT buffer.
@@ -273,7 +272,7 @@ export class NBTReader {
   #readString() {
     const length = this.#readUnsignedShort();
     this.#allocate(length);
-    const value = decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
+    const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
     this.#byteOffset += length;
     return value;
   }

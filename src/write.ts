@@ -65,8 +65,6 @@ export async function write(data: CompoundTag | NBTData, { name, endian, compres
   return result;
 }
 
-const encoder = new TextEncoder();
-
 export interface NBTWriterOptions {
   name?: Name;
   endian?: Endian;
@@ -80,6 +78,7 @@ export class NBTWriter {
   #littleEndian!: boolean;
   #data!: Uint8Array;
   #view!: DataView;
+  #encoder = new TextEncoder();
 
   /**
    * Initiates the writer over an NBTData object.
@@ -217,7 +216,7 @@ export class NBTWriter {
   }
 
   #writeString(value: string) {
-    const entry = encoder.encode(value);
+    const entry = this.#encoder.encode(value);
     const { length } = entry;
     this.#writeUnsignedShort(length);
     this.#allocate(length);
