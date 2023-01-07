@@ -15,13 +15,13 @@ export interface WriteOptions {
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write(data: CompoundTag | NBTData, { name, endian, compression, bedrockLevel }: WriteOptions = {}){
+export async function write(data: any, { name, endian, compression, bedrockLevel }: WriteOptions = {}){
   if (data instanceof NBTData){
     if (name === undefined) name = data.name;
     if (endian === undefined) endian = data.endian;
     if (compression === undefined) compression = data.compression;
     if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
-    data = data.data as CompoundTag;
+    data = data.data;
   }
 
   if (typeof data !== "object" || data === null){
@@ -83,11 +83,11 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: CompoundTag | NBTData, { name, endian }: NBTWriterOptions = {}) {
+  write(data: any, { name, endian }: NBTWriterOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
-      data = data.data as CompoundTag;
+      data = data.data;
     }
 
     if (name === undefined) name = "";

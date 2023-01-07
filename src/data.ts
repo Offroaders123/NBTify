@@ -23,7 +23,7 @@ export class NBTData {
   declare readonly compression?: Compression;
   declare readonly bedrockLevel?: BedrockLevel;
 
-  constructor(data: CompoundTag | NBTData, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
+  constructor(data: any, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
