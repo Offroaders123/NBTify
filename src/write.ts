@@ -225,6 +225,7 @@ export class NBTWriter {
   }
 
   #writeList(value: ListTag) {
+    value = value.filter(entry => typeof entry !== "function" && typeof entry !== "symbol" && entry !== null && entry !== undefined);
     const template = value[0] as Tag | undefined;
     const type = (template !== undefined) ? getTagType(template): TAG.END;
     const { length } = value;
@@ -240,6 +241,7 @@ export class NBTWriter {
 
   #writeCompound(value: CompoundTag) {
     for (const [name,entry] of Object.entries(value)){
+      if (typeof entry === "function" || typeof entry === "symbol" || entry === null || entry === undefined) continue;
       const type = getTagType(entry);
       this.#writeTagType(type);
       this.#writeString(name);

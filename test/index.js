@@ -7,8 +7,14 @@ class NBTSourceClass {
   InvalidRegExpObject = new RegExp(/searcher/);
   NonCompatibleTextDecoder = new TextDecoder();
   Func = () => {
-    return "This will not serialize to NBT";
-  }
+    return "This will not serialize to NBT"
+  };
+  Method() {
+    return "This won't be parseable either"
+  };
+  Symbol = Symbol(25);
+  Undefined = undefined;
+  Null = null;
   WillPass = {
     ByteTag: new NBT.Byte(127),
     ShortTag: new NBT.Short(258),
@@ -17,13 +23,23 @@ class NBTSourceClass {
     CompoundTag: {
       ThisIsAnotherCompoundTag: true
     },
+    InvalidListItems: [
+      Object.freeze([new RegExp(/searcher/)]),
+      Object.freeze([new TextDecoder()]),
+      Object.freeze([() => {
+        return "This will not serialize to NBT"
+      }]),
+      Object.freeze([Symbol(25)]),
+      Object.freeze([undefined]),
+      Object.freeze([null])
+    ],
     IntArrayTag: new Int32Array([45,8,6,3,2,345,67,887452,123123,254]),
     LongArrayTag: new BigInt64Array([34234n,2343464756n,23425457n])
   }
 }
 
 const source = new NBTSourceClass();
-console.log(source);
+console.log(source.WillPass);
 
 const reversify = await NBT.write(source).then(NBT.read);
-console.log(reversify);
+console.log(reversify.data.WillPass);
