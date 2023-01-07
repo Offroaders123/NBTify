@@ -50,7 +50,7 @@ export const TAG = {
 
 Object.freeze(TAG);
 
-export function getTagType(value: Tag): TAG {
+export function getTagType(value: any): TAG | -1 {
   switch (true){
     case value instanceof Byte:
     case typeof value === "boolean": return TAG.BYTE;
@@ -65,6 +65,6 @@ export function getTagType(value: Tag): TAG {
     case value instanceof Int32Array: return TAG.INT_ARRAY;
     case value instanceof BigInt64Array: return TAG.LONG_ARRAY;
     case typeof value === "object" && value !== null: return TAG.COMPOUND;
-    default: throw new TypeError(`${Object.prototype.toString.call(value)} is not a valid NBT primitive`);
+    default: return -1;
   }
 }

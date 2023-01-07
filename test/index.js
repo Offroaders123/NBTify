@@ -23,6 +23,7 @@ class NBTSourceClass {
     CompoundTag: {
       ThisIsAnotherCompoundTag: true
     },
+    EmptyList: [],
     InvalidListItems: [
       Object.freeze([new RegExp(/searcher/)]),
       Object.freeze([new TextDecoder()]),
