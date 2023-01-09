@@ -3,6 +3,9 @@
 import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
+/**
+ * @implements NBT.CompoundTag
+*/
 class NBTSourceClass {
   InvalidRegExpObject = new RegExp(/searcher/);
   NonCompatibleTextDecoder = new TextDecoder();
@@ -39,8 +42,16 @@ class NBTSourceClass {
   }
 }
 
-const source = new NBTSourceClass();
-console.log(source.WillPass);
+class NBTSource extends NBT.NBTData {
+  // declare data: NBTSourceClass;
+
+  constructor() {
+    super(/** @type { NBT.CompoundTag } */ (new NBTSourceClass()));
+  }
+}
+
+const source = new NBTSource();
+console.log(source.data.WillPass);
 
 const reversify = await NBT.write(source).then(NBT.read);
 console.log(reversify.data.WillPass);
