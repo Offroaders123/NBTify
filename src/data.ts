@@ -1,4 +1,4 @@
-import type { CompoundTag } from "./tag.js";
+import type { RootTag } from "./tag.js";
 import { Int } from "./primitive.js";
 
 export type Name = string | null;
@@ -23,7 +23,7 @@ export class NBTData {
   declare readonly compression?: Compression;
   declare readonly bedrockLevel?: BedrockLevel;
 
-  constructor(data: CompoundTag | NBTData, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
+  constructor(data: RootTag | NBTData, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;

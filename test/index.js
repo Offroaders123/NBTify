@@ -4,7 +4,7 @@ import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
 /**
- * @implements NBT.CompoundTag
+ * @implements NBT.RootTag
 */
 class NBTSourceClass {
   InvalidRegExpObject = new RegExp(/searcher/);
@@ -46,7 +46,7 @@ class NBTSource extends NBT.NBTData {
   // declare data: NBTSourceClass;
 
   constructor() {
-    super(/** @type { NBT.CompoundTag } */ (new NBTSourceClass()));
+    super(/** @type { NBT.RootTag } */ (new NBTSourceClass()));
   }
 }
 

@@ -2,6 +2,10 @@ import { Byte, Short, Int, Float } from "./primitive.js";
 
 export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag;
 
+export type RootTag = {
+  [name: string]: Tag;
+};
+
 export type ByteTag<T extends number = number> = Byte<T>;
 
 export type BooleanTag = boolean | ByteTag<0 | 1>;
