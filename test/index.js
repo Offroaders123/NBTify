@@ -7,6 +7,10 @@ import * as NBT from "../dist/index.js";
  * @implements NBT.RootTag
 */
 class NBTSourceClass {
+  get [NBT.toNBT]() {
+    return this;
+  }
+
   InvalidRegExpObject = new RegExp(/searcher/);
   NonCompatibleTextDecoder = new TextDecoder();
   Func = () => {
