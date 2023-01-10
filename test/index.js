@@ -4,13 +4,9 @@ import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
 /**
- * @implements NBT.RootTag
+ * @implements NBT.CompoundTag
 */
 class NBTSourceClass {
-  get [NBT.toNBT]() {
-    return this;
-  }
-
   InvalidRegExpObject = new RegExp(/searcher/);
   NonCompatibleTextDecoder = new TextDecoder();
   Func = () => {
@@ -50,7 +46,7 @@ class NBTSource extends NBT.NBTData {
   // declare data: NBTSourceClass;
 
   constructor() {
-    super(/** @type { NBT.RootTag } */ (new NBTSourceClass()));
+    super(/** @type { NBT.CompoundTag } */ (new NBTSourceClass()));
   }
 }
 
