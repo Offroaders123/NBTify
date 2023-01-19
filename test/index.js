@@ -42,5 +42,5 @@ class NBTSourceClass {
 const source = new NBTSourceClass();
 console.log(source.WillPass);
 
-const reversify = await NBT.write(source).then(NBT.read);
+const reversify = await NBT.write({ ...source }).then(NBT.read);
 console.log(reversify.data.WillPass);
