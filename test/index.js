@@ -3,9 +3,6 @@
 import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
-/**
- * @implements NBT.CompoundTag
-*/
 class NBTSourceClass {
   InvalidRegExpObject = new RegExp(/searcher/);
   NonCompatibleTextDecoder = new TextDecoder();
@@ -28,30 +25,22 @@ class NBTSourceClass {
     },
     EmptyList: [],
     InvalidListItems: [
-      Object.freeze([new RegExp(/searcher/)]),
-      Object.freeze([new TextDecoder()]),
-      Object.freeze([() => {
+      [new RegExp(/searcher/)],
+      [new TextDecoder()],
+      [() => {
         return "This will not serialize to NBT"
-      }]),
-      Object.freeze([Symbol(25)]),
-      Object.freeze([undefined]),
-      Object.freeze([null])
+      }],
+      [Symbol(25)],
+      [undefined],
+      [null]
     ],
     IntArrayTag: new Int32Array([45,8,6,3,2,345,67,887452,123123,254]),
     LongArrayTag: new BigInt64Array([34234n,2343464756n,23425457n])
   }
 }
 
-class NBTSource extends NBT.NBTData {
-  // declare data: NBTSourceClass;
-
-  constructor() {
-    super(/** @type { NBT.CompoundTag } */ (new NBTSourceClass()));
-  }
-}
-
-const source = new NBTSource();
-console.log(source.data.WillPass);
+const source = new NBTSourceClass();
+console.log(source.WillPass);
 
 const reversify = await NBT.write(source).then(NBT.read);
 console.log(reversify.data.WillPass);

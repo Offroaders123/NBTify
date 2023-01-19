@@ -23,13 +23,13 @@ export class NBTData {
   declare readonly compression?: Compression;
   declare readonly bedrockLevel?: BedrockLevel;
 
-  constructor(data: CompoundTag | NBTData, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
+  constructor(data: object | NBTData, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
       if (compression === undefined) compression = data.compression;
       if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
-      data = data.data;
+      data = data.data as object;
     }
 
     if (name === undefined) name = "";
@@ -53,7 +53,7 @@ export class NBTData {
       throw new TypeError("Bedrock Level option must be an Int");
     }
 
-    this.data = data;
+    this.data = data as CompoundTag;
     this.name = name;
     this.endian = endian;
     if (compression !== null) this.compression = compression;
