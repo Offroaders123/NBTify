@@ -225,9 +225,8 @@ export class NBTWriter {
   }
 
   #writeList(value: ListTag) {
-    value = value.filter(entry => getTagType(entry) !== -1);
-    const template = value[0] as Tag | undefined;
-    const type = (template !== undefined) ? getTagType(template) as TAG: TAG.END;
+    value = value.filter((entry): entry is Tag => getTagType(entry) !== -1);
+    const type = (value.length !== 0) ? getTagType(value[0]) as TAG : TAG.END;
     const { length } = value;
     this.#writeTagType(type);
     this.#writeInt(length);

@@ -5,14 +5,9 @@ import * as NBT from "../dist/index.js";
 
 /** @type { NBT.CompoundTag } */
 const source = {
-  ByteTag: new NBT.Byte(127),
-  ShortTag: new NBT.Short(258),
-  DoubleTag: 84246,
-  LongTag: 30154000n,
-  CompoundTag: {
-    ThisIsAnotherCompoundTag: true
-  },
-  EmptyList: [],
+  MyClassCompound: {...new class MyClass {
+    IAmAValidKey = true;
+  }},
   InvalidRegExpObject: new RegExp(/searcher/),
   NonCompatibleTextDecoder: new TextDecoder(),
   Func: () => {
@@ -25,17 +20,15 @@ const source = {
   Undefined: undefined,
   Null: null,
   InvalidListItems: [
-    [new RegExp(/searcher/)],
-    [new TextDecoder()],
-    [() => {
+    new RegExp(/searcher/),
+    new TextDecoder(),
+    () => {
       return "This will not serialize to NBT"
-    }],
-    [Symbol(25)],
-    [undefined],
-    [null]
-  ],
-  IntArrayTag: new Int32Array([45,8,6,3,2,345,67,887452,123123,254]),
-  LongArrayTag: new BigInt64Array([34234n,2343464756n,23425457n])
+    },
+    Symbol(25),
+    undefined,
+    null
+  ]
 };
 console.log(source);
 
