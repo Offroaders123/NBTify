@@ -232,7 +232,7 @@ export class NBTWriter {
     this.#writeInt(length);
     for (const entry of value){
       if (getTagType(entry) !== type){
-        throw new Error("Encountered unexpected tag type in List tag, all items must be the same tag type");
+        throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
       }
       this.#writeTag(entry);
     }

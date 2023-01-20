@@ -159,7 +159,7 @@ export class NBTReader {
 
     const type = this.#readTagType();
     if (type !== TAG.COMPOUND){
-      throw new Error(`Expected an opening Compound tag at the start of the buffer, encountered tag type ${type}`);
+      throw new Error(`Expected an opening Compound tag at the start of the buffer, encountered tag type '${type}'`);
     }
 
     const name: Name = (isNamed) ? this.#readString() : null;
@@ -197,7 +197,7 @@ export class NBTReader {
       case TAG.COMPOUND: return this.#readCompound();
       case TAG.INT_ARRAY: return this.#readIntArray();
       case TAG.LONG_ARRAY: return this.#readLongArray();
-      default: throw new Error(`Encountered unsupported tag type ${type} at byte offset ${this.#byteOffset}`);
+      default: throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${this.#byteOffset}`);
     }
   }
 
