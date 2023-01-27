@@ -13,7 +13,7 @@ const FALSE_PATTERN = /^false$/i;
 export function stringify(value: Tag): string {
   const type = getTagType(value);
   switch (type){
-    case TAG.BYTE: return `${value as ByteTag}b`;
+    case TAG.BYTE: return (typeof value === "boolean") ? `${value}` : `${value as ByteTag}b`;
     case TAG.SHORT: return `${value as ShortTag}s`;
     case TAG.INT: return `${value as IntTag}`;
     case TAG.LONG: return `${value as LongTag}l`;
@@ -124,8 +124,7 @@ class TagParser {
         return Number(match[1]) as DoubleTag;
       }
 
-      if (TRUE_PATTERN.test(string)) return new Byte(1);
-      if (FALSE_PATTERN.test(string)) return new Byte(0);
+      if (TRUE_PATTERN.test(string) || FALSE_PATTERN.test(string)) return Boolean(string);
     } catch {
       return string as StringTag;
     }
