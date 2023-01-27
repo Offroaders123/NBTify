@@ -6,8 +6,7 @@ const WHITESPACE_PATTERN = /\s+/;
 const UNQUOTED_STRING_PATTERN = /^[0-9a-z_\-.+]+$/i;
 const UNQUOTED_STRING_OPEN_PATTERN = /^[0-9a-z_\-.+]+/i;
 const INTEGER_PATTERN = /^([-+]?(?:0|[1-9][0-9]*))([bls]?)$/i;
-const FLOAT_PATTERN =
-  /^([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)([df]?)$/i;
+const FLOAT_PATTERN = /^([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)([df]?)$/i;
 const TRUE_PATTERN = /^true$/i;
 const FALSE_PATTERN = /^false$/i;
 
@@ -24,11 +23,7 @@ export function stringify(value: Tag): string {
     case TAG.STRING: return escapeWithQuotes(value as StringTag);
     case TAG.LIST: return `[${stringifyList(value as ListTag)}]`;
     case TAG.COMPOUND: {
-      return `{${
-        [...Object.entries(value as CompoundTag)]
-          .map(([k, v]) => `${stringifyKey(k)}:${stringify(v)}`)
-          .join(",")
-      }}`;
+      return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${stringifyKey(key)}:${stringify(value)}`).join(",")}}`;
     }
     case TAG.INT_ARRAY: return `[I;${stringifyList([...value as IntArrayTag].map(entry => new Int(entry)))}]`;
     case TAG.LONG_ARRAY: return `[L;${stringifyList([...value as LongArrayTag] as LongTag[])}]`;
@@ -53,13 +48,9 @@ const SINGLE_QUOTE_ESCAPE_PATTERN = /['\\]/g;
 const DOUBLE_QUOTE_ESCAPE_PATTERN = /["\\]/g;
 
 function escapeWithQuotes(text: string) {
-  const singleQuoteString = text
-    .replace(SINGLE_QUOTE_ESCAPE_PATTERN, escapeChar);
-  const doubleQuoteString = text
-    .replace(DOUBLE_QUOTE_ESCAPE_PATTERN, escapeChar);
-  return singleQuoteString.length < doubleQuoteString.length
-    ? `'${singleQuoteString}'`
-    : `"${doubleQuoteString}"`;
+  const singleQuoteString = text.replace(SINGLE_QUOTE_ESCAPE_PATTERN, escapeChar);
+  const doubleQuoteString = text.replace(DOUBLE_QUOTE_ESCAPE_PATTERN, escapeChar);
+  return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
 }
 
 function escapeChar(char: string) {
@@ -83,10 +74,9 @@ class TagParser {
 
     if (this.#canRead()) {
       const type = getTagType(tag);
-      if (
-        this.#pos > endPos || type === TAG.LIST ||
-        type === TAG.COMPOUND || lastChar == "'" || lastChar == '"'
-      ) throw new Error("Unexpected non-whitespace character after tag");
+      if (this.#pos > endPos || type === TAG.LIST || type === TAG.COMPOUND || lastChar == "'" || lastChar == '"'){
+        throw new Error("Unexpected non-whitespace character after tag");
+      }
       throw new Error(`Unexpected character '${this.#peek()}' at end of tag`);
     }
     return tag;
@@ -95,7 +85,9 @@ class TagParser {
   #readTag(): Tag {
     this.#skipWhitespace();
 
-    if (!this.#canRead()) throw new Error("Expected tag");
+    if (!this.#canRead()){
+      throw new Error("Expected tag");
+    }
 
     const char = this.#text[this.#pos];
     if (char == "{") return this.#readCompoundTag();
@@ -106,9 +98,7 @@ class TagParser {
 
     const string = this.#readUnquotedString();
     if (string == null) {
-      throw new Error(
-        `Unexpected character '${char}' while reading tag`,
-      );
+      throw new Error(`Unexpected character '${char}' while reading tag`);
     }
 
     try {
@@ -151,11 +141,11 @@ class TagParser {
 
       const key = this.#readString();
       if (key == null) {
-        throw new Error(
-          `Unexpected character '${this.#peek()}' while expecting key-value pair or '}'`,
-        );
+        throw new Error(`Unexpected character '${this.#peek()}' while expecting key-value pair or '}'`);
       }
-      if (key == "") throw new Error("Key cannot be empty");
+      if (key == ""){
+        throw new Error("Key cannot be empty");
+      }
 
       this.#skipWhitespace();
       this.#expect(":");
@@ -163,14 +153,14 @@ class TagParser {
 
       if (!this.#skipSeperator()) {
         if (this.#peek() != "}") {
-          throw new Error(
-            `Unexpected character '${this.#peek()}' at end of tag`,
-          );
+          throw new Error(`Unexpected character '${this.#peek()}' at end of tag`);
         }
         break;
       }
     }
-    if (!this.#canRead()) throw new Error("Expected key-value pair or '}'");
+    if (!this.#canRead()){
+      throw new Error("Expected key-value pair or '}'");
+    }
     this.#skip();
     return tag;
   }
@@ -215,15 +205,15 @@ class TagParser {
 
       if (!this.#skipSeperator()) {
         if (this.#peek() != "]") {
-          throw new Error(
-            `Unexpected character '${this.#peek()}' at end of tag`,
-          );
+          throw new Error(`Unexpected character '${this.#peek()}' at end of tag`);
         }
         break;
       }
     }
 
-    if (!this.#canRead()) throw Error("Expected tag or ']'");
+    if (!this.#canRead()){
+      throw Error("Expected tag or ']'");
+    }
     this.#expect("]");
 
     if (isArray) {
@@ -255,16 +245,13 @@ class TagParser {
 
   #readString() {
     const char = this.#peek();
-    return char == '"' || char == "'"
-      ? this.#readQuotedString(char)
-      : this.#readUnquotedString();
+    return (char == '"' || char == "'") ? this.#readQuotedString(char) : this.#readUnquotedString();
   }
 
   #readUnquotedString() {
-    const match = this.#text.slice(this.#pos).match(
-      UNQUOTED_STRING_OPEN_PATTERN,
-    );
+    const match = this.#text.slice(this.#pos).match(UNQUOTED_STRING_OPEN_PATTERN);
     if (!match) return null;
+
     this.#pos += match[0].length;
     return match[0];
   }
@@ -272,6 +259,7 @@ class TagParser {
   #readQuotedString(quoteChar: string) {
     let lastPos = ++this.#pos;
     let string = "";
+
     while (this.#canRead()) {
       const char = this.#next();
       if (char == "\\") {
