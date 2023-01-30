@@ -4,13 +4,20 @@ import { Byte, Short, Int, Float } from "./primitive.js";
 
 const UNQUOTED_STRING_PATTERN = /^[0-9a-z_\-.+]+$/i;
 
-export function stringify(value: Tag, space: string | number = "", level = 1): string {
-  space = (typeof space === "number") ? "".padStart(space," ") : space;
+export function stringify(data: CompoundTag | NBTData, space: string | number = ""){
+  if (data instanceof NBTData){
+    data = data.data as CompoundTag;
+  }
+  space = (typeof space === "number") ? " ".repeat(space) : space;
+  return writeTag(data,space);
+}
+
+function writeTag(value: Tag, space: string, level = 1): string {
   const fancy = (space !== "");
 
   const type = getTagType(value);
   switch (type){
-    case TAG.BYTE: return (typeof value === "boolean") ? `${value}` : `${value as ByteTag}b`;
+    case TAG.BYTE: return (typeof value === "boolean") ? `${value as BooleanTag}` : `${value as ByteTag}b`;
     case TAG.SHORT: return `${value as ShortTag}s`;
     case TAG.INT: return `${value as IntTag}`;
     case TAG.LONG: return `${value as LongTag}l`;
@@ -20,7 +27,7 @@ export function stringify(value: Tag, space: string | number = "", level = 1): s
     case TAG.STRING: return escapeWithQuotes(value as StringTag);
     case TAG.LIST: return `[${stringifyList(value as ListTag,space,level)}]`;
     case TAG.COMPOUND: {
-      return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${fancy ? `\n${"".padStart((space as string).length * level,space as string)}` : ""}${stringifyKey(key)}:${fancy ? " " : ""}${stringify(value,space,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${"".padStart(space.length * (level - 1),space)}` : ""}}`;
+      return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${fancy ? `\n${(space as string).repeat(level)}` : ""}${stringifyKey(key)}:${fancy ? " " : ""}${writeTag(value,space,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${space.repeat(level - 1)}` : ""}}`;
     }
     case TAG.INT_ARRAY: return `[I;${stringifyList([...value as IntArrayTag].map(entry => new Int(entry)),space,level)}]`;
     case TAG.LONG_ARRAY: return `[L;${stringifyList([...value as LongArrayTag] as LongTag[],space,level)}]`;
@@ -32,7 +39,7 @@ function stringifyList(list: Tag[], space: string, level: number) {
   const [template] = list;
   const type = getTagType(template) as TAG;
   const fancy = (space !== "" && list.length !== 0 && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type));
-  return `${list.map((tag) => `${fancy ? `\n${"".padStart(space.length * level,space)}` : ""}${stringify(tag,space,level + 1)}`).join(",")}${fancy ? `\n${"".padStart(space.length * (level - 1),space)}` : ""}`;
+  return `${list.map((tag) => `${fancy ? `\n${space.repeat(level)}` : ""}${writeTag(tag,space,level + 1)}`).join(",")}${fancy ? `\n${space.repeat(level - 1)}` : ""}`;
 }
 
 function stringifyKey(key: string) {
