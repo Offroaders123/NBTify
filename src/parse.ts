@@ -193,7 +193,7 @@ class TagParser {
       if (tagType == TAG.LONG) {
         const array = new BigInt64Array(tags.length);
         for (let i = 0; i < tags.length; i++) {
-          array[i] = tags[i].valueOf() as bigint;
+          array[i] = BigInt(tags[i].valueOf() as number);
         }
         return array as LongArrayTag;
       }

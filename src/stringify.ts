@@ -23,38 +23,28 @@ function writeTag(value: Tag, space: string, level = 1): string {
     case TAG.LONG: return `${value as LongTag}l`;
     case TAG.FLOAT: return `${value as FloatTag}f`;
     case TAG.DOUBLE: return `${value as DoubleTag}d`;
-    case TAG.BYTE_ARRAY: return `[B;${stringifyList([...value as ByteArrayTag].map(entry => new Byte(entry)),space,level)}]`;
+    case TAG.BYTE_ARRAY: return `[B;${[...value as ByteArrayTag].map(entry => new Byte(entry)).map(entry => writeTag(entry,space,level)).join() as string}]`;
     case TAG.STRING: return escapeWithQuotes(value as StringTag);
-    case TAG.LIST: return `[${stringifyList(value as ListTag,space,level)}]`;
+    case TAG.LIST: return (() => {
+      value = (value as ListTag).filter((entry): entry is Tag => getTagType(entry) !== -1);
+      const type = (value.length !== 0) ? getTagType(value[0]) as TAG : TAG.END;
+      const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
+      return `[${value.map(entry => `${isIndentedList ? `\n${space.repeat(level)}` : ""}${writeTag(entry,space,level + 1)}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${space.repeat(level - 1)}` : ""}]`;
+    })();
     case TAG.COMPOUND: {
-      return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${fancy ? `\n${(space as string).repeat(level)}` : ""}${stringifyKey(key)}:${fancy ? " " : ""}${writeTag(value,space,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${space.repeat(level - 1)}` : ""}}`;
+      return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${fancy ? `\n${(space as string).repeat(level)}` : ""}${UNQUOTED_STRING_PATTERN.test(key) ? key : escapeWithQuotes(key)}:${fancy ? " " : ""}${writeTag(value,space,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${space.repeat(level - 1)}` : ""}}`;
     }
-    case TAG.INT_ARRAY: return `[I;${stringifyList([...value as IntArrayTag].map(entry => new Int(entry)),space,level)}]`;
-    case TAG.LONG_ARRAY: return `[L;${stringifyList([...value as LongArrayTag] as LongTag[],space,level)}]`;
+    case TAG.INT_ARRAY: return `[I;${[...value as IntArrayTag].map(entry => new Int(entry)).map(entry => writeTag(entry,space,level)).join() as string}]`;
+    case TAG.LONG_ARRAY: return `[L;${[...value as LongArrayTag].map(entry => writeTag(entry,space,level)).join() as string}]`;
     default: throw new Error("Invalid tag");
   }
-}
-
-function stringifyList(list: Tag[], space: string, level: number) {
-  const [template] = list;
-  const type = getTagType(template) as TAG;
-  const fancy = (space !== "" && list.length !== 0 && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type));
-  return `${list.map((tag) => `${fancy ? `\n${space.repeat(level)}` : ""}${writeTag(tag,space,level + 1)}`).join(",")}${fancy ? `\n${space.repeat(level - 1)}` : ""}`;
-}
-
-function stringifyKey(key: string) {
-  return UNQUOTED_STRING_PATTERN.test(key) ? key : escapeWithQuotes(key);
 }
 
 const SINGLE_QUOTE_ESCAPE_PATTERN = /['\\]/g;
 const DOUBLE_QUOTE_ESCAPE_PATTERN = /["\\]/g;
 
 function escapeWithQuotes(text: string) {
-  const singleQuoteString = text.replace(SINGLE_QUOTE_ESCAPE_PATTERN, escapeChar);
-  const doubleQuoteString = text.replace(DOUBLE_QUOTE_ESCAPE_PATTERN, escapeChar);
+  const singleQuoteString = text.replace(SINGLE_QUOTE_ESCAPE_PATTERN,(char) => `\\${char}`);
+  const doubleQuoteString = text.replace(DOUBLE_QUOTE_ESCAPE_PATTERN,(char) => `\\${char}`);
   return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
-}
-
-function escapeChar(char: string) {
-  return `\\${char}`;
 }
