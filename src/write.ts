@@ -225,8 +225,8 @@ export class NBTWriter {
   }
 
   #writeList(value: ListTag) {
-    value = value.filter((entry): entry is Tag => getTagType(entry) !== -1);
-    const type = (value.length !== 0) ? getTagType(value[0]) as TAG : TAG.END;
+    value = value.filter((entry): entry is Tag => getTagType(entry) !== null);
+    const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const { length } = value;
     this.#writeTagType(type);
     this.#writeInt(length);
@@ -241,7 +241,7 @@ export class NBTWriter {
   #writeCompound(value: CompoundTag) {
     for (const [name,entry] of Object.entries(value)){
       const type = getTagType(entry);
-      if (type === -1) continue;
+      if (type === null) continue;
       this.#writeTagType(type);
       this.#writeString(name);
       this.#writeTag(entry);

@@ -81,8 +81,8 @@ export class SNBTWriter {
 
   #writeList(value: ListTag, level: number) {
     const fancy = (this.#space !== "");
-    value = value.filter((entry): entry is Tag => getTagType(entry) !== -1);
-    const type = (value.length !== 0) ? getTagType(value[0]) as TAG : TAG.END;
+    value = value.filter((entry): entry is Tag => getTagType(entry) !== null);
+    const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
     return `[${value.map(entry => `${isIndentedList ? `\n${this.#space.repeat(level)}` : ""}${this.#writeTag(entry,level + 1)}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(level - 1)}` : ""}]`;
   }
