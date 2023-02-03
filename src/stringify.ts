@@ -12,7 +12,7 @@ export function stringify(data: CompoundTag | NBTData, space: string | number = 
 export class SNBTWriter {
   #space!: string;
 
-  write(data: CompoundTag | NBTData, space: string | number = ""): string {
+  write(data: CompoundTag | NBTData, space: string | number = "") {
     if (data instanceof NBTData){
       data = data.data as CompoundTag;
     }
@@ -41,66 +41,62 @@ export class SNBTWriter {
     }
   }
 
-  #writeBoolean(value: boolean){
+  #writeBoolean(value: boolean) {
     return `${value}`;
   }
 
-  #writeByte(value: number){
+  #writeByte(value: number) {
     return `${value}b`;
   }
 
-  #writeShort(value: number){
+  #writeShort(value: number) {
     return `${value}s`;
   }
 
-  #writeInt(value: number){
+  #writeInt(value: number) {
     return `${value}`;
   }
 
-  #writeLong(value: bigint){
+  #writeLong(value: bigint) {
     return `${value}l`;
   }
 
-  #writeFloat(value: number){
+  #writeFloat(value: number) {
     return `${value}f`;
   }
 
-  #writeDouble(value: number){
+  #writeDouble(value: number) {
     return `${value}d`;
   }
 
-  #writeByteArray(value: Int8Array){
-    return `[B;${[...value as ByteArrayTag].map(entry => this.#writeByte(entry)).join() as string}]`;
+  #writeByteArray(value: Int8Array) {
+    return `[B;${[...value].map(entry => this.#writeByte(entry)).join() as string}]`;
   }
 
-  #writeString(value: string){
-    return escapeWithQuotes(value);
+  #writeString(value: string) {
+    const singleQuoteString = value.replace(/['\\]/g,(character) => `\\${character}`);
+    const doubleQuoteString = value.replace(/["\\]/g,(character) => `\\${character}`);
+    return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
   }
 
-  #writeList(value: ListTag, level: number){
+  #writeList(value: ListTag, level: number) {
     const fancy = (this.#space !== "");
-    value = (value as ListTag).filter((entry): entry is Tag => getTagType(entry) !== -1);
+    value = value.filter((entry): entry is Tag => getTagType(entry) !== -1);
     const type = (value.length !== 0) ? getTagType(value[0]) as TAG : TAG.END;
     const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
     return `[${value.map(entry => `${isIndentedList ? `\n${this.#space.repeat(level)}` : ""}${this.#writeTag(entry,level + 1)}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(level - 1)}` : ""}]`;
   }
 
-  #writeCompound(value: CompoundTag, level: number){
+  #writeCompound(value: CompoundTag, level: number) {
     const fancy = (this.#space !== "");
-    return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${fancy ? `\n${(this.#space as string).repeat(level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : escapeWithQuotes(key)}:${fancy ? " " : ""}${this.#writeTag(value,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(level - 1)}` : ""}}`;
+    return `{${[...Object.entries(value)].map(([key,value]) => `${fancy ? `\n${(this.#space as string).repeat(level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${this.#writeTag(value,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(level - 1)}` : ""}}`;
   }
 
-  #writeIntArray(value: Int32Array){
-    return `[I;${[...value as IntArrayTag].map(entry => this.#writeInt(entry)).join() as string}]`;
+  #writeIntArray(value: Int32Array) {
+    return `[I;${[...value].map(entry => this.#writeInt(entry)).join() as string}]`;
   }
 
-  #writeLongArray(value: BigInt64Array){
-    return `[L;${[...value as LongArrayTag].map(entry => this.#writeLong(entry)).join() as string}]`;
+  #writeLongArray(value: BigInt64Array) {
+    return `[L;${[...value].map(entry => this.#writeLong(entry)).join() as string}]`;
   }
-}
-
-function escapeWithQuotes(text: string) {
-  const singleQuoteString = text.replace(/['\\]/g,(char) => `\\${char}`);
-  const doubleQuoteString = text.replace(/["\\]/g,(char) => `\\${char}`);
-  return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
 }
