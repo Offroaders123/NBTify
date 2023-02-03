@@ -1,8 +1,5 @@
 import { NBTData } from "./data.js";
 import { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
-import { Byte, Short, Int, Float } from "./primitive.js";
-
-const UNQUOTED_STRING_PATTERN = /^[0-9a-z_\-.+]+$/i;
 
 export function stringify(data: CompoundTag | NBTData, space: string | number = ""){
   if (data instanceof NBTData){
@@ -30,12 +27,12 @@ export class SNBTWriter {
       case TAG.LONG: return this.#writeLong(value as LongTag);
       case TAG.FLOAT: return this.#writeFloat((value as FloatTag).valueOf());
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
-      case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag,space,level);
+      case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
       case TAG.LIST: return this.#writeList(value as ListTag,space,level);
       case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag,space,level);
-      case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag,space,level);
-      case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag,space,level);
+      case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
+      case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
       default: throw new Error("Invalid tag");
     }
   }
@@ -68,8 +65,8 @@ export class SNBTWriter {
     return `${value}d`;
   }
 
-  #writeByteArray(value: Int8Array, space: string, level: number){
-    return `[B;${[...value as ByteArrayTag].map(entry => new Byte(entry)).map(entry => this.#writeTag(entry,space,level)).join() as string}]`;
+  #writeByteArray(value: Int8Array){
+    return `[B;${[...value as ByteArrayTag].map(entry => this.#writeByte(entry)).join() as string}]`;
   }
 
   #writeString(value: string){
@@ -86,23 +83,20 @@ export class SNBTWriter {
 
   #writeCompound(value: CompoundTag, space: string, level: number){
     const fancy = (space !== "");
-    return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${fancy ? `\n${(space as string).repeat(level)}` : ""}${UNQUOTED_STRING_PATTERN.test(key) ? key : escapeWithQuotes(key)}:${fancy ? " " : ""}${this.#writeTag(value,space,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${space.repeat(level - 1)}` : ""}}`;
+    return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${fancy ? `\n${(space as string).repeat(level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : escapeWithQuotes(key)}:${fancy ? " " : ""}${this.#writeTag(value,space,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${space.repeat(level - 1)}` : ""}}`;
   }
 
-  #writeIntArray(value: Int32Array, space: string, level: number){
-    return `[I;${[...value as IntArrayTag].map(entry => new Int(entry)).map(entry => this.#writeTag(entry,space,level)).join() as string}]`;
+  #writeIntArray(value: Int32Array){
+    return `[I;${[...value as IntArrayTag].map(entry => this.#writeInt(entry)).join() as string}]`;
   }
 
-  #writeLongArray(value: BigInt64Array, space: string, level: number){
-    return `[L;${[...value as LongArrayTag].map(entry => this.#writeTag(entry,space,level)).join() as string}]`;
+  #writeLongArray(value: BigInt64Array){
+    return `[L;${[...value as LongArrayTag].map(entry => this.#writeLong(entry)).join() as string}]`;
   }
 }
 
-const SINGLE_QUOTE_ESCAPE_PATTERN = /['\\]/g;
-const DOUBLE_QUOTE_ESCAPE_PATTERN = /["\\]/g;
-
 function escapeWithQuotes(text: string) {
-  const singleQuoteString = text.replace(SINGLE_QUOTE_ESCAPE_PATTERN,(char) => `\\${char}`);
-  const doubleQuoteString = text.replace(DOUBLE_QUOTE_ESCAPE_PATTERN,(char) => `\\${char}`);
+  const singleQuoteString = text.replace(/['\\]/g,(char) => `\\${char}`);
+  const doubleQuoteString = text.replace(/["\\]/g,(char) => `\\${char}`);
   return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
 }
