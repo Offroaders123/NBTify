@@ -10,15 +10,19 @@ export function stringify(data: CompoundTag | NBTData, space: string | number = 
 }
 
 export class SNBTWriter {
+  #space!: string;
+
   write(data: CompoundTag | NBTData, space: string | number = ""): string {
     if (data instanceof NBTData){
       data = data.data as CompoundTag;
     }
-    space = (typeof space === "number") ? " ".repeat(space) : space;
-    return this.#writeTag(data,space);
+
+    this.#space = (typeof space === "number") ? " ".repeat(space) : space;
+
+    return this.#writeTag(data);
   }
 
-  #writeTag(value: Tag, space: string, level = 1): string {
+  #writeTag(value: Tag, level = 1): string {
     const type = getTagType(value);
     switch (type){
       case TAG.BYTE: return (typeof value === "boolean") ? this.#writeBoolean(value as boolean) : this.#writeByte((value as ByteTag).valueOf());
@@ -29,8 +33,8 @@ export class SNBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(value as ListTag,space,level);
-      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag,space,level);
+      case TAG.LIST: return this.#writeList(value as ListTag,level);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag,level);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
       default: throw new Error("Invalid tag");
@@ -73,17 +77,17 @@ export class SNBTWriter {
     return escapeWithQuotes(value);
   }
 
-  #writeList(value: ListTag, space: string, level: number){
-    const fancy = (space !== "");
+  #writeList(value: ListTag, level: number){
+    const fancy = (this.#space !== "");
     value = (value as ListTag).filter((entry): entry is Tag => getTagType(entry) !== -1);
     const type = (value.length !== 0) ? getTagType(value[0]) as TAG : TAG.END;
     const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
-    return `[${value.map(entry => `${isIndentedList ? `\n${space.repeat(level)}` : ""}${this.#writeTag(entry,space,level + 1)}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${space.repeat(level - 1)}` : ""}]`;
+    return `[${value.map(entry => `${isIndentedList ? `\n${this.#space.repeat(level)}` : ""}${this.#writeTag(entry,level + 1)}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(level - 1)}` : ""}]`;
   }
 
-  #writeCompound(value: CompoundTag, space: string, level: number){
-    const fancy = (space !== "");
-    return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${fancy ? `\n${(space as string).repeat(level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : escapeWithQuotes(key)}:${fancy ? " " : ""}${this.#writeTag(value,space,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${space.repeat(level - 1)}` : ""}}`;
+  #writeCompound(value: CompoundTag, level: number){
+    const fancy = (this.#space !== "");
+    return `{${[...Object.entries(value as CompoundTag)].map(([key,value]) => `${fancy ? `\n${(this.#space as string).repeat(level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : escapeWithQuotes(key)}:${fancy ? " " : ""}${this.#writeTag(value,level + 1)}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(level - 1)}` : ""}}`;
   }
 
   #writeIntArray(value: Int32Array){
