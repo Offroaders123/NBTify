@@ -9,29 +9,28 @@ const FLOAT_PATTERN = /^([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)([
 const TRUE_PATTERN = /^true$/i;
 const FALSE_PATTERN = /^false$/i;
 
-export function parse(text: string): Tag {
-  const parser = new TagParser(text);
-  return parser.parseTag();
+export function parse(data: string){
+  const reader = new SNBTReader();
+  return reader.read(data);
 }
 
-class TagParser {
-  #text: string;
-  #pos = 0;
+export class SNBTReader {
+  #data!: string;
+  #offset!: number;
 
-  constructor(text: string) {
-    this.#text = text;
-  }
+  read(data: string) {
+    this.#data = data;
+    this.#offset = 0;
 
-  parseTag(): Tag {
     const tag = this.#readTag();
     const lastChar = this.#peek(-1);
 
-    const endPos = this.#pos;
+    const endPos = this.#offset;
     this.#skipWhitespace();
 
     if (this.#canRead()) {
       const type = getTagType(tag);
-      if (this.#pos > endPos || type === TAG.LIST || type === TAG.COMPOUND || lastChar == "'" || lastChar == '"'){
+      if (this.#offset > endPos || type === TAG.LIST || type === TAG.COMPOUND || lastChar == "'" || lastChar == '"'){
         throw new Error("Unexpected non-whitespace character after tag");
       }
       throw new Error(`Unexpected character '${this.#peek()}' at end of tag`);
@@ -46,7 +45,7 @@ class TagParser {
       throw new Error("Expected tag");
     }
 
-    const char = this.#text[this.#pos];
+    const char = this.#data[this.#offset];
     if (char == "{") return this.#readCompoundTag();
     if (char == "[") return this.#readList();
     if (char == '"' || char == "'") {
@@ -208,15 +207,15 @@ class TagParser {
   }
 
   #readUnquotedString() {
-    const match = this.#text.slice(this.#pos).match(UNQUOTED_STRING_OPEN_PATTERN);
+    const match = this.#data.slice(this.#offset).match(UNQUOTED_STRING_OPEN_PATTERN);
     if (!match) return null;
 
-    this.#pos += match[0].length;
+    this.#offset += match[0].length;
     return match[0];
   }
 
   #readQuotedString(quoteChar: string) {
-    let lastPos = ++this.#pos;
+    let lastPos = ++this.#offset;
     let string = "";
 
     while (this.#canRead()) {
@@ -229,29 +228,29 @@ class TagParser {
         if (escapeChar != quoteChar && escapeChar != "\\") {
           throw new Error(`Invalid escape character '${escapeChar}'`);
         }
-        string += this.#text.slice(lastPos, this.#pos - 1) + escapeChar;
-        lastPos = ++this.#pos;
+        string += this.#data.slice(lastPos, this.#offset - 1) + escapeChar;
+        lastPos = ++this.#offset;
       } else if (char == quoteChar) {
-        return string + this.#text.slice(lastPos, this.#pos - 1);
+        return string + this.#data.slice(lastPos, this.#offset - 1);
       }
     }
     throw new Error(`Missing end quote`);
   }
 
-  #canRead(len = 1) {
-    return this.#pos + len <= this.#text.length;
+  #canRead(length = 1) {
+    return this.#offset + length <= this.#data.length;
   }
 
-  #peek(off = 0) {
-    return this.#text[this.#pos + off];
+  #peek(offset = 0) {
+    return this.#data[this.#offset + offset];
   }
 
   #next() {
-    return this.#text[this.#pos++];
+    return this.#data[this.#offset++];
   }
 
-  #skip(len = 1) {
-    this.#pos += len;
+  #skip(length = 1) {
+    this.#offset += length;
   }
 
   #skipSeperator() {
@@ -270,10 +269,11 @@ class TagParser {
       this.#skip();
     }
   }
-  #expect(char: string) {
-    if (!this.#canRead() || this.#peek() != char) {
-      throw new Error(`Expected '${char}'`);
+
+  #expect(character: string) {
+    if (!this.#canRead() || this.#peek() != character) {
+      throw new Error(`Expected '${character}'`);
     }
-    this.#pos += 1;
+    this.#offset += 1;
   }
 }
