@@ -2,13 +2,6 @@ import { NBTData } from "./data.js";
 import { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
 
-const WHITESPACE_PATTERN = /\s+/;
-const UNQUOTED_STRING_OPEN_PATTERN = /^[0-9a-z_\-.+]+/i;
-const INTEGER_PATTERN = /^([-+]?(?:0|[1-9][0-9]*))([bls]?)$/i;
-const FLOAT_PATTERN = /^([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)([df]?)$/i;
-const TRUE_PATTERN = /^true$/i;
-const FALSE_PATTERN = /^false$/i;
-
 export function parse(data: string){
   const reader = new SNBTReader();
   return reader.read(data);
@@ -58,7 +51,8 @@ export class SNBTReader {
     }
 
     try {
-      let match = string.match(INTEGER_PATTERN);
+      // INTEGER_PATTERN
+      let match = string.match(/^([-+]?(?:0|[1-9][0-9]*))([bls]?)$/i);
       if (match) {
         const c = match[2];
         if (c == "b" || c == "B") {
@@ -72,7 +66,8 @@ export class SNBTReader {
         }
       }
 
-      match = string.match(FLOAT_PATTERN);
+      // FLOAT_PATTERN
+      match = string.match(/^([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)([df]?)$/i);
       if (match) {
         if (match[2] == "f" || match[2] == "F") {
           return new Float(Number(match[1]));
@@ -80,7 +75,8 @@ export class SNBTReader {
         return Number(match[1]) as DoubleTag;
       }
 
-      if (TRUE_PATTERN.test(string) || FALSE_PATTERN.test(string)) return Boolean(string);
+      // TRUE_PATTERN or FALSE_PATTERN
+      if (/^true$/i.test(string) || /^false$/i.test(string)) return Boolean(string);
     } catch {
       return string as StringTag;
     }
@@ -207,7 +203,8 @@ export class SNBTReader {
   }
 
   #readUnquotedString() {
-    const match = this.#data.slice(this.#offset).match(UNQUOTED_STRING_OPEN_PATTERN);
+    // UNQUOTED_STRING_OPEN_PATTERN
+    const match = this.#data.slice(this.#offset).match(/^[0-9a-z_\-.+]+/i);
     if (!match) return null;
 
     this.#offset += match[0].length;
@@ -265,7 +262,8 @@ export class SNBTReader {
   }
 
   #skipWhitespace() {
-    while (this.#canRead() && WHITESPACE_PATTERN.test(this.#peek())) {
+    // WHITESPACE_PATTERN
+    while (this.#canRead() && /\s+/.test(this.#peek())) {
       this.#skip();
     }
   }

@@ -50,23 +50,6 @@ export const TAG = {
 
 Object.freeze(TAG);
 
-export type TagTypeMap<T> = (
-  T extends ByteTag | BooleanTag ? typeof TAG.BYTE :
-  T extends ShortTag ? typeof TAG.SHORT :
-  T extends IntTag ? typeof TAG.INT :
-  T extends LongTag ? typeof TAG.LONG :
-  T extends FloatTag ? typeof TAG.FLOAT :
-  T extends DoubleTag ? typeof TAG.DOUBLE :
-  T extends ByteArrayTag ? typeof TAG.BYTE_ARRAY :
-  T extends StringTag ? typeof TAG.STRING :
-  T extends ListTag ? typeof TAG.LIST :
-  T extends CompoundTag ? typeof TAG.COMPOUND :
-  T extends IntArrayTag ? typeof TAG.INT_ARRAY :
-  T extends LongArrayTag ? typeof TAG.LONG_ARRAY :
-  null
-);
-
-export function getTagType<T>(value: T): TagTypeMap<T>;
 export function getTagType(value: any): TAG | null {
   switch (true){
     case value instanceof Byte:
