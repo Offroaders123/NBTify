@@ -15,7 +15,7 @@ export class SNBTReader {
     this.#data = data;
     this.#offset = 0;
 
-    const tag = this.#readTag();
+    const tag = this.#readTag() as CompoundTag;
     const lastChar = this.#peek(-1);
 
     const endPos = this.#offset;
