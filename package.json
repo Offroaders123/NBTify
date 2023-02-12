@@ -5,6 +5,9 @@
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "scripts": {
+    "dev": "npx tsc -w"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Offroaders123/NBTify.git"
@@ -27,8 +30,5 @@
     "url": "https://github.com/Offroaders123/NBTify/issues"
   },
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
-  "devDependencies": {
-    "typescript": "^4.9.4"
-  },
   "sideEffects": false
 }
