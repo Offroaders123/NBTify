@@ -15,7 +15,7 @@ export class SNBTReader {
     this.#data = data;
     this.#offset = 0;
 
-    const tag = this.#readTag() as CompoundTag;
+    const tag = this.#readCompoundTag();
     const lastChar = this.#peek(-1);
 
     const endPos = this.#offset;
@@ -174,7 +174,6 @@ export class SNBTReader {
     this.#expect("[");
 
     let tagType: typeof TAG.BYTE_ARRAY | typeof TAG.LIST | typeof TAG.INT_ARRAY | typeof TAG.LONG_ARRAY = TAG.LIST;
-    let isArray = false;
 
     if (this.#canRead(2) && this.#peek(1) == ";"){
       const char = this.#peek();
@@ -185,8 +184,6 @@ export class SNBTReader {
         case "L": tagType = TAG.LONG_ARRAY; break;
         default: throw new Error(`Invalid array type '${char}'`);
       }
-
-      isArray = true;
 
       this.#skip(2);
     }
