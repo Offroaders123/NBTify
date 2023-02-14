@@ -87,48 +87,6 @@ export class SNBTReader {
     }
   }
 
-  #readCompoundTag() {
-    this.#skipWhitespace();
-    this.#expect("{");
-
-    const tag: CompoundTag = {};
-
-    while (this.#canRead() && this.#peek() != "}"){
-      this.#skipWhitespace();
-
-      if (this.#peek() === "}") break;
-
-      const key = this.#readString();
-
-      if (key == null){
-        throw new Error(`Unexpected character '${this.#peek()}' while expecting key-value pair or '}'`);
-      }
-      if (key == ""){
-        throw new Error("Key cannot be empty");
-      }
-
-      this.#skipWhitespace();
-      this.#expect(":");
-
-      tag[key] = this.#readTag();
-
-      if (!this.#skipSeperator()){
-        if (this.#peek() != "}"){
-          throw new Error(`Unexpected character '${this.#peek()}' at end of tag`);
-        }
-        break;
-      }
-    }
-
-    if (!this.#canRead()){
-      throw new Error("Expected key-value pair or '}'");
-    }
-
-    this.#skip();
-
-    return tag;
-  }
-
   #readSomeList(): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {
     this.#expect("[");
 
@@ -205,6 +163,48 @@ export class SNBTReader {
       };
       case TAG.LIST: return tags as ListTag;
     }
+  }
+
+  #readCompoundTag() {
+    this.#skipWhitespace();
+    this.#expect("{");
+
+    const tag: CompoundTag = {};
+
+    while (this.#canRead() && this.#peek() != "}"){
+      this.#skipWhitespace();
+
+      if (this.#peek() === "}") break;
+
+      const key = this.#readString();
+
+      if (key == null){
+        throw new Error(`Unexpected character '${this.#peek()}' while expecting key-value pair or '}'`);
+      }
+      if (key == ""){
+        throw new Error("Key cannot be empty");
+      }
+
+      this.#skipWhitespace();
+      this.#expect(":");
+
+      tag[key] = this.#readTag();
+
+      if (!this.#skipSeperator()){
+        if (this.#peek() != "}"){
+          throw new Error(`Unexpected character '${this.#peek()}' at end of tag`);
+        }
+        break;
+      }
+    }
+
+    if (!this.#canRead()){
+      throw new Error("Expected key-value pair or '}'");
+    }
+
+    this.#skip();
+
+    return tag;
   }
 
   #readString() {
