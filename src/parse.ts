@@ -87,6 +87,47 @@ export class SNBTReader {
     }
   }
 
+  #readString() {
+    const char = this.#peek();
+    return (char == '"' || char == "'") ? this.#readQuotedString(char) : this.#readUnquotedString();
+  }
+
+  #readUnquotedString() {
+    // UNQUOTED_STRING_OPEN_PATTERN
+    const match = this.#data.slice(this.#offset).match(/^[0-9a-z_\-.+]+/i);
+    if (match === null) return null;
+
+    this.#offset += match[0].length;
+    return match[0];
+  }
+
+  #readQuotedString(quoteChar: string) {
+    let lastPos = ++this.#offset;
+    let string = "";
+
+    while (this.#canRead()){
+      const char = this.#next();
+
+      if (char == "\\"){
+        if (!this.#canRead()){
+          throw new Error("Unexpected end while reading escape sequence");
+        }
+
+        const escapeChar = this.#peek();
+
+        if (escapeChar != quoteChar && escapeChar != "\\"){
+          throw new Error(`Invalid escape character '${escapeChar}'`);
+        }
+
+        string += this.#data.slice(lastPos, this.#offset - 1) + escapeChar;
+        lastPos = ++this.#offset;
+      } else if (char == quoteChar){
+        return string + this.#data.slice(lastPos, this.#offset - 1);
+      }
+    }
+    throw new Error(`Missing end quote`);
+  }
+
   #readSomeList(): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {
     this.#expect("[");
 
@@ -205,47 +246,6 @@ export class SNBTReader {
     this.#skip();
 
     return tag;
-  }
-
-  #readString() {
-    const char = this.#peek();
-    return (char == '"' || char == "'") ? this.#readQuotedString(char) : this.#readUnquotedString();
-  }
-
-  #readUnquotedString() {
-    // UNQUOTED_STRING_OPEN_PATTERN
-    const match = this.#data.slice(this.#offset).match(/^[0-9a-z_\-.+]+/i);
-    if (match === null) return null;
-
-    this.#offset += match[0].length;
-    return match[0];
-  }
-
-  #readQuotedString(quoteChar: string) {
-    let lastPos = ++this.#offset;
-    let string = "";
-
-    while (this.#canRead()){
-      const char = this.#next();
-
-      if (char == "\\"){
-        if (!this.#canRead()){
-          throw new Error("Unexpected end while reading escape sequence");
-        }
-
-        const escapeChar = this.#peek();
-
-        if (escapeChar != quoteChar && escapeChar != "\\"){
-          throw new Error(`Invalid escape character '${escapeChar}'`);
-        }
-
-        string += this.#data.slice(lastPos, this.#offset - 1) + escapeChar;
-        lastPos = ++this.#offset;
-      } else if (char == quoteChar){
-        return string + this.#data.slice(lastPos, this.#offset - 1);
-      }
-    }
-    throw new Error(`Missing end quote`);
   }
 
   #canRead(length = 1) {
