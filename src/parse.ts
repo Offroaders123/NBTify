@@ -132,16 +132,16 @@ export class SNBTReader {
   #readList(): Tag {
     this.#expect("[");
 
-    let tagType: TAG | undefined;
+    let tagType: typeof TAG.BYTE_ARRAY | typeof TAG.LIST | typeof TAG.INT_ARRAY | typeof TAG.LONG_ARRAY = TAG.LIST;
     let isArray = false;
 
     if (this.#canRead(2) && this.#peek(1) == ";") {
       const char = this.#peek();
 
       switch (char){
-        case "B": tagType = TAG.BYTE; break;
-        case "I": tagType = TAG.INT; break;
-        case "L": tagType = TAG.LONG; break;
+        case "B": tagType = TAG.BYTE_ARRAY; break;
+        case "I": tagType = TAG.INT_ARRAY; break;
+        case "L": tagType = TAG.LONG_ARRAY; break;
         default: throw new Error(`Invalid array type '${char}'`);
       }
 
@@ -181,33 +181,30 @@ export class SNBTReader {
 
     this.#expect("]");
 
-    if (isArray) {
-      switch (tagType){
-        case TAG.BYTE: {
-          const array = new Int8Array(tags.length);
-          for (let i = 0; i < tags.length; i++) {
-            array[i] = tags[i].valueOf() as number;
-          }
-          return array as ByteArrayTag;  
-        };
-        case TAG.INT: {
-          const array = new Int32Array(tags.length);
-          for (let i = 0; i < tags.length; i++) {
-            array[i] = tags[i].valueOf() as number;
-          }
-          return array as IntArrayTag;  
-        };
-        case TAG.LONG: {
-          const array = new BigInt64Array(tags.length);
-          for (let i = 0; i < tags.length; i++) {
-            array[i] = BigInt(tags[i].valueOf() as number);
-          }
-          return array as LongArrayTag;  
-        };
-      }
+    switch (tagType){
+      case TAG.BYTE_ARRAY: {
+        const array = new Int8Array(tags.length);
+        for (let i = 0; i < tags.length; i++) {
+          array[i] = tags[i].valueOf() as number;
+        }
+        return array as ByteArrayTag;  
+      };
+      case TAG.INT_ARRAY: {
+        const array = new Int32Array(tags.length);
+        for (let i = 0; i < tags.length; i++) {
+          array[i] = tags[i].valueOf() as number;
+        }
+        return array as IntArrayTag;  
+      };
+      case TAG.LONG_ARRAY: {
+        const array = new BigInt64Array(tags.length);
+        for (let i = 0; i < tags.length; i++) {
+          array[i] = BigInt(tags[i].valueOf() as number);
+        }
+        return array as LongArrayTag;  
+      };
+      case TAG.LIST: return tags as ListTag;
     }
-
-    return tags as ListTag;
   }
 
   #readString() {
