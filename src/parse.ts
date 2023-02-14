@@ -31,6 +31,48 @@ export class SNBTReader {
     return tag;
   }
 
+  #canRead(length = 1) {
+    return this.#offset + length <= this.#data.length;
+  }
+
+  #peek(offset = 0) {
+    return this.#data[this.#offset + offset];
+  }
+
+  #next() {
+    return this.#data[this.#offset++];
+  }
+
+  #skip(length = 1) {
+    this.#offset += length;
+  }
+
+  #skipSeperator() {
+    this.#skipWhitespace();
+
+    if (this.#canRead() && this.#peek() == ","){
+      this.#skip();
+      this.#skipWhitespace();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  #skipWhitespace() {
+    // WHITESPACE_PATTERN
+    while (this.#canRead() && /\s+/.test(this.#peek())){
+      this.#skip();
+    }
+  }
+
+  #expect(character: string) {
+    if (!this.#canRead() || this.#peek() != character){
+      throw new Error(`Expected '${character}'`);
+    }
+    this.#offset += 1;
+  }
+
   #readTag(): Tag {
     this.#skipWhitespace();
 
@@ -246,47 +288,5 @@ export class SNBTReader {
     this.#skip();
 
     return tag;
-  }
-
-  #canRead(length = 1) {
-    return this.#offset + length <= this.#data.length;
-  }
-
-  #peek(offset = 0) {
-    return this.#data[this.#offset + offset];
-  }
-
-  #next() {
-    return this.#data[this.#offset++];
-  }
-
-  #skip(length = 1) {
-    this.#offset += length;
-  }
-
-  #skipSeperator() {
-    this.#skipWhitespace();
-
-    if (this.#canRead() && this.#peek() == ","){
-      this.#skip();
-      this.#skipWhitespace();
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  #skipWhitespace() {
-    // WHITESPACE_PATTERN
-    while (this.#canRead() && /\s+/.test(this.#peek())){
-      this.#skip();
-    }
-  }
-
-  #expect(character: string) {
-    if (!this.#canRead() || this.#peek() != character){
-      throw new Error(`Expected '${character}'`);
-    }
-    this.#offset += 1;
   }
 }
