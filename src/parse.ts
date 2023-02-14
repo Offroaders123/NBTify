@@ -21,7 +21,7 @@ export class SNBTReader {
     const endPos = this.#offset;
     this.#skipWhitespace();
 
-    if (this.#canRead()) {
+    if (this.#canRead()){
       const type = getTagType(tag);
       if (this.#offset > endPos || type === TAG.LIST || type === TAG.COMPOUND || lastChar == "'" || lastChar == '"'){
         throw new Error("Unexpected non-whitespace character after tag");
@@ -40,13 +40,13 @@ export class SNBTReader {
 
     const char = this.#data[this.#offset];
     if (char == "{") return this.#readCompoundTag();
-    if (char == "[") return this.#readList();
-    if (char == '"' || char == "'") {
+    if (char == "[") return this.#readSomeList();
+    if (char == '"' || char == "'"){
       return this.#readQuotedString(char) as StringTag;
     }
 
     const string = this.#readUnquotedString();
-    if (string == null) {
+    if (string == null){
       throw new Error(`Unexpected character '${char}' while reading tag`);
     }
 
@@ -93,14 +93,14 @@ export class SNBTReader {
 
     const tag: CompoundTag = {};
 
-    while (this.#canRead() && this.#peek() != "}") {
+    while (this.#canRead() && this.#peek() != "}"){
       this.#skipWhitespace();
 
       if (this.#peek() === "}") break;
 
       const key = this.#readString();
 
-      if (key == null) {
+      if (key == null){
         throw new Error(`Unexpected character '${this.#peek()}' while expecting key-value pair or '}'`);
       }
       if (key == ""){
@@ -112,8 +112,8 @@ export class SNBTReader {
 
       tag[key] = this.#readTag();
 
-      if (!this.#skipSeperator()) {
-        if (this.#peek() != "}") {
+      if (!this.#skipSeperator()){
+        if (this.#peek() != "}"){
           throw new Error(`Unexpected character '${this.#peek()}' at end of tag`);
         }
         break;
@@ -129,13 +129,13 @@ export class SNBTReader {
     return tag;
   }
 
-  #readList(): Tag {
+  #readSomeList(): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {
     this.#expect("[");
 
     let tagType: typeof TAG.BYTE_ARRAY | typeof TAG.LIST | typeof TAG.INT_ARRAY | typeof TAG.LONG_ARRAY = TAG.LIST;
     let isArray = false;
 
-    if (this.#canRead(2) && this.#peek(1) == ";") {
+    if (this.#canRead(2) && this.#peek(1) == ";"){
       const char = this.#peek();
 
       switch (char){
@@ -154,12 +154,12 @@ export class SNBTReader {
 
     const tags: Tag[] = [];
 
-    while (this.#canRead() && this.#peek() != "]") {
+    while (this.#canRead() && this.#peek() != "]"){
       const tag = this.#readTag();
 
-      // if (tagType == null) {
+      // if (tagType == null){
       //   tagType = tag.constructor;
-      // } else if (!(tag instanceof tagType)) {
+      // } else if (!(tag instanceof tagType)){
       //   throw new Error(
       //     `Expected tag of type ${tagType.name} but got ${tag.constructor}`,
       //   );
@@ -167,8 +167,8 @@ export class SNBTReader {
 
       tags.push(tag);
 
-      if (!this.#skipSeperator()) {
-        if (this.#peek() != "]") {
+      if (!this.#skipSeperator()){
+        if (this.#peek() != "]"){
           throw new Error(`Unexpected character '${this.#peek()}' at end of tag`);
         }
         break;
@@ -184,21 +184,21 @@ export class SNBTReader {
     switch (tagType){
       case TAG.BYTE_ARRAY: {
         const array = new Int8Array(tags.length);
-        for (let i = 0; i < tags.length; i++) {
+        for (let i = 0; i < tags.length; i++){
           array[i] = tags[i].valueOf() as number;
         }
         return array as ByteArrayTag;  
       };
       case TAG.INT_ARRAY: {
         const array = new Int32Array(tags.length);
-        for (let i = 0; i < tags.length; i++) {
+        for (let i = 0; i < tags.length; i++){
           array[i] = tags[i].valueOf() as number;
         }
         return array as IntArrayTag;  
       };
       case TAG.LONG_ARRAY: {
         const array = new BigInt64Array(tags.length);
-        for (let i = 0; i < tags.length; i++) {
+        for (let i = 0; i < tags.length; i++){
           array[i] = BigInt(tags[i].valueOf() as number);
         }
         return array as LongArrayTag;  
@@ -225,23 +225,23 @@ export class SNBTReader {
     let lastPos = ++this.#offset;
     let string = "";
 
-    while (this.#canRead()) {
+    while (this.#canRead()){
       const char = this.#next();
 
-      if (char == "\\") {
-        if (!this.#canRead()) {
+      if (char == "\\"){
+        if (!this.#canRead()){
           throw new Error("Unexpected end while reading escape sequence");
         }
 
         const escapeChar = this.#peek();
 
-        if (escapeChar != quoteChar && escapeChar != "\\") {
+        if (escapeChar != quoteChar && escapeChar != "\\"){
           throw new Error(`Invalid escape character '${escapeChar}'`);
         }
 
         string += this.#data.slice(lastPos, this.#offset - 1) + escapeChar;
         lastPos = ++this.#offset;
-      } else if (char == quoteChar) {
+      } else if (char == quoteChar){
         return string + this.#data.slice(lastPos, this.#offset - 1);
       }
     }
@@ -267,7 +267,7 @@ export class SNBTReader {
   #skipSeperator() {
     this.#skipWhitespace();
 
-    if (this.#canRead() && this.#peek() == ",") {
+    if (this.#canRead() && this.#peek() == ","){
       this.#skip();
       this.#skipWhitespace();
       return true;
@@ -278,13 +278,13 @@ export class SNBTReader {
 
   #skipWhitespace() {
     // WHITESPACE_PATTERN
-    while (this.#canRead() && /\s+/.test(this.#peek())) {
+    while (this.#canRead() && /\s+/.test(this.#peek())){
       this.#skip();
     }
   }
 
   #expect(character: string) {
-    if (!this.#canRead() || this.#peek() != character) {
+    if (!this.#canRead() || this.#peek() != character){
       throw new Error(`Expected '${character}'`);
     }
     this.#offset += 1;
