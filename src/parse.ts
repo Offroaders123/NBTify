@@ -54,25 +54,29 @@ export class SNBTReader {
       // INTEGER_PATTERN
       let match = string.match(/^([-+]?(?:0|[1-9][0-9]*))([bls]?)$/i);
       if (match) {
-        const c = match[2];
-        if (c == "b" || c == "B") {
-          return new Byte(Number(match[1]));
-        } else if (c == "s" || c == "S") {
-          return new Short(Number(match[1]));
-        } else if (c == "l" || c == "L") {
-          return BigInt(match[1]) as LongTag;
-        } else {
-          return new Int(Number(match[1]));
+        const [_,value,suffix] = match;
+
+        switch (suffix){
+          case "b":
+          case "B": return new Byte(Number(value)) as ByteTag;
+          case "s":
+          case "S": return new Short(Number(value)) as ShortTag;
+          case "l":
+          case "L": return BigInt(value) as LongTag;
+          default: return new Int(Number(value)) as IntTag;
         }
       }
 
       // FLOAT_PATTERN
       match = string.match(/^([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)([df]?)$/i);
       if (match) {
-        if (match[2] == "f" || match[2] == "F") {
-          return new Float(Number(match[1]));
+        const [_,value,suffix] = match;
+
+        switch (suffix){
+          case "f":
+          case "F": return new Float(Number(value)) as FloatTag;
+          default: return Number(value) as DoubleTag;
         }
-        return Number(match[1]) as DoubleTag;
       }
 
       // TRUE_PATTERN or FALSE_PATTERN
@@ -86,14 +90,16 @@ export class SNBTReader {
   #readCompoundTag() {
     this.#skipWhitespace();
     this.#expect("{");
+
     const tag: CompoundTag = {};
+
     while (this.#canRead() && this.#peek() != "}") {
       this.#skipWhitespace();
-      if (this.#peek() === "}"){
-        break;
-      }
+
+      if (this.#peek() === "}") break;
 
       const key = this.#readString();
+
       if (key == null) {
         throw new Error(`Unexpected character '${this.#peek()}' while expecting key-value pair or '}'`);
       }
@@ -103,6 +109,7 @@ export class SNBTReader {
 
       this.#skipWhitespace();
       this.#expect(":");
+
       tag[key] = this.#readTag();
 
       if (!this.#skipSeperator()) {
@@ -112,36 +119,39 @@ export class SNBTReader {
         break;
       }
     }
+
     if (!this.#canRead()){
       throw new Error("Expected key-value pair or '}'");
     }
+
     this.#skip();
+
     return tag;
   }
 
   #readList(): Tag {
     this.#expect("[");
 
-    // deno-lint-ignore ban-types
     let tagType: TAG | undefined;
     let isArray = false;
 
     if (this.#canRead(2) && this.#peek(1) == ";") {
       const char = this.#peek();
-      if (char == "B") {
-        tagType = TAG.BYTE;
-      } else if (char == "I") {
-        tagType = TAG.INT;
-      } else if (char == "L") {
-        tagType = TAG.LONG;
-      } else {
-        throw new Error(`Invalid array type '${char}'`);
+
+      switch (char){
+        case "B": tagType = TAG.BYTE; break;
+        case "I": tagType = TAG.INT; break;
+        case "L": tagType = TAG.LONG; break;
+        default: throw new Error(`Invalid array type '${char}'`);
       }
+
       isArray = true;
+
       this.#skip(2);
     }
 
     this.#skipWhitespace();
+
     const tags: Tag[] = [];
 
     while (this.#canRead() && this.#peek() != "]") {
@@ -168,29 +178,32 @@ export class SNBTReader {
     if (!this.#canRead()){
       throw Error("Expected tag or ']'");
     }
+
     this.#expect("]");
 
     if (isArray) {
-      if (tagType == TAG.BYTE) {
-        const array = new Int8Array(tags.length);
-        for (let i = 0; i < tags.length; i++) {
-          array[i] = tags[i].valueOf() as number;
-        }
-        return array as ByteArrayTag;
-      }
-      if (tagType == TAG.INT) {
-        const array = new Int32Array(tags.length);
-        for (let i = 0; i < tags.length; i++) {
-          array[i] = tags[i].valueOf() as number;
-        }
-        return array as IntArrayTag;
-      }
-      if (tagType == TAG.LONG) {
-        const array = new BigInt64Array(tags.length);
-        for (let i = 0; i < tags.length; i++) {
-          array[i] = BigInt(tags[i].valueOf() as number);
-        }
-        return array as LongArrayTag;
+      switch (tagType){
+        case TAG.BYTE: {
+          const array = new Int8Array(tags.length);
+          for (let i = 0; i < tags.length; i++) {
+            array[i] = tags[i].valueOf() as number;
+          }
+          return array as ByteArrayTag;  
+        };
+        case TAG.INT: {
+          const array = new Int32Array(tags.length);
+          for (let i = 0; i < tags.length; i++) {
+            array[i] = tags[i].valueOf() as number;
+          }
+          return array as IntArrayTag;  
+        };
+        case TAG.LONG: {
+          const array = new BigInt64Array(tags.length);
+          for (let i = 0; i < tags.length; i++) {
+            array[i] = BigInt(tags[i].valueOf() as number);
+          }
+          return array as LongArrayTag;  
+        };
       }
     }
 
@@ -205,7 +218,7 @@ export class SNBTReader {
   #readUnquotedString() {
     // UNQUOTED_STRING_OPEN_PATTERN
     const match = this.#data.slice(this.#offset).match(/^[0-9a-z_\-.+]+/i);
-    if (!match) return null;
+    if (match === null) return null;
 
     this.#offset += match[0].length;
     return match[0];
@@ -217,14 +230,18 @@ export class SNBTReader {
 
     while (this.#canRead()) {
       const char = this.#next();
+
       if (char == "\\") {
         if (!this.#canRead()) {
           throw new Error("Unexpected end while reading escape sequence");
         }
+
         const escapeChar = this.#peek();
+
         if (escapeChar != quoteChar && escapeChar != "\\") {
           throw new Error(`Invalid escape character '${escapeChar}'`);
         }
+
         string += this.#data.slice(lastPos, this.#offset - 1) + escapeChar;
         lastPos = ++this.#offset;
       } else if (char == quoteChar) {
@@ -252,6 +269,7 @@ export class SNBTReader {
 
   #skipSeperator() {
     this.#skipWhitespace();
+
     if (this.#canRead() && this.#peek() == ",") {
       this.#skip();
       this.#skipWhitespace();
