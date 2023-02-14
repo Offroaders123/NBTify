@@ -53,31 +53,11 @@ export class SNBTReader {
     try {
       // INTEGER_PATTERN
       let match = string.match(/^([-+]?(?:0|[1-9][0-9]*))([bls]?)$/i);
-      if (match) {
-        const [_,value,suffix] = match;
-
-        switch (suffix){
-          case "b":
-          case "B": return new Byte(Number(value)) as ByteTag;
-          case "s":
-          case "S": return new Short(Number(value)) as ShortTag;
-          case "l":
-          case "L": return BigInt(value) as LongTag;
-          default: return new Int(Number(value)) as IntTag;
-        }
-      }
+      if (match) return this.#readInteger(match);
 
       // FLOAT_PATTERN
       match = string.match(/^([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)([df]?)$/i);
-      if (match) {
-        const [_,value,suffix] = match;
-
-        switch (suffix){
-          case "f":
-          case "F": return new Float(Number(value)) as FloatTag;
-          default: return Number(value) as DoubleTag;
-        }
-      }
+      if (match) return this.#readFloat(match);
 
       // TRUE_PATTERN or FALSE_PATTERN
       if (/^true$/i.test(string) || /^false$/i.test(string)) return Boolean(string);
@@ -85,6 +65,26 @@ export class SNBTReader {
       return string as StringTag;
     }
     return string as StringTag;
+  }
+
+  #readInteger([_,value,suffix]: RegExpMatchArray): ByteTag | ShortTag | IntTag | LongTag {
+    switch (suffix){
+      case "b":
+      case "B": return new Byte(Number(value)) as ByteTag;
+      case "s":
+      case "S": return new Short(Number(value)) as ShortTag;
+      case "l":
+      case "L": return BigInt(value) as LongTag;
+      default: return new Int(Number(value)) as IntTag;
+    }
+  }
+
+  #readFloat([_,value,suffix]: RegExpMatchArray): FloatTag | DoubleTag {
+    switch (suffix){
+      case "f":
+      case "F": return new Float(Number(value)) as FloatTag;
+      default: return Number(value) as DoubleTag;
+    }
   }
 
   #readCompoundTag() {
