@@ -16,7 +16,7 @@ const parsed = NBT.parse(stringed);
 // console.log(parsed,"\n");
 
 // Using the base 'result' NBTData object as the WriteOptions
-const recompile = await NBT.write(parsed,result); 
+const recompile = await NBT.write(parsed,result);
 // console.log(Buffer.from(recompile),"\n");
 
 console.log(Buffer.compare(data,recompile));

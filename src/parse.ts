@@ -129,6 +129,14 @@ export class SNBTReader {
     }
   }
 
+  #readByteArray(tags: Tag[]) {
+    const array = new Int8Array(tags.length);
+    for (let i = 0; i < tags.length; i++){
+      array[i] = tags[i].valueOf() as number;
+    }
+    return array as ByteArrayTag;
+  }
+
   #readString() {
     const char = this.#peek();
     return (char == '"' || char == "'") ? this.#readQuotedString(char) : this.#readUnquotedString();
@@ -220,27 +228,9 @@ export class SNBTReader {
     this.#expect("]");
 
     switch (tagType){
-      case TAG.BYTE_ARRAY: {
-        const array = new Int8Array(tags.length);
-        for (let i = 0; i < tags.length; i++){
-          array[i] = tags[i].valueOf() as number;
-        }
-        return array as ByteArrayTag;  
-      };
-      case TAG.INT_ARRAY: {
-        const array = new Int32Array(tags.length);
-        for (let i = 0; i < tags.length; i++){
-          array[i] = tags[i].valueOf() as number;
-        }
-        return array as IntArrayTag;  
-      };
-      case TAG.LONG_ARRAY: {
-        const array = new BigInt64Array(tags.length);
-        for (let i = 0; i < tags.length; i++){
-          array[i] = BigInt(tags[i].valueOf() as number);
-        }
-        return array as LongArrayTag;  
-      };
+      case TAG.BYTE_ARRAY: return this.#readByteArray(tags);
+      case TAG.INT_ARRAY: return this.#readIntArray(tags);
+      case TAG.LONG_ARRAY: return this.#readLongArray(tags);
       case TAG.LIST: return tags as ListTag;
     }
   }
@@ -285,5 +275,21 @@ export class SNBTReader {
     this.#skip();
 
     return tag;
+  }
+
+  #readIntArray(tags: Tag[]) {
+    const array = new Int32Array(tags.length);
+    for (let i = 0; i < tags.length; i++){
+      array[i] = tags[i].valueOf() as number;
+    }
+    return array;
+  }
+
+  #readLongArray(tags: Tag[]) {
+    const array = new BigInt64Array(tags.length);
+    for (let i = 0; i < tags.length; i++){
+      array[i] = BigInt(tags[i].valueOf() as number);
+    }
+    return array;
   }
 }
