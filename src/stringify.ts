@@ -128,7 +128,9 @@ export class SNBTWriter {
 
   #writeCompound(value: CompoundTag) {
     const fancy = (this.#space !== "");
-    return `{${[...Object.entries(value)].map(([key,value]) => `${fancy ? `\n${(this.#space as string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${(() => {
+    return `{${[...Object.entries(value)].filter(
+      ([,value]): boolean => getTagType(value) !== null
+    ).map(([key,value]) => `${fancy ? `\n${(this.#space as string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${(() => {
       this.#level += 1;
       const result = this.#writeTag(value);
       this.#level -= 1;

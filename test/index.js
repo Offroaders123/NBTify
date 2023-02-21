@@ -3,8 +3,8 @@
 import * as fs from "node:fs/promises";
 import * as NBT from "../dist/index.js";
 
-const { default: result } = await import("./nbt/stringy.js");
-// console.log(result.data,"\n");
+const { default: result } = await import("./nbt/invalid.js");
+console.log(result.data,"\n");
 
 const data = await NBT.write(result).then(Buffer.from);
 // console.log(data,"\n");
