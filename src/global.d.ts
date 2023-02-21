@@ -11,8 +11,8 @@ declare global {
   }
 
   var CompressionStream: {
+    new (format: CompressionFormat): CompressionStream;
     prototype: CompressionStream;
-    new(format: CompressionFormat): CompressionStream;
   };
 
   interface DecompressionStream {
@@ -21,8 +21,8 @@ declare global {
   }
 
   var DecompressionStream: {
+    new (format: CompressionFormat): DecompressionStream;
     prototype: DecompressionStream;
-    new(format: CompressionFormat): DecompressionStream;
   };
 }
 
