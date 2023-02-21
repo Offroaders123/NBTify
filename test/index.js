@@ -9,7 +9,7 @@ const { default: result } = await import("./nbt/stringy.js");
 const data = await NBT.write(result).then(Buffer.from);
 // console.log(data,"\n");
 
-const stringed = NBT.stringify(result.data,2);
+const stringed = NBT.stringify(result.data,{ space: 2 });
 console.log(stringed,"\n");
 
 const parsed = NBT.parse(stringed);

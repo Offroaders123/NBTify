@@ -2,16 +2,33 @@ import { NBTData } from "./data.js";
 import { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
 
+/**
+ * Converts an SNBT string into a CompoundTag object.
+*/
 export function parse(data: string){
+  if (typeof data !== "string"){
+    throw new TypeError("First parameter must be a string");
+  }
+
   const reader = new SNBTReader();
   return reader.read(data);
 }
 
+/**
+ * The base implementation to convert an SNBT string into a CompoundTag object.
+*/
 export class SNBTReader {
   #data!: string;
   #offset!: number;
 
+  /**
+   * Initiates the reader over an SNBT string.
+  */
   read(data: string) {
+    if (typeof data !== "string"){
+      throw new TypeError("First parameter must be a string");
+    }
+
     this.#data = data;
     this.#offset = 0;
 

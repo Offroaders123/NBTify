@@ -1,21 +1,53 @@
 import { NBTData } from "./data.js";
 import { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
 
-export function stringify(data: CompoundTag | NBTData, space: string | number = ""){
+export interface StringifyOptions {
+  space?: string | number;
+}
+
+/**
+ * Converts an NBTData object into an SNBT string.
+*/
+export function stringify(data: CompoundTag | NBTData, { space = "" }: StringifyOptions = {}){
   if (data instanceof NBTData){
     data = data.data as CompoundTag;
   }
+
+  if (typeof data !== "object" || data === null){
+    throw new TypeError("First parameter must be an object");
+  }
+  if (typeof space !== "string" && typeof space !== "number"){
+    throw new TypeError("Space option must be a string or number");
+  }
+
   const writer = new SNBTWriter();
-  return writer.write(data,space);
+  return writer.write(data,{ space });
 }
 
+export interface SNBTWriterOptions {
+  space?: string | number;
+}
+
+/**
+ * The base implementation to convert an NBTData object into an SNBT string.
+*/
 export class SNBTWriter {
   #space!: string;
   #level!: number;
 
-  write(data: CompoundTag | NBTData, space: string | number = "") {
+  /**
+   * Initiates the writer over an NBTData object.
+  */
+  write(data: CompoundTag | NBTData, { space = "" }: SNBTWriterOptions = {}) {
     if (data instanceof NBTData){
       data = data.data as CompoundTag;
+    }
+
+    if (typeof data !== "object" || data === null){
+      throw new TypeError("First parameter must be an object");
+    }
+    if (typeof space !== "string" && typeof space !== "number"){
+      throw new TypeError("Space option must be a string or number");
     }
 
     this.#space = (typeof space === "number") ? " ".repeat(space) : space;
@@ -39,7 +71,7 @@ export class SNBTWriter {
       case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
-      default: throw new Error("Invalid tag");
+      default: throw new Error(`Encountered unsupported tag type '${type}'`);
     }
   }
 
