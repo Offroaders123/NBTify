@@ -30,7 +30,7 @@ export async function write(data: CompoundTag | NBTData, { name, endian, compres
   if (name !== undefined && typeof name !== "string" && name !== null){
     throw new TypeError("Name option must be a string or null");
   }
-  if (name !== undefined && endian !== "big" && endian !== "little"){
+  if (endian !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
   if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "deflate"){

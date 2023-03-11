@@ -25,27 +25,27 @@ NBTify has entered the chat!
 
 #### Imporing NBTify as an ES Module in Node:
 
-```js
+```ts
 import * as NBT from "nbtify";
 ```
 
-#### Reading a file using `fetch()` in the browser:
+#### Reading a file using the Fetch API in the browser:
 
-```js
-const response = await fetch("https://offroaders123.github.io/NBTify/test/nbt/bigtest.nbt");
-const arrayBuffer = await response.arrayBuffer();
+```ts
+const response: Response = await fetch("https://offroaders123.github.io/NBTify/test/nbt/bigtest.nbt");
+const arrayBuffer: ArrayBuffer = await response.arrayBuffer();
 
-const result = await NBT.read(arrayBuffer);
+const result: NBTData = await NBT.read(arrayBuffer);
 console.log(result);
 ```
 
-#### Reading a file using `node:fs/promises` in Node:
+#### Reading a file using the File System module in Node:
 
-```js
+```ts
 import * as fs from "node:fs/promises";
 
-const buffer = await fs.readFile("./test/nbt/bigtest.nbt");
+const buffer: Buffer = await fs.readFile("./test/nbt/bigtest.nbt");
 
-const result = await NBT.read(buffer);
+const result: NBTData = await NBT.read(buffer);
 console.log(result);
 ```
