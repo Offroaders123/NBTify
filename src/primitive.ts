@@ -4,7 +4,7 @@ export class Byte<T extends number = number> extends Number {
     super(result);
   }
 
-  valueOf() {
+  override valueOf() {
     return super.valueOf() as T;
   }
 
@@ -19,7 +19,7 @@ export class Short<T extends number = number> extends Number {
     super(result);
   }
 
-  valueOf() {
+  override valueOf() {
     return super.valueOf() as T;
   }
 
@@ -34,7 +34,7 @@ export class Int<T extends number = number> extends Number {
     super(result);
   }
 
-  valueOf() {
+  override valueOf() {
     return super.valueOf() as T;
   }
 
@@ -49,7 +49,7 @@ export class Float<T extends number = number> extends Number {
     super(result);
   }
 
-  valueOf() {
+  override valueOf() {
     return super.valueOf() as T;
   }
 
