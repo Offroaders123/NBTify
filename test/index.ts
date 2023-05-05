@@ -1,7 +1,5 @@
-// @ts-check
-
 import * as fs from "node:fs/promises";
-import * as NBT from "../dist/index.js";
+import * as NBT from "../src/index.js";
 
 const { default: result } = await import("./nbt/invalid.js");
 console.log(result.data,"\n");

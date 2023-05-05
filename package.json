@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc --project ./tsconfig.build.json",
     "dev": "tsc -w"
   },
   "repository": {
@@ -32,6 +32,7 @@
   },
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "devDependencies": {
+    "@types/node": "^20.0.0",
     "typescript": "^5.0.4"
   },
   "sideEffects": false

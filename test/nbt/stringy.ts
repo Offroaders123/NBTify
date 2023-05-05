@@ -1,6 +1,4 @@
-// @ts-check
-
-import { Byte, NBTData } from "../../dist/index.js";
+import { Byte, NBTData } from "../../src/index.js";
 
 export default new NBTData({
   Noice: true,
