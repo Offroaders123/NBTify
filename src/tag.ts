@@ -1,6 +1,39 @@
 import { Byte, Short, Int, Float } from "./primitive.js";
 
-export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag;
+export type TAG = typeof TAG[keyof typeof TAG];
+
+export const TAG = {
+  END: 0,
+  BYTE: 1,
+  SHORT: 2,
+  INT: 3,
+  LONG: 4,
+  FLOAT: 5,
+  DOUBLE: 6,
+  BYTE_ARRAY: 7,
+  STRING: 8,
+  LIST: 9,
+  COMPOUND: 10,
+  INT_ARRAY: 11,
+  LONG_ARRAY: 12
+} as const;
+
+Object.freeze(TAG);
+
+export type Tag =
+  | ByteTag
+  | BooleanTag
+  | ShortTag
+  | IntTag
+  | LongTag
+  | FloatTag
+  | DoubleTag
+  | ByteArrayTag
+  | StringTag
+  | ListTag
+  | CompoundTag
+  | IntArrayTag
+  | LongArrayTag;
 
 export type ByteTag<T extends number = number> = Byte<T>;
 
@@ -29,26 +62,6 @@ export interface CompoundTag {
 export type IntArrayTag = Int32Array;
 
 export type LongArrayTag = BigInt64Array;
-
-export type TAG = typeof TAG[keyof typeof TAG];
-
-export const TAG = {
-  END: 0,
-  BYTE: 1,
-  SHORT: 2,
-  INT: 3,
-  LONG: 4,
-  FLOAT: 5,
-  DOUBLE: 6,
-  BYTE_ARRAY: 7,
-  STRING: 8,
-  LIST: 9,
-  COMPOUND: 10,
-  INT_ARRAY: 11,
-  LONG_ARRAY: 12
-} as const;
-
-Object.freeze(TAG);
 
 export function getTagType(value: any): TAG | null {
   switch (true){
