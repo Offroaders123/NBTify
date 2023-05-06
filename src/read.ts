@@ -6,6 +6,7 @@ import { decompress } from "./compression.js";
 export interface ReadOptions {
   endian?: Endian;
   compression?: Compression | null;
+  strict?: boolean;
   isNamed?: boolean;
   isBedrockLevel?: boolean;
 }
@@ -15,7 +16,7 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read(data: Uint8Array | ArrayBufferLike, { endian, compression, isNamed, isBedrockLevel }: ReadOptions = {}){
+export async function read(data: Uint8Array | ArrayBufferLike, { endian, compression, strict, isNamed, isBedrockLevel }: ReadOptions = {}){
   if (data instanceof ArrayBuffer || typeof SharedArrayBuffer !== "undefined" && data instanceof SharedArrayBuffer){
     data = new Uint8Array(data);
   }
@@ -28,6 +29,9 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   }
   if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "deflate"){
     throw new TypeError("Compression option must be a valid compression type");
+  }
+  if (strict !== undefined && typeof strict !== "boolean"){
+    throw new TypeError("Strict option must be a boolean");
   }
   if (isNamed !== undefined && typeof isNamed !== "boolean"){
     throw new TypeError("Named option must be a boolean");
@@ -47,10 +51,10 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   if (endian === undefined){
     let result: NBTData;
     try {
-      result = await read(data,{ endian: "big", compression, isNamed, isBedrockLevel });
+      result = await read(data,{ endian: "big", compression, strict, isNamed, isBedrockLevel });
     } catch (error){
       try {
-        result = await read(data,{ endian: "little", compression, isNamed, isBedrockLevel });
+        result = await read(data,{ endian: "little", compression, strict, isNamed, isBedrockLevel });
       } catch {
         throw error;
       }
@@ -61,10 +65,10 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   if (isNamed === undefined){
     let result: NBTData;
     try {
-      result = await read(data,{ endian, compression, isNamed: true, isBedrockLevel });
+      result = await read(data,{ endian, compression, strict, isNamed: true, isBedrockLevel });
     } catch (error){
       try {
-        result = await read(data,{ endian, compression, isNamed: false, isBedrockLevel });
+        result = await read(data,{ endian, compression, strict, isNamed: false, isBedrockLevel });
       } catch {
         throw error;
       }
@@ -96,7 +100,7 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   }
 
   const reader = new NBTReader();
-  const result = reader.read(data,{ endian, isNamed });
+  const result = reader.read(data,{ endian, strict, isNamed });
 
   return new NBTData(result,{ compression, bedrockLevel });
 }
@@ -121,6 +125,7 @@ function hasBedrockLevelHeader(data: Uint8Array){
 
 export interface NBTReaderOptions {
   endian?: Endian;
+  strict?: boolean;
   isNamed?: boolean;
 }
 
@@ -137,7 +142,7 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read(data: Uint8Array | ArrayBufferLike, { endian = "big", isNamed = true }: NBTReaderOptions = {}) {
+  read(data: Uint8Array | ArrayBufferLike, { endian = "big", strict = true, isNamed = true }: NBTReaderOptions = {}) {
     if (data instanceof ArrayBuffer || typeof SharedArrayBuffer !== "undefined" && data instanceof SharedArrayBuffer){
       data = new Uint8Array(data);
     }
@@ -147,6 +152,9 @@ export class NBTReader {
     }
     if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
+    }
+    if (typeof strict !== "boolean"){
+      throw new TypeError("Strict option must be a boolean");
     }
     if (typeof isNamed !== "boolean"){
       throw new TypeError("Named option must be a boolean");
@@ -165,7 +173,7 @@ export class NBTReader {
     const name: Name = (isNamed) ? this.#readString() : null;
     const value = this.#readCompound();
 
-    if (data.byteLength > this.#byteOffset){
+    if (strict && data.byteLength > this.#byteOffset){
       const remaining = data.byteLength - this.#byteOffset;
       throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }

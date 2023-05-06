@@ -1,20 +1,16 @@
-import * as fs from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
-const { default: result } = await import("./nbt/invalid.js");
-console.log(result.data,"\n");
+const PLAYER_FILE_0 = new URL("./nbt/P_280dfc7dac2f_00000001_knarF_520.dat",import.meta.url);
+const PLAYER_FILE_1 = new URL("./nbt/N_280dfc7dac2f_100000001_.dat",import.meta.url);
 
-const data = await NBT.write(result).then(Buffer.from);
-// console.log(data,"\n");
+const data = await readFile(PLAYER_FILE_0);
+console.log(data,"\n");
 
-const stringed = NBT.stringify(result.data,{ space: 2 });
-console.log(stringed,"\n");
+const result = await NBT.read(data,{ strict: false });
+console.log(result,"\n");
 
-const parsed = NBT.parse(stringed);
-// console.log(parsed,"\n");
-
-// Using the base 'result' NBTData object as the WriteOptions
-const recompile = await NBT.write(parsed,result);
-// console.log(Buffer.from(recompile),"\n");
+const recompile = await NBT.write(result).then(Buffer.from);
+console.log(recompile,"\n");
 
 console.log(Buffer.compare(data,recompile));
