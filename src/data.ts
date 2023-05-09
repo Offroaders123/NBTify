@@ -1,6 +1,8 @@
 import type { CompoundTag } from "./tag.js";
 import { Int } from "./primitive.js";
 
+import type { inspect as inspectFn, InspectOptionsStylized } from "node:util";
+
 export type Name = string | null;
 export type Endian = "big" | "little";
 export type Compression = "gzip" | "deflate";
@@ -82,5 +84,9 @@ export class NBTData {
 
   get [Symbol.toStringTag]() {
     return "NBTData" as const;
+  }
+
+  [Symbol.for("nodejs.util.inspect.custom")](depth: number, options: InspectOptionsStylized, inspect: typeof inspectFn) {
+    return `${this[Symbol.toStringTag]} ${inspect(this.#data,{ colors: true })}`;
   }
 }
