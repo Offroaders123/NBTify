@@ -1,3 +1,7 @@
+import { inspect, InspectOptionsStylized } from "node:util";
+
+export type CustomInspectFunction = (depth: number, options: InspectOptionsStylized, inspectFunction: typeof inspect) => any;
+
 declare global {
   interface ArrayBuffer {
     toString(): "[object ArrayBuffer]";
