@@ -4,13 +4,13 @@ import { TAG, getTagType } from "./tag.js";
 import type { Tag, ListTag, CompoundTag } from "./tag.js";
 
 export interface DefinitionOptions {
-  name?: string;
+  name: string;
 }
 
 /**
  * Generates a TypeScript interface definition from an NBTData object.
 */
-export function definition(data: CompoundTag | NBTData, { name = "" }: DefinitionOptions = {}){
+export function definition(data: CompoundTag | NBTData, { name }: DefinitionOptions){
   if (data instanceof NBTData){
     data = data.data as CompoundTag;
   }
@@ -27,7 +27,7 @@ export function definition(data: CompoundTag | NBTData, { name = "" }: Definitio
 }
 
 export interface DefinitionWriterOptions {
-  name?: string;
+  name: string;
 }
 
 /**
@@ -40,7 +40,7 @@ export class DefinitionWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: CompoundTag | NBTData, { name = "" }: DefinitionWriterOptions = {}) {
+  write(data: CompoundTag | NBTData, { name }: DefinitionWriterOptions) {
     if (data instanceof NBTData){
       data = data.data as CompoundTag;
     }

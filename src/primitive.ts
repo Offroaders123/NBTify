@@ -1,4 +1,4 @@
-import type { CustomInspectFunction } from "./global.d.ts";
+import type { CustomInspectFunction } from "node:util";
 
 const NodeInspect = Symbol.for("nodejs.util.inspect.custom");
 
@@ -11,8 +11,8 @@ export class Byte<T extends number = number> extends Number {
     return super.valueOf() as T;
   }
 
-  [NodeInspect]: CustomInspectFunction = (_,{ stylize }) => {
-    return stylize(`${this.valueOf()}b`,"number");
+  get [NodeInspect](): CustomInspectFunction {
+    return (_,{ stylize }) => stylize(`${this.valueOf()}b`,"number");
   }
 
   get [Symbol.toStringTag]() {
@@ -29,8 +29,8 @@ export class Short<T extends number = number> extends Number {
     return super.valueOf() as T;
   }
 
-  [NodeInspect]: CustomInspectFunction = (_,{ stylize }) => {
-    return stylize(`${this.valueOf()}s`,"number");
+  get [NodeInspect](): CustomInspectFunction {
+    return (_,{ stylize }) => stylize(`${this.valueOf()}s`,"number");
   }
 
   get [Symbol.toStringTag]() {
@@ -47,8 +47,8 @@ export class Int<T extends number = number> extends Number {
     return super.valueOf() as T;
   }
 
-  [NodeInspect]: CustomInspectFunction = () => {
-    return this.valueOf();
+  get [NodeInspect](): CustomInspectFunction {
+    return () => this.valueOf();
   }
 
   get [Symbol.toStringTag]() {
@@ -65,8 +65,8 @@ export class Float<T extends number = number> extends Number {
     return super.valueOf() as T;
   }
 
-  [NodeInspect]: CustomInspectFunction = (_,{ stylize }) => {
-    return stylize(`${this.valueOf()}f`,"number");
+  get [NodeInspect](): CustomInspectFunction {
+    return (_,{ stylize }) => stylize(`${this.valueOf()}f`,"number");
   }
 
   get [Symbol.toStringTag]() {
