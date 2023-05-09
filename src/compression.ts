@@ -1,25 +1,25 @@
 export type CompressionFormat = "gzip" | "deflate" | "deflate-raw";
 
 export interface CompressionOptions {
-  format?: CompressionFormat;
+  format: CompressionFormat;
 }
 
 /**
- * Transforms a Uint8Array through a specific compression format. If a format is not provided, the gzip format will be used.
+ * Compresses a Uint8Array using a specific compression format.
 */
-export async function compress(data: Uint8Array, { format = "gzip" }: CompressionOptions = {}){
-  const stream = new CompressionStream(format);
-  const readable = new Blob([data]).stream().pipeThrough(stream);
+export async function compress(data: Uint8Array | ArrayBufferLike, { format }: CompressionOptions): Promise<Uint8Array> {
+  const { body } = new Response(data instanceof Uint8Array ? data : new Uint8Array(data));
+  const readable = body!.pipeThrough(new CompressionStream(format));
   const buffer = await new Response(readable).arrayBuffer();
   return new Uint8Array(buffer);
 }
 
 /**
- * Transforms a Uint8Array through a specific decompression format. If a format is not provided, the gzip format will be used.
+ * Decompresses a Uint8Array using a specific decompression format.
 */
-export async function decompress(data: Uint8Array, { format = "gzip" }: CompressionOptions = {}){
-  const stream = new DecompressionStream(format);
-  const readable = new Blob([data]).stream().pipeThrough(stream);
+export async function decompress(data: Uint8Array | ArrayBufferLike, { format }: CompressionOptions): Promise<Uint8Array> {
+  const { body } = new Response(data instanceof Uint8Array ? data : new Uint8Array(data));
+  const readable = body!.pipeThrough(new DecompressionStream(format));
   const buffer = await new Response(readable).arrayBuffer();
   return new Uint8Array(buffer);
 }
