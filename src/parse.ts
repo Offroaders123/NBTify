@@ -1,6 +1,7 @@
-import { NBTData } from "./data.js";
-import { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag, TAG, getTagType } from "./tag.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
+import { TAG, getTagType } from "./tag.js";
+
+import type { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 /**
  * Converts an SNBT string into a CompoundTag object.

@@ -1,7 +1,6 @@
-import type { CompoundTag } from "./tag.js";
 import { Int } from "./primitive.js";
 
-import type { inspect as inspectFn, InspectOptionsStylized } from "node:util";
+import type { CompoundTag } from "./tag.js";
 
 export type Name = string | null;
 export type Endian = "big" | "little";
@@ -19,11 +18,11 @@ export interface NBTDataOptions {
  * An object which represents a set of NBT data.
 */
 export class NBTData {
-  #data: any;
-  #name: Name;
-  #endian: Endian;
-  #compression?: Compression;
-  #bedrockLevel?: BedrockLevel;
+  declare readonly data: any;
+  declare readonly name: Name;
+  declare readonly endian: Endian;
+  declare readonly compression?: Compression;
+  declare readonly bedrockLevel?: BedrockLevel;
 
   constructor(data: CompoundTag | NBTData, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
@@ -55,38 +54,14 @@ export class NBTData {
       throw new TypeError("Bedrock Level option must be an Int");
     }
 
-    this.#data = data;
-    this.#name = name;
-    this.#endian = endian;
-    if (compression !== null) this.#compression = compression;
-    if (bedrockLevel !== null) this.#bedrockLevel = bedrockLevel;
-  }
-
-  get data() {
-    return this.#data;
-  }
-
-  get name() {
-    return this.#name;
-  }
-
-  get endian() {
-    return this.#endian;
-  }
-
-  get compression() {
-    return this.#compression;
-  }
-
-  get bedrockLevel() {
-    return this.#bedrockLevel;
+    this.data = data;
+    this.name = name;
+    this.endian = endian;
+    if (compression !== null) this.compression = compression;
+    if (bedrockLevel !== null) this.bedrockLevel = bedrockLevel;
   }
 
   get [Symbol.toStringTag]() {
     return "NBTData" as const;
-  }
-
-  [Symbol.for("nodejs.util.inspect.custom")](depth: number, options: InspectOptionsStylized, inspect: typeof inspectFn) {
-    return `${this[Symbol.toStringTag]} ${inspect(this.#data,{ colors: true })}`;
   }
 }

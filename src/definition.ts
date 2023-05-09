@@ -1,5 +1,7 @@
 import { NBTData } from "./data.js";
-import { Tag, ListTag, CompoundTag, TAG, getTagType } from "./tag.js";
+import { TAG, getTagType } from "./tag.js";
+
+import type { Tag, ListTag, CompoundTag } from "./tag.js";
 
 export interface DefinitionOptions {
   name?: string;

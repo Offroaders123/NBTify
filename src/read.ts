@@ -1,7 +1,9 @@
 import { Name, Endian, Compression, BedrockLevel, NBTData } from "./data.js";
-import { Tag, ListTag, CompoundTag, TAG } from "./tag.js";
 import { Byte, Short, Int, Float } from "./primitive.js";
+import { TAG } from "./tag.js";
 import { decompress } from "./compression.js";
+
+import type { Tag, ListTag, CompoundTag } from "./tag.js";
 
 export interface ReadOptions {
   endian?: Endian;
