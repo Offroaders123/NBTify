@@ -2,7 +2,7 @@
 
 import * as NBT from "../dist/index.js";
 
-// @ts-ignore
+// @ts-expect-error
 delete window.SharedArrayBuffer;
 
 const buffer = await fetch("./nbt/bigtest.nbt")
@@ -10,7 +10,7 @@ const buffer = await fetch("./nbt/bigtest.nbt")
 console.log(buffer);
 
 const result = await NBT.read(buffer);
-console.log(result.data);
+console.log(result);
 
 const { buffer: recompile } = await NBT.write(result);
 console.log(recompile);
