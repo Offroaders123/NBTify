@@ -1,8 +1,8 @@
-import { ByteTag, ShortTag, IntTag, FloatTag, DoubleTag, StringTag, ListTag, CompoundTag } from "../src/index.js";
+import { ByteTag, ShortTag, IntTag, FloatTag, DoubleTag, StringTag } from "../src/index.js";
 
-export interface LCEPlayer extends CompoundTag {
+export interface LCEPlayer {
   GamePrivileges: IntTag;
-  EnderItems: ListTag<LCEInventoryItem>;
+  EnderItems: LCEInventoryItem[];
   abilities: {
     walkSpeed: FloatTag;
     flySpeed: FloatTag;
@@ -25,7 +25,7 @@ export interface LCEPlayer extends CompoundTag {
   SleepTimer: ShortTag;
   Sleeping: ByteTag;
   SelectedItemSlot: IntTag;
-  Inventory: ListTag<LCEInventoryItem>;
+  Inventory: LCEInventoryItem[];
   HurtByTimestamp: ShortTag;
   FallFlying: ByteTag;
   XpTotal: IntTag;
@@ -37,7 +37,7 @@ export interface LCEPlayer extends CompoundTag {
   FallDistance: FloatTag;
   DeathTime: ShortTag;
   TimeSinceRest: IntTag;
-  Attributes: ListTag<LCEPlayerAttribute>;
+  Attributes: LCEPlayerAttribute[];
   XpLevel: IntTag;
   Health: FloatTag;
   DataVersion: IntTag;
@@ -56,14 +56,14 @@ export interface LCEPlayer extends CompoundTag {
   XpSeed: IntTag;
 }
 
-export interface LCEInventoryItem extends CompoundTag {
+export interface LCEInventoryItem {
   Damage: ShortTag;
   Count: ByteTag;
   id: StringTag;
   Slot: ByteTag;
 }
 
-export interface LCEPlayerAttribute extends CompoundTag {
+export interface LCEPlayerAttribute {
   Base: DoubleTag;
   ID: IntTag;
 }

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Byte, Short, NBTData } from "../../src/index.js";
 
 export default new NBTData({

@@ -17,7 +17,7 @@ console.log(recompile,"\n");
 
 console.log(Buffer.compare(data,recompile));
 
-interface TempTest extends NBT.CompoundTag {
+interface TempTest {
   noice: NBT.BooleanTag;
 }
 
@@ -28,3 +28,7 @@ const { data: tempTest } = new NBT.NBTData<TempTest>({
 tempTest.noice
 // @ts-expect-error
 tempTest.notAProperty
+
+const demo = new NBT.NBTData({ nice: true, smartTypes: 10 });
+
+demo.data.smartTypes;

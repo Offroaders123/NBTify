@@ -1,7 +1,5 @@
 import { Int } from "./primitive.js";
 
-import type { CompoundTag } from "./tag.js";
-
 export type Name = string | null;
 export type Endian = "big" | "little";
 export type Compression = "gzip" | "deflate";
@@ -17,14 +15,14 @@ export interface NBTDataOptions {
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends CompoundTag = any> {
+export class NBTData<T extends object = any> {
   declare readonly data: T;
   declare readonly name: Name;
   declare readonly endian: Endian;
   declare readonly compression: Compression | null;
   declare readonly bedrockLevel: BedrockLevel | null;
 
-  constructor(data: CompoundTag | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
+  constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;

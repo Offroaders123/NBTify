@@ -18,7 +18,7 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends CompoundTag = any>(data: Uint8Array | ArrayBufferLike, { endian, compression, strict, isNamed, isBedrockLevel }: ReadOptions = {}){
+export async function read<T extends object = any>(data: Uint8Array | ArrayBufferLike, { endian, compression, strict, isNamed, isBedrockLevel }: ReadOptions = {}){
   if (data instanceof ArrayBuffer || typeof SharedArrayBuffer !== "undefined" && data instanceof SharedArrayBuffer){
     data = new Uint8Array(data);
   }
@@ -144,7 +144,7 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends CompoundTag = any>(data: Uint8Array | ArrayBufferLike, { endian = "big", strict = true, isNamed = true }: NBTReaderOptions = {}) {
+  read<T extends object = any>(data: Uint8Array | ArrayBufferLike, { endian = "big", strict = true, isNamed = true }: NBTReaderOptions = {}) {
     if (data instanceof ArrayBuffer || typeof SharedArrayBuffer !== "undefined" && data instanceof SharedArrayBuffer){
       data = new Uint8Array(data);
     }
