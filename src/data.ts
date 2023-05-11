@@ -17,20 +17,20 @@ export interface NBTDataOptions {
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData {
-  declare readonly data: any;
+export class NBTData<T extends CompoundTag = any> {
+  declare readonly data: T;
   declare readonly name: Name;
   declare readonly endian: Endian;
   declare readonly compression: Compression | null;
   declare readonly bedrockLevel: BedrockLevel | null;
 
-  constructor(data: CompoundTag | NBTData, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
+  constructor(data: CompoundTag | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
       if (compression === undefined) compression = data.compression;
       if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
-      data = data.data as CompoundTag;
+      data = data.data;
     }
 
     if (name === undefined) name = "";

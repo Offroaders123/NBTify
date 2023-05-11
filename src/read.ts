@@ -18,7 +18,7 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read(data: Uint8Array | ArrayBufferLike, { endian, compression, strict, isNamed, isBedrockLevel }: ReadOptions = {}){
+export async function read<T extends CompoundTag = any>(data: Uint8Array | ArrayBufferLike, { endian, compression, strict, isNamed, isBedrockLevel }: ReadOptions = {}){
   if (data instanceof ArrayBuffer || typeof SharedArrayBuffer !== "undefined" && data instanceof SharedArrayBuffer){
     data = new Uint8Array(data);
   }
@@ -51,12 +51,12 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   }
 
   if (endian === undefined){
-    let result: NBTData;
+    let result: NBTData<T>;
     try {
-      result = await read(data,{ endian: "big", compression, strict, isNamed, isBedrockLevel });
+      result = await read<T>(data,{ endian: "big", compression, strict, isNamed, isBedrockLevel });
     } catch (error){
       try {
-        result = await read(data,{ endian: "little", compression, strict, isNamed, isBedrockLevel });
+        result = await read<T>(data,{ endian: "little", compression, strict, isNamed, isBedrockLevel });
       } catch {
         throw error;
       }
@@ -65,12 +65,12 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   }
 
   if (isNamed === undefined){
-    let result: NBTData;
+    let result: NBTData<T>;
     try {
-      result = await read(data,{ endian, compression, strict, isNamed: true, isBedrockLevel });
+      result = await read<T>(data,{ endian, compression, strict, isNamed: true, isBedrockLevel });
     } catch (error){
       try {
-        result = await read(data,{ endian, compression, strict, isNamed: false, isBedrockLevel });
+        result = await read<T>(data,{ endian, compression, strict, isNamed: false, isBedrockLevel });
       } catch {
         throw error;
       }
@@ -102,9 +102,9 @@ export async function read(data: Uint8Array | ArrayBufferLike, { endian, compres
   }
 
   const reader = new NBTReader();
-  const result = reader.read(data,{ endian, strict, isNamed });
+  const result = reader.read<T>(data,{ endian, strict, isNamed });
 
-  return new NBTData(result,{ compression, bedrockLevel });
+  return new NBTData<T>(result,{ compression, bedrockLevel });
 }
 
 function hasGzipHeader(data: Uint8Array){
@@ -144,7 +144,7 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read(data: Uint8Array | ArrayBufferLike, { endian = "big", strict = true, isNamed = true }: NBTReaderOptions = {}) {
+  read<T extends CompoundTag = any>(data: Uint8Array | ArrayBufferLike, { endian = "big", strict = true, isNamed = true }: NBTReaderOptions = {}) {
     if (data instanceof ArrayBuffer || typeof SharedArrayBuffer !== "undefined" && data instanceof SharedArrayBuffer){
       data = new Uint8Array(data);
     }
@@ -173,14 +173,14 @@ export class NBTReader {
     }
 
     const name: Name = (isNamed) ? this.#readString() : null;
-    const value = this.#readCompound();
+    const value = this.#readCompound() as T;
 
     if (strict && data.byteLength > this.#byteOffset){
       const remaining = data.byteLength - this.#byteOffset;
       throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
 
-    return new NBTData(value,{ name, endian });
+    return new NBTData<T>(value,{ name, endian });
   }
 
   #allocate(byteLength: number) {
