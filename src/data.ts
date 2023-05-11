@@ -21,8 +21,8 @@ export class NBTData {
   declare readonly data: any;
   declare readonly name: Name;
   declare readonly endian: Endian;
-  declare readonly compression?: Compression;
-  declare readonly bedrockLevel?: BedrockLevel;
+  declare readonly compression: Compression | null;
+  declare readonly bedrockLevel: BedrockLevel | null;
 
   constructor(data: CompoundTag | NBTData, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
@@ -54,11 +54,35 @@ export class NBTData {
       throw new TypeError("Bedrock Level option must be an Int");
     }
 
-    this.data = data;
-    this.name = name;
-    this.endian = endian;
-    if (compression !== null) this.compression = compression;
-    if (bedrockLevel !== null) this.bedrockLevel = bedrockLevel;
+    Object.defineProperty(this,"data",{
+      configurable: true,
+      enumerable: true,
+      value: data
+    });
+
+    Object.defineProperty(this,"name",{
+      configurable: true,
+      enumerable: true,
+      value: name
+    });
+
+    Object.defineProperty(this,"endian",{
+      configurable: true,
+      enumerable: true,
+      value: endian
+    });
+
+    Object.defineProperty(this,"compression",{
+      configurable: true,
+      enumerable: (compression !== null),
+      value: compression
+    });
+
+    Object.defineProperty(this,"bedrockLevel",{
+      configurable: true,
+      enumerable: (bedrockLevel !== null),
+      value: bedrockLevel
+    });
   }
 
   get [Symbol.toStringTag]() {
