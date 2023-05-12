@@ -1,5 +1,6 @@
 import { Int } from "./primitive.js";
 
+export type Data = object;
 export type Name = string | null;
 export type Endian = "big" | "little";
 export type Compression = "gzip" | "deflate";
@@ -15,7 +16,7 @@ export interface NBTDataOptions {
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends object = any> {
+export class NBTData<T extends Data = any> {
   declare readonly data: T;
   declare readonly name: Name;
   declare readonly endian: Endian;

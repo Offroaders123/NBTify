@@ -53,10 +53,10 @@ export type ByteArrayTag = Int8Array;
 
 export type StringTag = string;
 
-export interface ListTag<T extends Tag = Tag> extends Array<T> {}
+export interface ListTag<T extends Tag = Tag> extends Array<unknown> {}
 
 export interface CompoundTag {
-  [name: string]: Tag;
+  [name: string]: unknown;
 }
 
 export type IntArrayTag = Int32Array;

@@ -1,6 +1,7 @@
 import { NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
 
+import type { Data } from "./data.js";
 import type { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface StringifyOptions {
@@ -10,7 +11,7 @@ export interface StringifyOptions {
 /**
  * Converts an NBTData object into an SNBT string.
 */
-export function stringify(data: CompoundTag | NBTData, { space = "" }: StringifyOptions = {}){
+export function stringify(data: Data | NBTData, { space = "" }: StringifyOptions = {}){
   if (data instanceof NBTData){
     data = data.data as CompoundTag;
   }
@@ -40,7 +41,7 @@ export class SNBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: CompoundTag | NBTData, { space = "" }: SNBTWriterOptions = {}) {
+  write(data: Data | NBTData, { space = "" }: SNBTWriterOptions = {}) {
     if (data instanceof NBTData){
       data = data.data as CompoundTag;
     }
@@ -55,6 +56,7 @@ export class SNBTWriter {
     this.#space = (typeof space === "number") ? " ".repeat(space) : space;
     this.#level = 1;
 
+    // @ts-expect-error
     return this.#writeTag(data);
   }
 
@@ -115,9 +117,9 @@ export class SNBTWriter {
     return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
   }
 
-  #writeList(value: ListTag) {
+  #writeList(valueUnsafe: ListTag) {
     const fancy = (this.#space !== "");
-    value = value.filter((entry): entry is Tag => getTagType(entry) !== null);
+    const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
     return `[${value.map(entry => `${isIndentedList ? `\n${this.#space.repeat(this.#level)}` : ""}${(() => {
@@ -128,16 +130,16 @@ export class SNBTWriter {
     })() as string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
   }
 
-  #writeCompound(value: CompoundTag) {
+  #writeCompound(valueUnsafe: CompoundTag) {
     const fancy = (this.#space !== "");
-    return `{${[...Object.entries(value)].filter(
-      ([,value]): boolean => getTagType(value) !== null
+    return `{${[...Object.entries(valueUnsafe)].filter(
+      (entry): entry is [string,Tag] => getTagType(entry[1]) !== null
     ).map(([key,value]) => `${fancy ? `\n${(this.#space as string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${(() => {
       this.#level += 1;
       const result = this.#writeTag(value);
       this.#level -= 1;
       return result;
-    })() as string}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
+    })() as string}`).join(",")}${fancy && Object.keys(valueUnsafe).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
   }
 
   #writeIntArray(value: Int32Array) {

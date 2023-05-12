@@ -1,6 +1,7 @@
 import { NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
 
+import type { Data } from "./data.js";
 import type { Tag, ListTag, CompoundTag } from "./tag.js";
 
 export interface DefinitionOptions {
@@ -10,7 +11,7 @@ export interface DefinitionOptions {
 /**
  * Generates a TypeScript interface definition from an NBTData object.
 */
-export function definition(data: CompoundTag | NBTData, { name }: DefinitionOptions){
+export function definition(data: Data | NBTData, { name }: DefinitionOptions){
   if (data instanceof NBTData){
     data = data.data as CompoundTag;
   }
@@ -40,7 +41,7 @@ export class DefinitionWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: CompoundTag | NBTData, { name }: DefinitionWriterOptions) {
+  write(data: Data | NBTData, { name }: DefinitionWriterOptions) {
     if (data instanceof NBTData){
       data = data.data as CompoundTag;
     }
@@ -55,6 +56,7 @@ export class DefinitionWriter {
     this.#space = "  ";
     this.#level = 1;
 
+    // @ts-expect-error
     return `interface ${name} ${this.#writeTag(data)}`;
   }
 
@@ -119,9 +121,9 @@ export class DefinitionWriter {
     return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
   }
 
-  #writeList(value: ListTag) {
+  #writeList(valueUnsafe: ListTag) {
     const fancy = (this.#space !== "");
-    value = value.filter((entry): entry is Tag => getTagType(entry) !== null);
+    const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
     return `[${value.map(entry => `${isIndentedList ? `\n${this.#space.repeat(this.#level)}` : ""}${(() => {
@@ -132,16 +134,16 @@ export class DefinitionWriter {
     })() as string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
   }
 
-  #writeCompound(value: CompoundTag) {
+  #writeCompound(valueUnsafe: CompoundTag) {
     const fancy = (this.#space !== "");
-    return `{${[...Object.entries(value)].filter(
-      ([,value]): boolean => getTagType(value) !== null
+    return `{${[...Object.entries(valueUnsafe)].filter(
+      (entry): entry is [string,Tag] => getTagType(entry[1]) !== null
     ).map(([key,value]) => `${fancy ? `\n${(this.#space as string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeStringLiteral(key)}:${fancy ? " " : ""}${(() => {
       this.#level += 1;
       const result = `${this.#writeTag(value)};`;
       this.#level -= 1;
       return result;
-    })() as string}`).join("")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
+    })() as string}`).join("")}${fancy && Object.keys(valueUnsafe).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
   }
 
   #writeIntArray() {

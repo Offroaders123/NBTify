@@ -3,6 +3,7 @@ import { TAG, getTagType } from "./tag.js";
 import { Int } from "./primitive.js";
 import { compress } from "./compression.js";
 
+import type { Data } from "./data.js";
 import type { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface WriteOptions {
@@ -17,7 +18,7 @@ export interface WriteOptions {
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write(data: CompoundTag | NBTData, { name, endian, compression, bedrockLevel }: WriteOptions = {}){
+export async function write(data: Data | NBTData, { name, endian, compression, bedrockLevel }: WriteOptions = {}){
   if (data instanceof NBTData){
     if (name === undefined) name = data.name;
     if (endian === undefined) endian = data.endian;
@@ -85,7 +86,7 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: CompoundTag | NBTData, { name, endian }: NBTWriterOptions = {}) {
+  write(data: Data | NBTData, { name, endian }: NBTWriterOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
@@ -112,6 +113,7 @@ export class NBTWriter {
 
     this.#writeTagType(TAG.COMPOUND);
     if (name !== null) this.#writeString(name);
+    // @ts-expect-error
     this.#writeCompound(data);
 
     this.#allocate(0);
@@ -226,8 +228,8 @@ export class NBTWriter {
     this.#byteOffset += length;
   }
 
-  #writeList(value: ListTag) {
-    value = value.filter((entry): entry is Tag => getTagType(entry) !== null);
+  #writeList(valueUnsafe: ListTag) {
+    const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const { length } = value;
     this.#writeTagType(type);
@@ -240,13 +242,13 @@ export class NBTWriter {
     }
   }
 
-  #writeCompound(value: CompoundTag) {
-    for (const [name,entry] of Object.entries(value)){
+  #writeCompound(valueUnsafe: CompoundTag) {
+    for (const [name,entry] of Object.entries(valueUnsafe)){
       const type = getTagType(entry);
       if (type === null) continue;
       this.#writeTagType(type);
       this.#writeString(name);
-      this.#writeTag(entry);
+      this.#writeTag(entry as Tag);
     }
     this.#writeTagType(TAG.END);
   }
