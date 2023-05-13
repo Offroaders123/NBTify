@@ -32,3 +32,7 @@ tempTest.notAProperty
 const demo = new NBT.NBTData({ nice: true, smartTypes: 10 });
 
 demo.data.smartTypes;
+
+interface MyData { Version: boolean; }
+declare const heya: NBT.NBTData<MyData>;
+const noice = new NBT.NBTData(heya);
