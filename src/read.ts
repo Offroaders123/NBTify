@@ -1,5 +1,5 @@
 import { Name, Endian, Compression, BedrockLevel, NBTData } from "./data.js";
-import { Byte, Short, Int, Float } from "./primitive.js";
+import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
@@ -95,7 +95,7 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
   if (isBedrockLevel){
     const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
     const version = view.getUint32(0,true);
-    bedrockLevel = new Int(version);
+    bedrockLevel = new Int32(version);
     data = data.subarray(8);
   } else {
     bedrockLevel = null;
@@ -195,11 +195,11 @@ export class NBTReader {
         const remaining = this.#data.byteLength - this.#byteOffset;
         throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
       }
-      case TAG.BYTE: return new Byte(this.#readByte());
-      case TAG.SHORT: return new Short(this.#readShort());
-      case TAG.INT: return new Int(this.#readInt());
+      case TAG.BYTE: return new Int8(this.#readByte());
+      case TAG.SHORT: return new Int16(this.#readShort());
+      case TAG.INT: return new Int32(this.#readInt());
       case TAG.LONG: return this.#readLong();
-      case TAG.FLOAT: return new Float(this.#readFloat());
+      case TAG.FLOAT: return new Float32(this.#readFloat());
       case TAG.DOUBLE: return this.#readDouble();
       case TAG.BYTE_ARRAY: return this.#readByteArray();
       case TAG.STRING: return this.#readString();

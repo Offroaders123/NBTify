@@ -1,10 +1,10 @@
-import { Int } from "./primitive.js";
+import { Int32 } from "./primitive.js";
 
 export type Data = object;
 export type Name = string | null;
 export type Endian = "big" | "little";
 export type Compression = "gzip" | "deflate";
-export type BedrockLevel = Int;
+export type BedrockLevel = Int32;
 
 export interface NBTDataOptions {
   name?: Name;
@@ -49,7 +49,7 @@ export class NBTData<T extends Data = any> {
     if (compression !== null && compression !== "gzip" && compression !== "deflate"){
       throw new TypeError("Compression option must be a valid compression type");
     }
-    if (bedrockLevel !== null && !(bedrockLevel instanceof Int)){
+    if (bedrockLevel !== null && !(bedrockLevel instanceof Int32)){
       throw new TypeError("Bedrock Level option must be an Int");
     }
 

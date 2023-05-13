@@ -1,9 +1,9 @@
-import { Byte, NBTData } from "../../src/index.js";
+import { Int8, NBTData } from "../../src/index.js";
 
 export default new NBTData({
   Noice: true,
   WorkOnBooleanValuesPls: true,
-  ByteTagValue: new Byte(125),
+  ByteTagValue: new Int8(125),
   AnotherProperty: "Bananrama!",
   CheckForNestedJSON: JSON.stringify({
     myJSONKey: "It's value!",

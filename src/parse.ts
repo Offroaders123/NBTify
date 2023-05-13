@@ -1,4 +1,4 @@
-import { Byte, Short, Int, Float } from "./primitive.js";
+import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG, getTagType } from "./tag.js";
 
 import type { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
@@ -130,19 +130,19 @@ export class SNBTReader {
   #readInteger([_,value,suffix]: RegExpMatchArray): ByteTag | ShortTag | IntTag | LongTag {
     switch (suffix){
       case "b":
-      case "B": return new Byte(Number(value)) as ByteTag;
+      case "B": return new Int8(Number(value)) as ByteTag;
       case "s":
-      case "S": return new Short(Number(value)) as ShortTag;
+      case "S": return new Int16(Number(value)) as ShortTag;
       case "l":
       case "L": return BigInt(value) as LongTag;
-      default: return new Int(Number(value)) as IntTag;
+      default: return new Int32(Number(value)) as IntTag;
     }
   }
 
   #readFloat([_,value,suffix]: RegExpMatchArray): FloatTag | DoubleTag {
     switch (suffix){
       case "f":
-      case "F": return new Float(Number(value)) as FloatTag;
+      case "F": return new Float32(Number(value)) as FloatTag;
       default: return Number(value) as DoubleTag;
     }
   }

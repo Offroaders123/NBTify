@@ -1,6 +1,6 @@
 import { Name, Endian, Compression, BedrockLevel, NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
-import { Int } from "./primitive.js";
+import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
 import type { Data } from "./data.js";
@@ -39,7 +39,7 @@ export async function write(data: Data | NBTData, { name, endian, compression, b
   if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "deflate"){
     throw new TypeError("Compression option must be a valid compression type");
   }
-  if (bedrockLevel !== undefined && bedrockLevel !== null && !(bedrockLevel instanceof Int)){
+  if (bedrockLevel !== undefined && bedrockLevel !== null && !(bedrockLevel instanceof Int32)){
     throw new TypeError("Bedrock Level option must be an Int");
   }
 

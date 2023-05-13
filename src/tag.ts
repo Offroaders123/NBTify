@@ -1,4 +1,4 @@
-import { Byte, Short, Int, Float } from "./primitive.js";
+import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 
 export type TAG = typeof TAG[keyof typeof TAG];
 
@@ -35,17 +35,17 @@ export type Tag =
   | IntArrayTag
   | LongArrayTag;
 
-export type ByteTag<T extends number = number> = Byte<T>;
+export type ByteTag<T extends number = number> = Int8<T>;
 
 export type BooleanTag = boolean | ByteTag<0 | 1>;
 
-export type ShortTag<T extends number = number> = Short<T>;
+export type ShortTag<T extends number = number> = Int16<T>;
 
-export type IntTag<T extends number = number> = Int<T>;
+export type IntTag<T extends number = number> = Int32<T>;
 
 export type LongTag = bigint;
 
-export type FloatTag<T extends number = number> = Float<T>;
+export type FloatTag<T extends number = number> = Float32<T>;
 
 export type DoubleTag = number;
 
@@ -65,12 +65,12 @@ export type LongArrayTag = BigInt64Array;
 
 export function getTagType(value: any): TAG | null {
   switch (true){
-    case value instanceof Byte:
+    case value instanceof Int8:
     case typeof value === "boolean": return TAG.BYTE;
-    case value instanceof Short: return TAG.SHORT;
-    case value instanceof Int: return TAG.INT;
+    case value instanceof Int16: return TAG.SHORT;
+    case value instanceof Int32: return TAG.INT;
     case typeof value === "bigint": return TAG.LONG;
-    case value instanceof Float: return TAG.FLOAT;
+    case value instanceof Float32: return TAG.FLOAT;
     case typeof value === "number": return TAG.DOUBLE;
     case value instanceof Int8Array: return TAG.BYTE_ARRAY;
     case typeof value === "string": return TAG.STRING;
