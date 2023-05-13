@@ -1,29 +1,33 @@
-import { Int } from "./primitive.js";
+import { Int32 } from "./primitive.js";
 
-export type Data = object;
+export type NBT = object;
+export type NBTLike<T extends NBT = any> = T | NBTData<T>;
+
 export type Name = string | null;
 export type Endian = "big" | "little";
-export type Compression = "gzip" | "deflate";
-export type BedrockLevel = Int;
+export type Compression = "gzip" | "deflate" | null;
+export type BedrockLevel = Int32 | null;
 
 export interface NBTDataOptions {
   name?: Name;
   endian?: Endian;
-  compression?: Compression | null;
-  bedrockLevel?: BedrockLevel | null;
+  compression?: Compression;
+  bedrockLevel?: BedrockLevel;
 }
 
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends Data = any> {
+export class NBTData<T extends NBT = any> {
   declare readonly data: T;
   declare readonly name: Name;
   declare readonly endian: Endian;
-  declare readonly compression: Compression | null;
-  declare readonly bedrockLevel: BedrockLevel | null;
+  declare readonly compression: Compression;
+  declare readonly bedrockLevel: BedrockLevel;
 
-  constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
+  constructor(data: NBTLike<T>, options: NBTDataOptions = {}) {
+    let { name, endian, compression, bedrockLevel } = options;
+
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
@@ -36,22 +40,6 @@ export class NBTData<T extends Data = any> {
     if (endian === undefined) endian = "big";
     if (compression === undefined) compression = null;
     if (bedrockLevel === undefined) bedrockLevel = null;
-
-    if (typeof data !== "object" || data === null){
-      throw new TypeError("First parameter must be an object");
-    }
-    if (typeof name !== "string" && name !== null){
-      throw new TypeError("Name option must be a string or null");
-    }
-    if (endian !== "big" && endian !== "little"){
-      throw new TypeError("Endian option must be a valid endian type");
-    }
-    if (compression !== null && compression !== "gzip" && compression !== "deflate"){
-      throw new TypeError("Compression option must be a valid compression type");
-    }
-    if (bedrockLevel !== null && !(bedrockLevel instanceof Int)){
-      throw new TypeError("Bedrock Level option must be an Int");
-    }
 
     Object.defineProperty(this,"data",{
       configurable: true,

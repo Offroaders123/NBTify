@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<head>
+  <title>ReadableStreamBytes</title>
+</head>
+<script type="module">
+// @ts-check
+
+// https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/getReader
+// https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamDefaultReader/read
+
+// https://wiki.vg/NBT#test.nbt
+const HELLO_WORLD = "https://raw.githubusercontent.com/Dav1dde/nbd/master/test/hello_world.nbt";
+
+// @ts-ignore
+const response = await fetch(HELLO_WORLD);
+console.log(response);
+
+const reader = response.body.getReader();
+console.log(reader);
+
+// Nicer, next implementation
+// https://github.com/whatwg/streams/issues/778
+
+// Test 1
+
+// // @ts-ignore
+// await reader.read().then(async ({ done, value }) => {
+//   if (done) return;
+
+//   console.log(value);
+
+//   await reader.read();
+// });
+
+// Test 2
+
+while (true){
+  // @ts-ignore
+  const { done, value } = await reader.read();
+  if (done){
+    console.log("Done reading the stream!");
+    break;
+  }
+
+  console.log(value);
+}
+</script>

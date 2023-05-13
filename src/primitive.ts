@@ -2,7 +2,7 @@ import type { CustomInspectFunction } from "node:util";
 
 const CustomInspect = Symbol.for("nodejs.util.inspect.custom");
 
-export class Byte<T extends number = number> extends Number {
+export class Int8<T extends number = number> extends Number {
   constructor(value: T) {
     super(value << 24 >> 24);
   }
@@ -12,7 +12,7 @@ export class Byte<T extends number = number> extends Number {
   }
 
   get [Symbol.toStringTag]() {
-    return "Byte" as const;
+    return "Int8" as const;
   }
 
   get [CustomInspect](): CustomInspectFunction {
@@ -20,7 +20,7 @@ export class Byte<T extends number = number> extends Number {
   }
 }
 
-export class Short<T extends number = number> extends Number {
+export class Int16<T extends number = number> extends Number {
   constructor(value: T) {
     super(value << 16 >> 16);
   }
@@ -30,7 +30,7 @@ export class Short<T extends number = number> extends Number {
   }
 
   get [Symbol.toStringTag]() {
-    return "Short" as const;
+    return "Int16" as const;
   }
 
   get [CustomInspect](): CustomInspectFunction {
@@ -38,7 +38,7 @@ export class Short<T extends number = number> extends Number {
   }
 }
 
-export class Int<T extends number = number> extends Number {
+export class Int32<T extends number = number> extends Number {
   constructor(value: T) {
     super(value | 0);
   }
@@ -48,7 +48,7 @@ export class Int<T extends number = number> extends Number {
   }
 
   get [Symbol.toStringTag]() {
-    return "Int" as const;
+    return "Int32" as const;
   }
 
   get [CustomInspect](): CustomInspectFunction {
@@ -56,7 +56,7 @@ export class Int<T extends number = number> extends Number {
   }
 }
 
-export class Float<T extends number = number> extends Number {
+export class Float32<T extends number = number> extends Number {
   constructor(value: T) {
     super(value);
   }
@@ -66,7 +66,7 @@ export class Float<T extends number = number> extends Number {
   }
 
   get [Symbol.toStringTag]() {
-    return "Float" as const;
+    return "Float32" as const;
   }
 
   get [CustomInspect](): CustomInspectFunction {

@@ -24,6 +24,10 @@ declare global {
     new (format: CompressionFormat): DecompressionStream;
     prototype: DecompressionStream;
   };
+
+  interface ReadableStream<R> {
+    [Symbol.asyncIterator](): AsyncGenerator<R>;
+  }
 }
 
 export {};
