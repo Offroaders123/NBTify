@@ -3,8 +3,7 @@ import { TAG, getTagType } from "./tag.js";
 import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
-import type { Data } from "./data.js";
-import type { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Root, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface WriteOptions {
   name?: Name;
@@ -18,7 +17,7 @@ export interface WriteOptions {
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write(data: Data | NBTData, { name, endian, compression, bedrockLevel }: WriteOptions = {}){
+export async function write(data: Root | NBTData, { name, endian, compression, bedrockLevel }: WriteOptions = {}){
   if (data instanceof NBTData){
     if (name === undefined) name = data.name;
     if (endian === undefined) endian = data.endian;
@@ -86,7 +85,7 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: Data | NBTData, { name, endian }: NBTWriterOptions = {}) {
+  write(data: Root | NBTData, { name, endian }: NBTWriterOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;

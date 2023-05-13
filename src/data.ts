@@ -1,6 +1,7 @@
 import { Int32 } from "./primitive.js";
 
-export type Data = object;
+import type { Root } from "./tag.js";
+
 export type Name = string | null;
 export type Endian = "big" | "little";
 export type Compression = "gzip" | "deflate" | null;
@@ -16,14 +17,13 @@ export interface NBTDataOptions {
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends Data = any> {
+export class NBTData<T extends Root = any> {
   declare readonly data: T;
   declare readonly name: Name;
   declare readonly endian: Endian;
   declare readonly compression: Compression;
   declare readonly bedrockLevel: BedrockLevel;
 
-  constructor(data: T | NBTData<T>, options?: NBTDataOptions);
   constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;

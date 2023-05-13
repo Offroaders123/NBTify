@@ -1,8 +1,7 @@
 import { NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { Data } from "./data.js";
-import type { Tag, ListTag, CompoundTag } from "./tag.js";
+import type { Root, Tag, ListTag, CompoundTag } from "./tag.js";
 
 export interface DefinitionOptions {
   name: string;
@@ -11,7 +10,7 @@ export interface DefinitionOptions {
 /**
  * Generates a TypeScript interface definition from an NBTData object.
 */
-export function definition(data: Data | NBTData, { name }: DefinitionOptions){
+export function definition(data: Root | NBTData, { name }: DefinitionOptions){
   if (data instanceof NBTData){
     data = data.data as CompoundTag;
   }
@@ -41,7 +40,7 @@ export class DefinitionWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: Data | NBTData, { name }: DefinitionWriterOptions) {
+  write(data: Root | NBTData, { name }: DefinitionWriterOptions) {
     if (data instanceof NBTData){
       data = data.data as CompoundTag;
     }

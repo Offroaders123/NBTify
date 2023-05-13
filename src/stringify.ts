@@ -1,8 +1,7 @@
 import { NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { Data } from "./data.js";
-import type { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Root, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface StringifyOptions {
   space?: string | number;
@@ -11,7 +10,7 @@ export interface StringifyOptions {
 /**
  * Converts an NBTData object into an SNBT string.
 */
-export function stringify(data: Data | NBTData, { space = "" }: StringifyOptions = {}){
+export function stringify(data: Root | NBTData, { space = "" }: StringifyOptions = {}){
   if (data instanceof NBTData){
     data = data.data as CompoundTag;
   }
@@ -41,7 +40,7 @@ export class SNBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: Data | NBTData, { space = "" }: SNBTWriterOptions = {}) {
+  write(data: Root | NBTData, { space = "" }: SNBTWriterOptions = {}) {
     if (data instanceof NBTData){
       data = data.data as CompoundTag;
     }
