@@ -9,8 +9,8 @@ import type { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, Dou
 export interface WriteOptions {
   name?: Name;
   endian?: Endian;
-  compression?: Compression | null;
-  bedrockLevel?: BedrockLevel | null;
+  compression?: Compression;
+  bedrockLevel?: BedrockLevel;
 }
 
 /**

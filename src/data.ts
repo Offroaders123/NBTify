@@ -3,14 +3,14 @@ import { Int32 } from "./primitive.js";
 export type Data = object;
 export type Name = string | null;
 export type Endian = "big" | "little";
-export type Compression = "gzip" | "deflate";
-export type BedrockLevel = Int32;
+export type Compression = "gzip" | "deflate" | null;
+export type BedrockLevel = Int32 | null;
 
 export interface NBTDataOptions {
   name?: Name;
   endian?: Endian;
-  compression?: Compression | null;
-  bedrockLevel?: BedrockLevel | null;
+  compression?: Compression;
+  bedrockLevel?: BedrockLevel;
 }
 
 /**
@@ -20,8 +20,8 @@ export class NBTData<T extends Data = any> {
   declare readonly data: T;
   declare readonly name: Name;
   declare readonly endian: Endian;
-  declare readonly compression: Compression | null;
-  declare readonly bedrockLevel: BedrockLevel | null;
+  declare readonly compression: Compression;
+  declare readonly bedrockLevel: BedrockLevel;
 
   constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){

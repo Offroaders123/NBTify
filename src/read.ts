@@ -7,7 +7,7 @@ import type { Tag, ListTag, CompoundTag } from "./tag.js";
 
 export interface ReadOptions {
   endian?: Endian;
-  compression?: Compression | null;
+  compression?: Compression;
   strict?: boolean;
   isNamed?: boolean;
   isBedrockLevel?: boolean;
@@ -90,7 +90,7 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
     isBedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
   }
 
-  let bedrockLevel: BedrockLevel | null;
+  let bedrockLevel: BedrockLevel;
 
   if (isBedrockLevel){
     const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
