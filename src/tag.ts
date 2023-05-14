@@ -20,7 +20,7 @@ export const TAG = {
 
 Object.freeze(TAG);
 
-export type Root = object;
+export type RootTag = object;
 
 export type Tag =
   | ByteTag

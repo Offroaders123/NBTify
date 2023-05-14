@@ -6,11 +6,11 @@ import { decompress } from "./compression.js";
 import type { Tag, ListTag, CompoundTag } from "./tag.js";
 
 export interface ReadOptions {
+  name?: boolean | Name;
   endian?: Endian;
   compression?: Compression;
+  bedrockLevel?: boolean | BedrockLevel;
   strict?: boolean;
-  isNamed?: boolean;
-  isBedrockLevel?: boolean;
 }
 
 /**
@@ -18,7 +18,7 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends object = any>(data: Uint8Array | ArrayBufferLike, { endian, compression, strict, isNamed, isBedrockLevel }: ReadOptions = {}){
+export async function read<T extends object = any>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}){
   if (data instanceof ArrayBuffer || typeof SharedArrayBuffer !== "undefined" && data instanceof SharedArrayBuffer){
     data = new Uint8Array(data);
   }
@@ -26,20 +26,20 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
   if (!(data instanceof Uint8Array)){
     throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
   }
+  if (name !== undefined && typeof name !== "boolean" && typeof name !== "string" && name !== null){
+    throw new TypeError("Name option must be a boolean, string, or null");
+  }
   if (endian !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
   if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "deflate"){
     throw new TypeError("Compression option must be a valid compression type");
   }
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && !(bedrockLevel instanceof Int32) && bedrockLevel !== null){
+    throw new TypeError("Bedrock Level option must be a boolean, Int32, or null");
+  }
   if (strict !== undefined && typeof strict !== "boolean"){
     throw new TypeError("Strict option must be a boolean");
-  }
-  if (isNamed !== undefined && typeof isNamed !== "boolean"){
-    throw new TypeError("Named option must be a boolean");
-  }
-  if (isBedrockLevel !== undefined && typeof isBedrockLevel !== "boolean"){
-    throw new TypeError("Bedrock Level option must be a boolean");
   }
 
   if (compression === undefined){
@@ -53,10 +53,10 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
   if (endian === undefined){
     let result: NBTData<T>;
     try {
-      result = await read<T>(data,{ endian: "big", compression, strict, isNamed, isBedrockLevel });
+      result = await read<T>(data,{ name, endian: "big", compression, bedrockLevel, strict });
     } catch (error){
       try {
-        result = await read<T>(data,{ endian: "little", compression, strict, isNamed, isBedrockLevel });
+        result = await read<T>(data,{ name, endian: "little", compression, bedrockLevel, strict });
       } catch {
         throw error;
       }
@@ -64,13 +64,13 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
     return result;
   }
 
-  if (isNamed === undefined){
+  if (name === undefined){
     let result: NBTData<T>;
     try {
-      result = await read<T>(data,{ endian, compression, strict, isNamed: true, isBedrockLevel });
+      result = await read<T>(data,{ name: true, endian, compression, bedrockLevel, strict });
     } catch (error){
       try {
-        result = await read<T>(data,{ endian, compression, strict, isNamed: false, isBedrockLevel });
+        result = await read<T>(data,{ name: true, endian, compression, bedrockLevel, strict });
       } catch {
         throw error;
       }
@@ -86,13 +86,11 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
     data = await decompress(data,{ format: "deflate" });
   }
 
-  if (isBedrockLevel === undefined){
-    isBedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
+  if (bedrockLevel === undefined){
+    bedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
   }
 
-  let bedrockLevel: BedrockLevel;
-
-  if (isBedrockLevel){
+  if (bedrockLevel !== false){
     const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
     const version = view.getUint32(0,true);
     bedrockLevel = new Int32(version);
@@ -102,7 +100,7 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
   }
 
   const reader = new NBTReader();
-  const result = reader.read<T>(data,{ endian, strict, isNamed });
+  const result = reader.read<T>(data,{ name, endian, strict });
 
   return new NBTData<T>(result,{ compression, bedrockLevel });
 }
@@ -126,9 +124,9 @@ function hasBedrockLevelHeader(data: Uint8Array){
 }
 
 export interface NBTReaderOptions {
+  name?: boolean | Name;
   endian?: Endian;
   strict?: boolean;
-  isNamed?: boolean;
 }
 
 /**
@@ -144,7 +142,7 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends object = any>(data: Uint8Array | ArrayBufferLike, { endian = "big", strict = true, isNamed = true }: NBTReaderOptions = {}) {
+  read<T extends object = any>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}) {
     if (data instanceof ArrayBuffer || typeof SharedArrayBuffer !== "undefined" && data instanceof SharedArrayBuffer){
       data = new Uint8Array(data);
     }
@@ -152,14 +150,14 @@ export class NBTReader {
     if (!(data instanceof Uint8Array)){
       throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
     }
+    if (typeof name !== "boolean" && typeof name !== "string" && name !== null){
+      throw new TypeError("Name option must be a boolean, string, or null");
+    }
     if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
     }
     if (typeof strict !== "boolean"){
       throw new TypeError("Strict option must be a boolean");
-    }
-    if (typeof isNamed !== "boolean"){
-      throw new TypeError("Named option must be a boolean");
     }
 
     this.#byteOffset = 0;
@@ -172,7 +170,7 @@ export class NBTReader {
       throw new Error(`Expected an opening Compound tag at the start of the buffer, encountered tag type '${type}'`);
     }
 
-    const name: Name = (isNamed) ? this.#readString() : null;
+    name = (name !== false) ? this.#readString() : null;
     const value = this.#readCompound() as T;
 
     if (strict && data.byteLength > this.#byteOffset){

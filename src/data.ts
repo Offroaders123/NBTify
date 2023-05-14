@@ -1,6 +1,6 @@
 import { Int32 } from "./primitive.js";
 
-import type { Root } from "./tag.js";
+import type { RootTag } from "./tag.js";
 
 export type Name = string | null;
 export type Endian = "big" | "little";
@@ -17,7 +17,7 @@ export interface NBTDataOptions {
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends Root = any> {
+export class NBTData<T extends RootTag = any> {
   declare readonly data: T;
   declare readonly name: Name;
   declare readonly endian: Endian;
@@ -51,7 +51,7 @@ export class NBTData<T extends Root = any> {
       throw new TypeError("Compression option must be a valid compression type");
     }
     if (bedrockLevel !== null && !(bedrockLevel instanceof Int32)){
-      throw new TypeError("Bedrock Level option must be an Int");
+      throw new TypeError("Bedrock Level option must be an Int32 or null");
     }
 
     Object.defineProperty(this,"data",{
