@@ -1,7 +1,7 @@
 import { Name, Endian, Compression, BedrockLevel, NBTData } from "./data.js";
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG } from "./tag.js";
-import { decompress } from "./compression.js";
+import { gunzip, inflate } from "./compression.js";
 
 import type { Tag, ListTag, CompoundTag } from "./tag.js";
 
@@ -79,11 +79,11 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
   }
 
   if (compression === "gzip"){
-    data = await decompress(data,{ format: "gzip" });
+    data = await gunzip(data);
   }
 
   if (compression === "deflate"){
-    data = await decompress(data,{ format: "deflate" });
+    data = await inflate(data);
   }
 
   if (bedrockLevel === undefined){

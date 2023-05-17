@@ -1,7 +1,7 @@
 import { Name, Endian, Compression, BedrockLevel, NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
 import { Int32 } from "./primitive.js";
-import { compress } from "./compression.js";
+import { gzip, deflate } from "./compression.js";
 
 import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
@@ -57,11 +57,11 @@ export async function write(data: RootTag | NBTData, { name, endian, compression
   }
 
   if (compression === "gzip"){
-    result = await compress(result,{ format: "gzip" });
+    result = await gzip(result);
   }
 
   if (compression === "deflate"){
-    result = await compress(result,{ format: "deflate" });
+    result = await deflate(result);
   }
 
   return result;
