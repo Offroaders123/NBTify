@@ -1,7 +1,7 @@
 import { Name, Endian, Compression, BedrockLevel, NBTData } from "./data.js";
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG } from "./tag.js";
-import { gunzip, inflate } from "./compression.js";
+import { decompress } from "./compression.js";
 
 import type { Tag, ListTag, CompoundTag } from "./tag.js";
 
@@ -32,7 +32,7 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
   if (endian !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
-  if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "deflate"){
+  if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
     throw new TypeError("Compression option must be a valid compression type");
   }
   if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && !(bedrockLevel instanceof Int32) && bedrockLevel !== null){
@@ -78,12 +78,8 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
     return result;
   }
 
-  if (compression === "gzip"){
-    data = await gunzip(data);
-  }
-
-  if (compression === "deflate"){
-    data = await inflate(data);
+  if (compression !== null){
+    data = await decompress(data,compression);
   }
 
   if (bedrockLevel === undefined){

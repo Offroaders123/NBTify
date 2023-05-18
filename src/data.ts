@@ -1,10 +1,11 @@
 import { Int32 } from "./primitive.js";
 
 import type { RootTag } from "./tag.js";
+import type { CompressionFormat } from "./compression.js";
 
 export type Name = string | null;
 export type Endian = "big" | "little";
-export type Compression = "gzip" | "deflate" | null;
+export type Compression = CompressionFormat | null;
 export type BedrockLevel = Int32 | null;
 
 export interface NBTDataOptions {
@@ -47,10 +48,10 @@ export class NBTData<T extends RootTag = any> {
     if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
     }
-    if (compression !== null && compression !== "gzip" && compression !== "deflate"){
+    if (compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
       throw new TypeError("Compression option must be a valid compression type");
     }
-    if (bedrockLevel !== null && !(bedrockLevel instanceof Int32)){
+    if (!(bedrockLevel instanceof Int32) && bedrockLevel !== null){
       throw new TypeError("Bedrock Level option must be an Int32 or null");
     }
 

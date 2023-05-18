@@ -1,38 +1,22 @@
-export async function gzip(data: BufferSource): Promise<Uint8Array> {
-  return compress(data,"gzip");
-}
+export type CompressionFormat = "deflate" | "deflate-raw" | "gzip";
 
-export async function gunzip(data: BufferSource): Promise<Uint8Array> {
-  return decompress(data,"gzip");
-}
-
-export async function deflate(data: BufferSource): Promise<Uint8Array> {
-  return compress(data,"deflate");
-}
-
-export async function inflate(data: BufferSource): Promise<Uint8Array> {
-  return decompress(data,"deflate");
-}
-
-export async function deflateRaw(data: BufferSource): Promise<Uint8Array> {
-  return compress(data,"deflate-raw");
-}
-
-export async function inflateRaw(data: BufferSource): Promise<Uint8Array> {
-  return decompress(data,"deflate-raw");
-}
-
-async function compress(data: BufferSource, format: CompressionFormat): Promise<Uint8Array> {
+/**
+ * Compresses a Uint8Array using a specific compression format.
+*/
+export async function compress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
   const compressionStream = new CompressionStream(format);
   return pipeThroughCompressionStream(data,compressionStream);
 }
 
-async function decompress(data: BufferSource, format: CompressionFormat): Promise<Uint8Array> {
+/**
+ * Decompresses a Uint8Array using a specific decompression format.
+*/
+export async function decompress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
   const decompressionStream = new DecompressionStream(format);
   return pipeThroughCompressionStream(data,decompressionStream);
 }
 
-async function pipeThroughCompressionStream(data: BufferSource, compressionStream: CompressionStream | DecompressionStream): Promise<Uint8Array> {
+async function pipeThroughCompressionStream(data: Uint8Array, compressionStream: CompressionStream | DecompressionStream): Promise<Uint8Array> {
   const writer = compressionStream.writable.getWriter();
 
   writer.write(data);

@@ -3,7 +3,7 @@ declare global {
     toString(): "[object ArrayBuffer]";
   }
 
-  type CompressionFormat = "gzip" | "deflate" | "deflate-raw";
+  type CompressionFormat = "deflate" | "deflate-raw" | "gzip";
 
   interface CompressionStream {
     readable: ReadableStream<Uint8Array>;

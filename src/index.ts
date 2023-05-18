@@ -6,3 +6,4 @@ export * from "./definition.js";
 export * from "./data.js";
 export * from "./tag.js";
 export * from "./primitive.js";
+export * from "./compression.js";

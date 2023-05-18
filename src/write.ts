@@ -1,7 +1,7 @@
 import { Name, Endian, Compression, BedrockLevel, NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
 import { Int32 } from "./primitive.js";
-import { gzip, deflate } from "./compression.js";
+import { compress } from "./compression.js";
 
 import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
@@ -35,10 +35,10 @@ export async function write(data: RootTag | NBTData, { name, endian, compression
   if (endian !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
-  if (compression !== undefined && compression !== null && compression !== "gzip" && compression !== "deflate"){
+  if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
     throw new TypeError("Compression option must be a valid compression type");
   }
-  if (bedrockLevel !== undefined && bedrockLevel !== null && !(bedrockLevel instanceof Int32)){
+  if (bedrockLevel !== undefined && !(bedrockLevel instanceof Int32) && bedrockLevel !== null){
     throw new TypeError("Bedrock Level option must be an Int32 or null");
   }
 
@@ -56,12 +56,8 @@ export async function write(data: RootTag | NBTData, { name, endian, compression
     result = data;
   }
 
-  if (compression === "gzip"){
-    result = await gzip(result);
-  }
-
-  if (compression === "deflate"){
-    result = await deflate(result);
+  if (compression !== undefined && compression !== null){
+    result = await compress(result,compression);
   }
 
   return result;
