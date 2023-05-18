@@ -12,7 +12,7 @@ export interface StringifyOptions {
 */
 export function stringify(data: RootTag | NBTData, { space = "" }: StringifyOptions = {}){
   if (data instanceof NBTData){
-    data = data.data as CompoundTag;
+    data = data.data as CompoundTagUnsafe;
   }
 
   if (typeof data !== "object" || data === null){
@@ -42,7 +42,7 @@ export class SNBTWriter {
   */
   write(data: RootTag | NBTData, { space = "" }: SNBTWriterOptions = {}) {
     if (data instanceof NBTData){
-      data = data.data as CompoundTag;
+      data = data.data as CompoundTagUnsafe;
     }
 
     if (typeof data !== "object" || data === null){
@@ -55,8 +55,7 @@ export class SNBTWriter {
     this.#space = (typeof space === "number") ? " ".repeat(space) : space;
     this.#level = 1;
 
-    // @ts-expect-error
-    return this.#writeTag(data);
+    return this.#writeCompound(data as CompoundTagUnsafe);
   }
 
   #writeTag(value: Tag): string {
@@ -70,8 +69,8 @@ export class SNBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(value as ListTag);
-      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
+      case TAG.LIST: return this.#writeList(value as ListTagUnsafe);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTagUnsafe);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
       default: throw new Error(`Encountered unsupported tag type '${type}'`);

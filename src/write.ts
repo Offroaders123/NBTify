@@ -23,7 +23,7 @@ export async function write(data: RootTag | NBTData, { name, endian, compression
     if (endian === undefined) endian = data.endian;
     if (compression === undefined) compression = data.compression;
     if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
-    data = data.data as CompoundTag;
+    data = data.data as CompoundTagUnsafe;
   }
 
   if (typeof data !== "object" || data === null){
@@ -85,7 +85,7 @@ export class NBTWriter {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
-      data = data.data as CompoundTag;
+      data = data.data as CompoundTagUnsafe;
     }
 
     if (name === undefined) name = "";
@@ -108,8 +108,7 @@ export class NBTWriter {
 
     this.#writeTagType(TAG.COMPOUND);
     if (name !== null) this.#writeString(name);
-    // @ts-expect-error
-    this.#writeCompound(data);
+    this.#writeCompound(data as CompoundTagUnsafe);
 
     this.#allocate(0);
     return this.#data.slice(0,this.#byteOffset);
@@ -148,7 +147,7 @@ export class NBTWriter {
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
       case TAG.LIST: return this.#writeList(value as ListTag);
-      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTagUnsafe);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
     }

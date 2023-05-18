@@ -17,4 +17,6 @@ console.log(result.data.SelectedItem.id,"\n");
 const recompile = await NBT.write(result).then(Buffer.from);
 console.log(recompile,"\n");
 
-console.log(Buffer.compare(data,recompile));
+console.log(Buffer.compare(data,recompile),"\n");
+
+console.log(NBT.stringify(result,{ space: 2 }));

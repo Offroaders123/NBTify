@@ -12,7 +12,7 @@ export interface DefinitionOptions {
 */
 export function definition(data: RootTag | NBTData, { name }: DefinitionOptions){
   if (data instanceof NBTData){
-    data = data.data as CompoundTag;
+    data = data.data as CompoundTagUnsafe;
   }
 
   if (typeof data !== "object" || data === null){
@@ -42,7 +42,7 @@ export class DefinitionWriter {
   */
   write(data: RootTag | NBTData, { name }: DefinitionWriterOptions) {
     if (data instanceof NBTData){
-      data = data.data as CompoundTag;
+      data = data.data as CompoundTagUnsafe;
     }
 
     if (typeof data !== "object" || data === null){
@@ -55,8 +55,7 @@ export class DefinitionWriter {
     this.#space = "  ";
     this.#level = 1;
 
-    // @ts-expect-error
-    return `interface ${name} ${this.#writeTag(data)}`;
+    return `interface ${name} ${this.#writeCompound(data as CompoundTagUnsafe)}`;
   }
 
   #writeTag(value: Tag): string {
@@ -70,8 +69,8 @@ export class DefinitionWriter {
       case TAG.DOUBLE: return this.#writeDouble();
       case TAG.BYTE_ARRAY: return this.#writeByteArray();
       case TAG.STRING: return this.#writeString();
-      case TAG.LIST: return this.#writeList(value as ListTag);
-      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
+      case TAG.LIST: return this.#writeList(value as ListTagUnsafe);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTagUnsafe);
       case TAG.INT_ARRAY: return this.#writeIntArray();
       case TAG.LONG_ARRAY: return this.#writeLongArray();
       default: throw new Error(`Encountered unsupported tag type '${type}'`);
