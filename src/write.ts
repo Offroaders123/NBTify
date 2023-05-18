@@ -3,7 +3,7 @@ import { TAG, getTagType } from "./tag.js";
 import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
-import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface WriteOptions {
   name?: Name;
@@ -223,7 +223,7 @@ export class NBTWriter {
     this.#byteOffset += length;
   }
 
-  #writeList(valueUnsafe: ListTag) {
+  #writeList(valueUnsafe: ListTagUnsafe) {
     const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const { length } = value;
@@ -237,7 +237,7 @@ export class NBTWriter {
     }
   }
 
-  #writeCompound(valueUnsafe: CompoundTag) {
+  #writeCompound(valueUnsafe: CompoundTagUnsafe) {
     for (const [name,entry] of Object.entries(valueUnsafe)){
       const type = getTagType(entry);
       if (type === null) continue;

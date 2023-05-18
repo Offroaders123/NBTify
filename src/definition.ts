@@ -1,7 +1,7 @@
 import { NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { RootTag, Tag, ListTag, CompoundTag } from "./tag.js";
+import type { RootTag, Tag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe } from "./tag.js";
 
 export interface DefinitionOptions {
   name: string;
@@ -120,7 +120,7 @@ export class DefinitionWriter {
     return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
   }
 
-  #writeList(valueUnsafe: ListTag) {
+  #writeList(valueUnsafe: ListTagUnsafe) {
     const fancy = (this.#space !== "");
     const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
@@ -133,7 +133,7 @@ export class DefinitionWriter {
     })() as string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
   }
 
-  #writeCompound(valueUnsafe: CompoundTag) {
+  #writeCompound(valueUnsafe: CompoundTagUnsafe) {
     const fancy = (this.#space !== "");
     return `{${[...Object.entries(valueUnsafe)].filter(
       (entry): entry is [string,Tag] => getTagType(entry[1]) !== null

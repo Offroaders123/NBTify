@@ -1,10 +1,8 @@
-// @ts-nocheck
-
-import { Byte, Short, NBTData } from "../../src/index.js";
+import { type Tag, Int8, Int16, NBTData } from "../../src/index.js";
 
 export default new NBTData({
-  ByteTag: new Byte(127),
-  ShortTag: new Short(258),
+  ByteTag: new Int8(127),
+  ShortTag: new Int16(258),
   DoubleTag: 84246,
   LongTag: 30154000n,
   CompoundTag: {
@@ -39,4 +37,4 @@ export default new NBTData({
   ],
   IntArrayTag: new Int32Array([45,8,6,3,2,345,67,887452,123123,254]),
   LongArrayTag: new BigInt64Array([34234n,2343464756n,23425457n])
-});
+} satisfies Record<string,Tag>);

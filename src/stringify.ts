@@ -1,7 +1,7 @@
 import { NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface StringifyOptions {
   space?: string | number;
@@ -116,7 +116,7 @@ export class SNBTWriter {
     return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
   }
 
-  #writeList(valueUnsafe: ListTag) {
+  #writeList(valueUnsafe: ListTagUnsafe) {
     const fancy = (this.#space !== "");
     const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
@@ -129,7 +129,7 @@ export class SNBTWriter {
     })() as string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
   }
 
-  #writeCompound(valueUnsafe: CompoundTag) {
+  #writeCompound(valueUnsafe: CompoundTagUnsafe) {
     const fancy = (this.#space !== "");
     return `{${[...Object.entries(valueUnsafe)].filter(
       (entry): entry is [string,Tag] => getTagType(entry[1]) !== null
