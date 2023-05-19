@@ -1,4 +1,4 @@
-import type { CustomInspectFunction } from "node:util";
+type CustomInspectFunction = import("node:util").CustomInspectFunction;
 
 const CustomInspect = Symbol.for("nodejs.util.inspect.custom");
 
@@ -15,7 +15,7 @@ export class Int8<T extends number = number> extends Number {
     return "Int8" as const;
   }
 
-  get [CustomInspect](): CustomInspectFunction {
+  private get [CustomInspect](): CustomInspectFunction {
     return (_,{ stylize }) => stylize(`${this.valueOf()}b`,"number");
   }
 }
@@ -33,7 +33,7 @@ export class Int16<T extends number = number> extends Number {
     return "Int16" as const;
   }
 
-  get [CustomInspect](): CustomInspectFunction {
+  private get [CustomInspect](): CustomInspectFunction {
     return (_,{ stylize }) => stylize(`${this.valueOf()}s`,"number");
   }
 }
@@ -51,7 +51,7 @@ export class Int32<T extends number = number> extends Number {
     return "Int32" as const;
   }
 
-  get [CustomInspect](): CustomInspectFunction {
+  private get [CustomInspect](): CustomInspectFunction {
     return () => this.valueOf();
   }
 }
@@ -69,7 +69,7 @@ export class Float32<T extends number = number> extends Number {
     return "Float32" as const;
   }
 
-  get [CustomInspect](): CustomInspectFunction {
+  private get [CustomInspect](): CustomInspectFunction {
     return (_,{ stylize }) => stylize(`${this.valueOf()}f`,"number");
   }
 }
