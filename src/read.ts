@@ -70,7 +70,7 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
       result = await read<T>(data,{ name: true, endian, compression, bedrockLevel, strict });
     } catch (error){
       try {
-        result = await read<T>(data,{ name: true, endian, compression, bedrockLevel, strict });
+        result = await read<T>(data,{ name: false, endian, compression, bedrockLevel, strict });
       } catch {
         throw error;
       }
