@@ -12,7 +12,7 @@ console.log(data,"\n");
 const result = await NBT.read<LCEPlayer>(data,{ strict: false });
 console.log(result,"\n");
 
-console.log(result.data.SelectedItem.id,"\n");
+result.data.SelectedItem.id;
 
 const recompile = await NBT.write(result).then(Buffer.from);
 console.log(recompile,"\n");
