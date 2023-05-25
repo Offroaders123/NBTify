@@ -1,22 +1,21 @@
 import { readFile } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
-import type { LCEPlayer } from "./LCEPlayer.d.ts";
+const RIDICULOUS = new URL("./nbt/ridiculous.nbt",import.meta.url);
 
-const PLAYER_FILE_0 = new URL("./nbt/P_280dfc7dac2f_00000001_knarF_520.dat",import.meta.url);
-const PLAYER_FILE_1 = new URL("./nbt/N_280dfc7dac2f_100000001_.dat",import.meta.url);
-
-const data = await readFile(PLAYER_FILE_0);
+const data = await readFile(RIDICULOUS);
 console.log(data,"\n");
 
-const result = await NBT.read<LCEPlayer>(data,{ strict: false });
+const result = await NBT.read(data);
 console.log(result,"\n");
 
-result.data.SelectedItem.id;
+const stringed = NBT.stringify(result,{ space: 2 });
+console.log(stringed,"\n");
 
-const recompile = await NBT.write(result).then(Buffer.from);
+const parsed = NBT.parse(stringed);
+console.log(parsed,"\n");
+
+const recompile = await NBT.write(parsed,result).then(Buffer.from);
 console.log(recompile,"\n");
 
-console.log(Buffer.compare(data,recompile),"\n");
-
-console.log(NBT.stringify(result,{ space: 2 }));
+console.log(Buffer.compare(data.subarray(10),recompile.subarray(10)));
