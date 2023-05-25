@@ -15,6 +15,12 @@ export function parse<T extends RootTag = any>(data: string): T {
   return reader.read<T>(data);
 }
 
+const WHITESPACE_PATTERN = /\s+/;
+const INTEGER_PATTERN = /^([-+]?(?:0|[1-9][0-9]*))([bls]?)$/i;
+const FLOAT_PATTERN = /^([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)([df]?)$/i;
+const BOOLEAN_PATTERN = /^(true|false)$/;
+const UNQUOTED_STRING_OPEN_PATTERN = /^[0-9a-z_\-.+]+/i;
+
 /**
  * The base implementation to convert an SNBT string into a CompoundTag object.
 */
@@ -78,8 +84,7 @@ export class SNBTReader {
   }
 
   #skipWhitespace(): void {
-    // WHITESPACE_PATTERN
-    while (this.#canRead() && /\s+/.test(this.#peek())){
+    while (this.#canRead() && WHITESPACE_PATTERN.test(this.#peek())){
       this.#skip();
     }
   }
@@ -111,16 +116,13 @@ export class SNBTReader {
     }
 
     try {
-      // INTEGER_PATTERN
-      let match = string.match(/^([-+]?(?:0|[1-9][0-9]*))([bls]?)$/i);
+      let match = string.match(INTEGER_PATTERN);
       if (match) return this.#readInteger(match);
 
-      // FLOAT_PATTERN
-      match = string.match(/^([-+]?(?:[0-9]+[.]?|[0-9]*[.][0-9]+)(?:e[-+]?[0-9]+)?)([df]?)$/i);
+      match = string.match(FLOAT_PATTERN);
       if (match) return this.#readFloat(match);
 
-      // TRUE_PATTERN or FALSE_PATTERN
-      if (/^true$/i.test(string) || /^false$/i.test(string)) return Boolean(string);
+      if (BOOLEAN_PATTERN.test(string)) return Boolean(string);
     } catch {
       return string as StringTag;
     }
@@ -161,8 +163,7 @@ export class SNBTReader {
   }
 
   #readUnquotedString(): StringTag | null {
-    // UNQUOTED_STRING_OPEN_PATTERN
-    const match = this.#data.slice(this.#offset).match(/^[0-9a-z_\-.+]+/i);
+    const match = this.#data.slice(this.#offset).match(UNQUOTED_STRING_OPEN_PATTERN);
     if (match === null) return null;
 
     this.#offset += match[0].length;
@@ -220,14 +221,6 @@ export class SNBTReader {
 
     while (this.#canRead() && this.#peek() != "]"){
       const tag = this.#readTag();
-
-      // if (tagType == null){
-      //   tagType = tag.constructor;
-      // } else if (!(tag instanceof tagType)){
-      //   throw new Error(
-      //     `Expected tag of type ${tagType.name} but got ${tag.constructor}`,
-      //   );
-      // }
 
       tags.push(tag);
 
