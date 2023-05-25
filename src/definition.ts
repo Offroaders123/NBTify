@@ -10,7 +10,7 @@ export interface DefinitionOptions {
 /**
  * Generates a TypeScript interface definition from an NBTData object.
 */
-export function definition(data: RootTag | NBTData, { name }: DefinitionOptions){
+export function definition(data: RootTag | NBTData, { name }: DefinitionOptions): string {
   if (data instanceof NBTData){
     data = data.data as CompoundTagUnsafe;
   }
@@ -40,7 +40,7 @@ export class DefinitionWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: RootTag | NBTData, { name }: DefinitionWriterOptions) {
+  write(data: RootTag | NBTData, { name }: DefinitionWriterOptions): string {
     if (data instanceof NBTData){
       data = data.data as CompoundTagUnsafe;
     }
@@ -113,13 +113,13 @@ export class DefinitionWriter {
     return "StringTag" as const;
   }
 
-  #writeStringLiteral(value: string) {
+  #writeStringLiteral(value: string): string {
     const singleQuoteString = value.replace(/['\\]/g,(character) => `\\${character}`);
     const doubleQuoteString = value.replace(/["\\]/g,(character) => `\\${character}`);
     return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
   }
 
-  #writeList(valueUnsafe: ListTagUnsafe) {
+  #writeList(valueUnsafe: ListTagUnsafe): string {
     const fancy = (this.#space !== "");
     const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
@@ -132,7 +132,7 @@ export class DefinitionWriter {
     })() as string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
   }
 
-  #writeCompound(valueUnsafe: CompoundTagUnsafe) {
+  #writeCompound(valueUnsafe: CompoundTagUnsafe): string {
     const fancy = (this.#space !== "");
     return `{${[...Object.entries(valueUnsafe)].filter(
       (entry): entry is [string,Tag] => getTagType(entry[1]) !== null

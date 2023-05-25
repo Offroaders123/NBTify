@@ -1,18 +1,18 @@
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 /**
  * Converts an SNBT string into a CompoundTag object.
 */
-export function parse(data: string){
+export function parse<T extends RootTag = any>(data: string): T {
   if (typeof data !== "string"){
     throw new TypeError("First parameter must be a string");
   }
 
   const reader = new SNBTReader();
-  return reader.read(data);
+  return reader.read<T>(data);
 }
 
 /**
@@ -25,7 +25,7 @@ export class SNBTReader {
   /**
    * Initiates the reader over an SNBT string.
   */
-  read(data: string) {
+  read<T extends RootTag = any>(data: string): T {
     if (typeof data !== "string"){
       throw new TypeError("First parameter must be a string");
     }
@@ -33,7 +33,7 @@ export class SNBTReader {
     this.#data = data;
     this.#offset = 0;
 
-    const tag = this.#readCompoundTag();
+    const tag = this.#readCompoundTag() as T;
     const lastChar = this.#peek(-1);
 
     const endPos = this.#offset;
@@ -49,23 +49,23 @@ export class SNBTReader {
     return tag;
   }
 
-  #canRead(length = 1) {
+  #canRead(length = 1): boolean {
     return this.#offset + length <= this.#data.length;
   }
 
-  #peek(offset = 0) {
+  #peek(offset = 0): string {
     return this.#data[this.#offset + offset];
   }
 
-  #next() {
+  #next(): string {
     return this.#data[this.#offset++];
   }
 
-  #skip(length = 1) {
+  #skip(length = 1): void {
     this.#offset += length;
   }
 
-  #skipSeperator() {
+  #skipSeperator(): boolean {
     this.#skipWhitespace();
 
     if (this.#canRead() && this.#peek() == ","){
@@ -77,14 +77,14 @@ export class SNBTReader {
     }
   }
 
-  #skipWhitespace() {
+  #skipWhitespace(): void {
     // WHITESPACE_PATTERN
     while (this.#canRead() && /\s+/.test(this.#peek())){
       this.#skip();
     }
   }
 
-  #expect(character: string) {
+  #expect(character: string): void {
     if (!this.#canRead() || this.#peek() != character){
       throw new Error(`Expected '${character}'`);
     }
@@ -147,7 +147,7 @@ export class SNBTReader {
     }
   }
 
-  #readByteArray(tags: Tag[]) {
+  #readByteArray(tags: Tag[]): ByteArrayTag {
     const array = new Int8Array(tags.length);
     for (let i = 0; i < tags.length; i++){
       array[i] = tags[i].valueOf() as number;
@@ -155,12 +155,12 @@ export class SNBTReader {
     return array as ByteArrayTag;
   }
 
-  #readString() {
+  #readString(): StringTag | null {
     const char = this.#peek();
     return (char == '"' || char == "'") ? this.#readQuotedString(char) : this.#readUnquotedString();
   }
 
-  #readUnquotedString() {
+  #readUnquotedString(): StringTag | null {
     // UNQUOTED_STRING_OPEN_PATTERN
     const match = this.#data.slice(this.#offset).match(/^[0-9a-z_\-.+]+/i);
     if (match === null) return null;
@@ -169,7 +169,7 @@ export class SNBTReader {
     return match[0];
   }
 
-  #readQuotedString(quoteChar: string) {
+  #readQuotedString(quoteChar: string): StringTag {
     let lastPos = ++this.#offset;
     let string = "";
 
@@ -253,7 +253,7 @@ export class SNBTReader {
     }
   }
 
-  #readCompoundTag() {
+  #readCompoundTag(): CompoundTag {
     this.#skipWhitespace();
     this.#expect("{");
 
@@ -295,7 +295,7 @@ export class SNBTReader {
     return tag;
   }
 
-  #readIntArray(tags: Tag[]) {
+  #readIntArray(tags: Tag[]): IntArrayTag {
     const array = new Int32Array(tags.length);
     for (let i = 0; i < tags.length; i++){
       array[i] = tags[i].valueOf() as number;
@@ -303,7 +303,7 @@ export class SNBTReader {
     return array;
   }
 
-  #readLongArray(tags: Tag[]) {
+  #readLongArray(tags: Tag[]): LongArrayTag {
     const array = new BigInt64Array(tags.length);
     for (let i = 0; i < tags.length; i++){
       array[i] = BigInt(tags[i].valueOf() as number);

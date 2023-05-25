@@ -10,7 +10,7 @@ export interface StringifyOptions {
 /**
  * Converts an NBTData object into an SNBT string.
 */
-export function stringify(data: RootTag | NBTData, { space = "" }: StringifyOptions = {}){
+export function stringify(data: RootTag | NBTData, { space = "" }: StringifyOptions = {}): string {
   if (data instanceof NBTData){
     data = data.data as CompoundTagUnsafe;
   }
@@ -40,7 +40,7 @@ export class SNBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write(data: RootTag | NBTData, { space = "" }: SNBTWriterOptions = {}) {
+  write(data: RootTag | NBTData, { space = "" }: SNBTWriterOptions = {}): string {
     if (data instanceof NBTData){
       data = data.data as CompoundTagUnsafe;
     }
@@ -61,11 +61,11 @@ export class SNBTWriter {
   #writeTag(value: Tag): string {
     const type = getTagType(value);
     switch (type){
-      case TAG.BYTE: return (typeof value === "boolean") ? this.#writeBoolean(value as boolean) : this.#writeByte((value as ByteTag).valueOf());
-      case TAG.SHORT: return this.#writeShort((value as ShortTag).valueOf());
-      case TAG.INT: return this.#writeInt((value as IntTag).valueOf());
+      case TAG.BYTE: return (typeof value === "boolean") ? this.#writeBoolean(value as boolean) : this.#writeByte(value as ByteTag);
+      case TAG.SHORT: return this.#writeShort(value as ShortTag);
+      case TAG.INT: return this.#writeInt(value as IntTag);
       case TAG.LONG: return this.#writeLong(value as LongTag);
-      case TAG.FLOAT: return this.#writeFloat((value as FloatTag).valueOf());
+      case TAG.FLOAT: return this.#writeFloat(value as FloatTag);
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
@@ -78,44 +78,44 @@ export class SNBTWriter {
   }
 
   #writeBoolean(value: boolean) {
-    return `${value}`;
+    return `${value}` as const;
   }
 
-  #writeByte(value: number) {
-    return `${value}b`;
+  #writeByte(value: number | ByteTag) {
+    return `${value.valueOf()}b` as const;
   }
 
-  #writeShort(value: number) {
-    return `${value}s`;
+  #writeShort(value: number | ShortTag) {
+    return `${value.valueOf()}s` as const;
   }
 
-  #writeInt(value: number) {
-    return `${value}`;
+  #writeInt(value: number | IntTag) {
+    return `${value.valueOf()}` as const;
   }
 
-  #writeLong(value: bigint) {
-    return `${value}l`;
+  #writeLong(value: LongTag) {
+    return `${value}l` as const;
   }
 
-  #writeFloat(value: number) {
-    return `${value}f`;
+  #writeFloat(value: number | FloatTag) {
+    return `${value.valueOf()}f` as const;
   }
 
-  #writeDouble(value: number) {
-    return `${value}d`;
+  #writeDouble(value: DoubleTag) {
+    return `${value}d` as const;
   }
 
-  #writeByteArray(value: Int8Array) {
+  #writeByteArray(value: ByteArrayTag): string {
     return `[B;${[...value].map(entry => this.#writeByte(entry)).join() as string}]`;
   }
 
-  #writeString(value: string) {
+  #writeString(value: StringTag): string {
     const singleQuoteString = value.replace(/['\\]/g,(character) => `\\${character}`);
     const doubleQuoteString = value.replace(/["\\]/g,(character) => `\\${character}`);
     return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
   }
 
-  #writeList(valueUnsafe: ListTagUnsafe) {
+  #writeList(valueUnsafe: ListTagUnsafe): string {
     const fancy = (this.#space !== "");
     const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
@@ -128,7 +128,7 @@ export class SNBTWriter {
     })() as string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
   }
 
-  #writeCompound(valueUnsafe: CompoundTagUnsafe) {
+  #writeCompound(valueUnsafe: CompoundTagUnsafe): string {
     const fancy = (this.#space !== "");
     return `{${[...Object.entries(valueUnsafe)].filter(
       (entry): entry is [string,Tag] => getTagType(entry[1]) !== null
@@ -140,11 +140,11 @@ export class SNBTWriter {
     })() as string}`).join(",")}${fancy && Object.keys(valueUnsafe).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
   }
 
-  #writeIntArray(value: Int32Array) {
+  #writeIntArray(value: IntArrayTag): string {
     return `[I;${[...value].map(entry => this.#writeInt(entry)).join() as string}]`;
   }
 
-  #writeLongArray(value: BigInt64Array) {
+  #writeLongArray(value: LongArrayTag): string {
     return `[L;${[...value].map(entry => this.#writeLong(entry)).join() as string}]`;
   }
 }

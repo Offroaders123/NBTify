@@ -43,10 +43,12 @@ async function pipeThroughCompressionStream(data: Uint8Array, compressionStream:
 
 async function* readableStreamToAsyncGenerator(stream: ReadableStream<Uint8Array>): AsyncGenerator<Uint8Array,void,void> {
   const reader = stream.getReader();
+
   try {
     while (true){
       const { done, value } = await reader.read();
       if (done) return;
+
       yield value;
     }
   } finally {

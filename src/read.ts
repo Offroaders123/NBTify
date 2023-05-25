@@ -1,9 +1,10 @@
-import { Name, Endian, Compression, BedrockLevel, NBTData } from "./data.js";
+import { NBTData } from "./data.js";
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
-import type { Tag, ListTag, CompoundTag } from "./tag.js";
+import type { Name, Endian, Compression, BedrockLevel } from "./data.js";
+import type { Tag, RootTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface ReadOptions {
   name?: boolean | Name;
@@ -18,7 +19,7 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends object = any>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}){
+export async function read<T extends RootTag = any>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T>> {
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
@@ -101,19 +102,19 @@ export async function read<T extends object = any>(data: Uint8Array | ArrayBuffe
   return new NBTData<T>(result,{ compression, bedrockLevel });
 }
 
-function hasGzipHeader(data: Uint8Array){
+function hasGzipHeader(data: Uint8Array): boolean {
   const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
   const header = view.getUint16(0,false);
   return header === 0x1F8B;
 }
 
-function hasZlibHeader(data: Uint8Array) {
+function hasZlibHeader(data: Uint8Array): boolean {
   const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
   const header = view.getUint8(0);
   return header === 0x78;
 }
 
-function hasBedrockLevelHeader(data: Uint8Array){
+function hasBedrockLevelHeader(data: Uint8Array): boolean {
   const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
   const byteLength = view.getUint32(4,true);
   return byteLength === data.byteLength - 8;
@@ -138,7 +139,7 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends object = any>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}) {
+  read<T extends RootTag = any>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T> {
     if (!("byteOffset" in data)){
       data = new Uint8Array(data);
     }
@@ -177,7 +178,7 @@ export class NBTReader {
     return new NBTData<T>(value,{ name, endian });
   }
 
-  #allocate(byteLength: number) {
+  #allocate(byteLength: number): void {
     if (this.#byteOffset + byteLength > this.#data.byteLength){
       throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
     }
@@ -209,63 +210,63 @@ export class NBTReader {
     return this.#readUnsignedByte() as TAG;
   }
 
-  #readUnsignedByte() {
+  #readUnsignedByte(): number {
     this.#allocate(1);
     const value = this.#view.getUint8(this.#byteOffset);
     this.#byteOffset += 1;
     return value;
   }
 
-  #readByte() {
+  #readByte(): number {
     this.#allocate(1);
     const value = this.#view.getInt8(this.#byteOffset);
     this.#byteOffset += 1;
     return value;
   }
 
-  #readUnsignedShort() {
+  #readUnsignedShort(): number {
     this.#allocate(2);
     const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
 
-  #readShort() {
+  #readShort(): number {
     this.#allocate(2);
     const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
 
-  #readInt() {
+  #readInt(): number {
     this.#allocate(4);
     const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
 
-  #readLong() {
+  #readLong(): LongTag {
     this.#allocate(8);
     const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
 
-  #readFloat() {
+  #readFloat(): number {
     this.#allocate(4);
     const value = this.#view.getFloat32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
 
-  #readDouble() {
+  #readDouble(): DoubleTag {
     this.#allocate(8);
     const value = this.#view.getFloat64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
 
-  #readByteArray() {
+  #readByteArray(): ByteArrayTag {
     const length = this.#readInt();
     this.#allocate(length);
     const value = new Int8Array(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
@@ -273,7 +274,7 @@ export class NBTReader {
     return value;
   }
 
-  #readString() {
+  #readString(): StringTag {
     const length = this.#readUnsignedShort();
     this.#allocate(length);
     const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
@@ -281,7 +282,7 @@ export class NBTReader {
     return value;
   }
 
-  #readList() {
+  #readList(): ListTag {
     const type = this.#readTagType();
     const length = this.#readInt();
     const value: ListTag = [];
@@ -292,7 +293,7 @@ export class NBTReader {
     return value;
   }
 
-  #readCompound() {
+  #readCompound(): CompoundTag {
     const value: CompoundTag = {};
     while (true){
       const type = this.#readTagType();
@@ -304,7 +305,7 @@ export class NBTReader {
     return value;
   }
 
-  #readIntArray() {
+  #readIntArray(): IntArrayTag {
     const length = this.#readInt();
     const value = new Int32Array(length);
     for (const i in value){
@@ -314,7 +315,7 @@ export class NBTReader {
     return value;
   }
 
-  #readLongArray() {
+  #readLongArray(): LongArrayTag {
     const length = this.#readInt();
     const value = new BigInt64Array(length);
     for (const i in value){
