@@ -8,7 +8,12 @@ export function parse<T extends RootTag = any>(data: string): T {
 }
 
 const TOKEN = {
-  WHITESPACE: /\s+/
+  LEFT_CURLY_BRACE: /^{$/,
+  RIGHT_CURLY_BRACE: /^}$/,
+  LEFT_BRACKET: /^\[$/,
+  RIGHT_BRACKET: /^]$/,
+  QUOTE: /^("|')$/,
+  WHITESPACE: /^\s+$/
 } as const;
 
 Object.freeze(TOKEN);
@@ -43,7 +48,19 @@ export class SNBTReader {
     }
   }
 
-  #readTag(): Tag {}
+  #readTag(): Tag {
+    this.#readWhitespace();
+    this.#allocate(1);
+    const value = this.#readCharacter(0);
+
+    switch (true){
+      case TOKEN.LEFT_CURLY_BRACE.test(value): return this.#readCompound();
+      case TOKEN.LEFT_BRACKET.test(value): return this.#readArrayLike();
+      case TOKEN.QUOTE.test(value): return this.#readString();
+    }
+  }
+
+  #readArrayLike(): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {}
 
   #readByte(): ByteTag {}
 
@@ -59,7 +76,15 @@ export class SNBTReader {
 
   #readByteArray(): ByteArrayTag {}
 
-  #readString(): StringTag {}
+  #readString(): StringTag {
+    this.#allocate(1);
+    const first = this.#readCharacter(0);
+    this.#index += 1;
+
+    if (TOKEN.QUOTE.test(first)){
+      const quote = this.#readCharacter(0);
+    }
+  }
 
   #readList(): ListTag {}
 
