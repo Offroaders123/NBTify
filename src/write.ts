@@ -164,9 +164,9 @@ export class NBTWriter {
     this.#byteOffset += 1;
   }
 
-  #writeByte(value: number | ByteTag | BooleanTag): void {
+  #writeByte(value: ByteTag | BooleanTag): void {
     this.#allocate(1);
-    this.#view.setInt8(this.#byteOffset,Number(value.valueOf()));
+    this.#view.setInt8(this.#byteOffset,(typeof value === "boolean") ? Number(value) : value.valueOf());
     this.#byteOffset += 1;
   }
 
@@ -176,13 +176,13 @@ export class NBTWriter {
     this.#byteOffset += 2;
   }
 
-  #writeShort(value: number | ShortTag): void {
+  #writeShort(value: ShortTag): void {
     this.#allocate(2);
     this.#view.setInt16(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 2;
   }
 
-  #writeInt(value: number | IntTag): void {
+  #writeInt(value: IntTag): void {
     this.#allocate(4);
     this.#view.setInt32(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 4;
@@ -194,7 +194,7 @@ export class NBTWriter {
     this.#byteOffset += 8;
   }
 
-  #writeFloat(value: number | FloatTag): void {
+  #writeFloat(value: FloatTag): void {
     this.#allocate(4);
     this.#view.setFloat32(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 4;
@@ -208,7 +208,7 @@ export class NBTWriter {
 
   #writeByteArray(value: ByteArrayTag): void {
     const { length } = value;
-    this.#writeInt(length);
+    this.#writeInt(new Int32(length));
     this.#allocate(length);
     this.#data.set(value,this.#byteOffset);
     this.#byteOffset += length;
@@ -227,7 +227,7 @@ export class NBTWriter {
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const { length } = value;
     this.#writeTagType(type);
-    this.#writeInt(length);
+    this.#writeInt(new Int32(length));
     for (const entry of value){
       if (getTagType(entry) !== type){
         throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
@@ -256,15 +256,15 @@ export class NBTWriter {
 
   #writeIntArray(value: IntArrayTag): void {
     const { length } = value;
-    this.#writeInt(length);
+    this.#writeInt(new Int32(length));
     for (const entry of value){
-      this.#writeInt(entry);
+      this.#writeInt(new Int32(entry));
     }
   }
 
   #writeLongArray(value: LongArrayTag): void {
     const { length } = value;
-    this.#writeInt(length);
+    this.#writeInt(new Int32(length));
     for (const entry of value){
       this.#writeLong(entry);
     }

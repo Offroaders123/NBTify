@@ -1,5 +1,6 @@
 import { NBTData } from "./data.js";
 import { TAG, getTagType, sanitizeList, sanitizeCompound } from "./tag.js";
+import { Int8, Int32 } from "./primitive.js";
 
 import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe, IntArrayTag, LongArrayTag } from "./tag.js";
 
@@ -77,15 +78,15 @@ export class SNBTWriter {
     }
   }
 
-  #writeByte(value: number | ByteTag | BooleanTag): string {
+  #writeByte(value: ByteTag | BooleanTag): string {
     return (typeof value === "boolean") ? `${value}` : `${value.valueOf()}b`;
   }
 
-  #writeShort(value: number | ShortTag): string {
+  #writeShort(value: ShortTag): string {
     return `${value.valueOf()}s`;
   }
 
-  #writeInt(value: number | IntTag): string {
+  #writeInt(value: IntTag): string {
     return `${value.valueOf()}`;
   }
 
@@ -93,7 +94,7 @@ export class SNBTWriter {
     return `${value}l`;
   }
 
-  #writeFloat(value: number | FloatTag): string {
+  #writeFloat(value: FloatTag): string {
     return `${value.valueOf()}f`;
   }
 
@@ -102,7 +103,7 @@ export class SNBTWriter {
   }
 
   #writeByteArray(value: ByteArrayTag): string {
-    return `[B;${[...value].map(entry => this.#writeByte(entry)).join() satisfies string}]`;
+    return `[B;${[...value].map(entry => this.#writeByte(new Int8(entry))).join() satisfies string}]`;
   }
 
   #writeString(value: StringTag): string {
@@ -142,7 +143,7 @@ export class SNBTWriter {
   }
 
   #writeIntArray(value: IntArrayTag): string {
-    return `[I;${[...value].map(entry => this.#writeInt(entry)).join() satisfies string}]`;
+    return `[I;${[...value].map(entry => this.#writeInt(new Int32(entry))).join() satisfies string}]`;
   }
 
   #writeLongArray(value: LongArrayTag): string {
