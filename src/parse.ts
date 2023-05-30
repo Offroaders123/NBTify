@@ -3,94 +3,231 @@ import { TAG, getTagType } from "./tag.js";
 
 import type { Tag, RootTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
-export function parse<T extends RootTag = any>(data: string): T {
-  return new SNBTReader().read<T>(data);
+const unquotedRegExp = /^[0-9A-Za-z.+_-]+$/
+
+export interface StringifyOptions {
+  pretty?: boolean
+  breakLength?: number
+  quote?: "single" | "double"
 }
 
-const TOKEN = {
-  LEFT_CURLY_BRACE: /^{$/,
-  RIGHT_CURLY_BRACE: /^}$/,
-  LEFT_BRACKET: /^\[$/,
-  RIGHT_BRACKET: /^]$/,
-  QUOTE: /^("|')$/,
-  WHITESPACE: /^\s+$/
-} as const;
+export function stringify(tag: RootTag, options: StringifyOptions = {}): string {
+  const pretty = !!options.pretty, breakLength = options.breakLength || 70
+  const quoteChar = options.quote == "single" ? "'" : options.quote == "double" ? '"' : null
+  const spaces = " ".repeat(4)
 
-Object.freeze(TOKEN);
-
-export class SNBTReader {
-  #data!: string;
-  #index!: number;
-
-  read<T extends RootTag = any>(data: string): T {
-    this.#data = data;
-    this.#index = 0;
-
-    const tag = this.#readCompound() as T;
+  function escapeString(text: string) {
+    let q = quoteChar ?? '"'
+    if (quoteChar == null) {
+      for (let i = 0; i < text.length && i < 8; i++) {
+        switch (text[i]) {
+          case "'": q = '"'; break
+          case '"': q = "'"; break
+          default: continue
+        }
+        break
+      }
+    }
+    return `${q}${text.replace(RegExp(`[${q}\\\\]`, "g"), x => `\\${x}`)}${q}`
   }
 
-  #allocate(length: number): void {
-    if (this.#index + length > this.#data.length){
-      throw new Error("Ran out of characters to read, unexpectedly reached the end of the string");
+  function stringify(tag: Tag, depth: number): string {
+    const space = pretty ? " " : "", sep = pretty ? ", " : ","
+    if (tag instanceof Int8) return `${tag}b`
+    else if (tag instanceof Int16) return `${tag}s`
+    else if (tag instanceof Int32) return `${tag}`
+    else if (typeof tag == "bigint") return `${tag}l`
+    else if (tag instanceof Float32) return `${tag}f`
+    else if (typeof tag == "number")
+      return Number.isInteger(tag) ? `${tag}.0` : tag.toString()
+    else if (typeof tag == "string") return escapeString(tag)
+    else if (tag instanceof Int8Array) return `[B;${space}${[...tag].join(sep)}]`
+    else if (tag instanceof Int32Array) return `[I;${space}${[...tag].join(sep)}]`
+    else if (tag instanceof BigInt64Array) return `[L;${space}${[...tag].join(sep)}]`
+    else if (tag instanceof Array) {
+      const list = tag.map(tag => stringify(tag, depth + 1))
+      if (list.reduce((acc, x) => acc + x.length, 0) > breakLength
+        || list.some(text => text.includes("\n"))) {
+        return `[\n${list.map(text => spaces.repeat(depth)
+          + text).join(",\n")}\n${spaces.repeat(depth - 1)}]`
+      } else {
+        return `[${list.join(sep)}]`
+      }
+    } else {
+      const pairs = (Object.entries(tag)
+        .filter(([_, v]) => v != null))
+        .map(([key, tag]) => {
+          if (!unquotedRegExp.test(key)) key = escapeString(key)
+          return `${key}:${space}${stringify(tag!, depth + 1)}`
+        })
+      if (pretty && pairs.reduce((acc, x) => acc + x.length, 0) > breakLength) {
+        return `{\n${pairs.map(text => spaces.repeat(depth)
+          + text).join(",\n")}\n${spaces.repeat(depth - 1)}}`
+      } else {
+        return `{${space}${pairs.join(sep)}${space}}`
+      }
+    }
+  }
+  return stringify(tag as Tag, 1)
+}
+
+export function parse<T extends RootTag = any>(text: string): T {
+  let index = 0, i = 0, char = ""
+
+  const unexpectedEnd = () => new Error("Unexpected end")
+  const unexpectedChar = (i?: number): Error => {
+    if (i == null) i = index
+    return new Error(`Unexpected character ${text[index]} at position ${index}`)
+  }
+
+  function skipWhitespace(): void {
+    while (index < text.length) {
+      if (text[index] != " " && text[index] != "\n") return
+      index += 1
     }
   }
 
-  #readCharacter(offset: number): string {
-    return this.#data[this.#index + offset];
+  function readNumber(): ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null {
+    if (!"-0123456789".includes(text[index])) return null
+    i = index++
+    let hasFloatingPoint = false
+    while (index < text.length) {
+      char = text[index++]
+      if ("0123456789".includes(char)) {
+        continue
+      } else if (char == ".") {
+        if (hasFloatingPoint) return (index-- , null)
+        hasFloatingPoint = true
+      } else if (char == "f" || char == "F") {
+        return new Float32(+text.slice(i, index - 1))
+      } else if (char == "d" || char == "D") {
+        return +text.slice(i, index - 1)
+      } else if (char == "b" || char == "B") {
+        return new Int8(+text.slice(i, index - 1))
+      } else if (char == "s" || char == "S") {
+        return new Int16(+text.slice(i, index - 1))
+      } else if (char == "l" || char == "L") {
+        return BigInt(text.slice(i, index - 1))
+      } else if (hasFloatingPoint) {
+        return +text.slice(i, --index)
+      } else return new Int32(+text.slice(i, --index))
+    }
+    if (hasFloatingPoint) return +text.slice(i, index)
+    else return new Int32(+text.slice(i, index))
   }
 
-  #readWhitespace(): void {
-    while (true){
-      this.#allocate(1);
-      const value = this.#readCharacter(0);
-      if (TOKEN.WHITESPACE.test(value)) break;
-      this.#index += 1;
+  function readUnquotedString(): string {
+    i = index
+    while (index < text.length) {
+      if (!unquotedRegExp.test(text[index])) break
+      index++
+    }
+    if (index - i == 0) throw index == text.length ? unexpectedEnd() : unexpectedChar()
+    return text.slice(i, index)
+  }
+
+  function readQuotedString(): string {
+    const quoteChar = text[index]
+    i = ++index
+    let string = ""
+    while (index < text.length) {
+      char = text[index++]
+      if (char == "\\") {
+        string += text.slice(i, index - 1) + text[index]
+        i = ++index
+      } else if (char == quoteChar) return string + text.slice(i, index - 1)
+    }
+    throw unexpectedEnd()
+  }
+
+  function readString(): string {
+    if (text[index] == '"' || text[index] == "'") return readQuotedString()
+    else return readUnquotedString()
+  }
+
+  function skipCommas(isFirst: boolean, end: string): void {
+    skipWhitespace()
+    if (text[index] == ",") {
+      if (isFirst) throw unexpectedChar()
+      else index++ , skipWhitespace()
+    } else if (!isFirst && text[index] != end) {
+      throw unexpectedChar()
     }
   }
 
-  #readTag(): Tag {
-    this.#readWhitespace();
-    this.#allocate(1);
-    const value = this.#readCharacter(0);
-
-    switch (true){
-      case TOKEN.LEFT_CURLY_BRACE.test(value): return this.#readCompound();
-      case TOKEN.LEFT_BRACKET.test(value): return this.#readArrayLike();
-      case TOKEN.QUOTE.test(value): return this.#readString();
+  function readCompound(): CompoundTag {
+    const entries: [string, Tag][] = []
+    let first = true
+    while (true) {
+      skipCommas(first, "}"), first = false
+      if (text[index] == "}") {
+        index++
+        return entries.reduce<CompoundTag>((obj, [k, v]) => (obj[k] = v, obj), {})
+      }
+      const key = readString()
+      skipWhitespace()
+      if (text[index++] != ":") throw unexpectedChar()
+      entries.push([key, parse()])
     }
   }
 
-  #readArrayLike(): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {}
-
-  #readByte(): ByteTag {}
-
-  #readShort(): ShortTag {}
-
-  #readInt(): IntTag {}
-
-  #readLong(): LongTag {}
-
-  #readFloat(): FloatTag {}
-
-  #readDouble(): DoubleTag {}
-
-  #readByteArray(): ByteArrayTag {}
-
-  #readString(): StringTag {
-    this.#allocate(1);
-    const first = this.#readCharacter(0);
-    this.#index += 1;
-
-    if (TOKEN.QUOTE.test(first)){
-      const quote = this.#readCharacter(0);
+  function readArray(type: string): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {
+    const array: string[] = []
+    while (index < text.length) {
+      skipCommas(array.length == 0, "]")
+      if (text[index] == "]") {
+        index++
+        if (type == "B") return Int8Array.from(array.map(v => +v))
+        else if (type == "I") return Int32Array.from(array.map(v => +v))
+        else if (type == "L") return BigInt64Array.from(array.map(v => BigInt(v)))
+      }
+      i = index
+      if (text[index] == "-") index++
+      while (index < text.length) {
+        if (!"0123456789".includes(text[index])) break
+        index++
+      }
+      if (index - i == 0) throw unexpectedChar()
+      if (unquotedRegExp.test(text[index])) throw unexpectedChar()
+      array.push(text.slice(i, index))
     }
+    throw unexpectedEnd()
   }
 
-  #readList(): ListTag {}
+  function readList(): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {
+    if ("BILbil".includes(text[index]) && text[index + 1] == ";") {
+      return readArray(text[(index += 2) - 2].toUpperCase())
+    }
+    const array: ListTag = []
+    while (index < text.length) {
+      skipWhitespace()
+      if (text[index] == ",") {
+        if (array.length == 0) throw unexpectedChar()
+        else index++ , skipWhitespace()
+      } else if (array.length > 0 && text[index] != "]") {
+        throw unexpectedChar(index - 1)
+      }
+      if (text[index] == "]") return (index++ , array)
+      array.push(parse())
+    }
+    throw unexpectedEnd()
+  }
 
-  #readCompound(): CompoundTag {}
+  function parse(): Tag {
+    skipWhitespace()
 
-  #readIntArray(): IntArrayTag {}
+    i = index, char = text[index]
+    if (char == "{") return (index++ , readCompound())
+    else if (char == "[") return (index++ , readList())
+    else if (char == '"' || char == "'") return readQuotedString()
 
-  #readLongArray(): LongArrayTag {}
+    const value = readNumber()
+    if (value != null && (index == text.length || !unquotedRegExp.test(text[index]))) {
+      return value
+    }
+    return text.slice(i, index) + readUnquotedString()
+  }
+
+  const value = parse() as T
+  return value
 }

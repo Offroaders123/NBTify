@@ -9,7 +9,7 @@ console.log(data,"\n");
 const result = await NBT.read(data);
 console.log(result,"\n");
 
-const stringed = NBT.stringify(result,{ space: 2 });
+const stringed = NBT.stringify(result.data,{ pretty: true });
 console.log(stringed,"\n");
 
 const parsed = NBT.parse(stringed);
