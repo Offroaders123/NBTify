@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
-const RIDICULOUS = new URL("./nbt/bigtest.nbt",import.meta.url);
+const RIDICULOUS = new URL("./nbt/ridiculous.nbt",import.meta.url);
 
 const data = await readFile(RIDICULOUS);
 console.log(data,"\n");

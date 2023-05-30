@@ -69,27 +69,26 @@ export class SNBTReader {
 
     while (this.#index < this.#data.length){
       this.#char = this.#data[this.#index++];
+      if ("0123456789".includes(this.#char)) continue;
 
-      if ("0123456789".includes(this.#char)) {
-        continue;
-      } else if (this.#char == "."){
-        if (hasFloatingPoint){
-          return (this.#index--,null);
+      switch (this.#char.toLowerCase()){
+        case ".": {
+          if (hasFloatingPoint) return (this.#index--,null);
+          hasFloatingPoint = true; break;
         }
-        hasFloatingPoint = true;
-      } else if (this.#char == "f" || this.#char == "F"){
-        return new Float32(+this.#data.slice(this.#i,this.#index - 1));
-      } else if (this.#char == "d" || this.#char == "D"){
-        return +this.#data.slice(this.#i,this.#index - 1);
-      } else if (this.#char == "b" || this.#char == "B"){
-        return new Int8(+this.#data.slice(this.#i,this.#index - 1));
-      } else if (this.#char == "s" || this.#char == "S"){
-        return new Int16(+this.#data.slice(this.#i,this.#index - 1));
-      } else if (this.#char == "l" || this.#char == "L"){
-        return BigInt(this.#data.slice(this.#i,this.#index - 1));
-      } else if (hasFloatingPoint){
-        return +this.#data.slice(this.#i,--this.#index);
-      } else return new Int32(+this.#data.slice(this.#i,--this.#index));
+        case "f": return new Float32(+this.#data.slice(this.#i,this.#index - 1));
+        case "d": return +this.#data.slice(this.#i,this.#index - 1);
+        case "b": return new Int8(+this.#data.slice(this.#i,this.#index - 1));
+        case "s": return new Int16(+this.#data.slice(this.#i,this.#index - 1));
+        case "l": return BigInt(this.#data.slice(this.#i,this.#index - 1));
+        default: {
+          if (hasFloatingPoint){
+            return +this.#data.slice(this.#i,--this.#index);
+          } else {
+            return new Int32(+this.#data.slice(this.#i,--this.#index));
+          }
+        }
+      }
     }
 
     if (hasFloatingPoint){
