@@ -143,7 +143,7 @@ export class SNBTReader {
   #skipCommas(isFirst: boolean, end: string): void {
     this.#skipWhitespace();
 
-    if (this.#data[this.#index] == ",") {
+    if (this.#data[this.#index] == ","){
       if (isFirst){
         throw this.#unexpectedChar();
       } else {
@@ -155,13 +155,13 @@ export class SNBTReader {
     }
   }
 
-  #readArray(type: string): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {
+  #readArray(type: "B" | "I" | "L"): ByteArrayTag | IntArrayTag | LongArrayTag {
     const array: string[] = [];
 
-    while (this.#index < this.#data.length) {
+    while (this.#index < this.#data.length){
       this.#skipCommas(array.length == 0, "]");
 
-      if (this.#data[this.#index] == "]") {
+      if (this.#data[this.#index] == "]"){
         this.#index++;
         switch (type){
           case "B": return Int8Array.from(array.map(v => +v));
@@ -175,8 +175,14 @@ export class SNBTReader {
         this.#index++;
       }
 
-      while (this.#index < this.#data.length) {
+      while (this.#index < this.#data.length){
         if (!"0123456789".includes(this.#data[this.#index])) break;
+        this.#index++;
+      }
+
+      const prefix = (type === "B") ? "b" : (type === "L") ? "l" : "";
+
+      if (this.#data[this.#index] == prefix){
         this.#index++;
       }
 
@@ -187,7 +193,7 @@ export class SNBTReader {
         throw this.#unexpectedChar();
       }
 
-      array.push(this.#data.slice(this.#i,this.#index));
+      array.push(this.#data.slice(this.#i,this.#index - ((type !== "I") ? 1 : 0)));
     }
 
     throw this.#unexpectedEnd();
@@ -195,7 +201,7 @@ export class SNBTReader {
 
   #readList(): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {
     if ("BILbil".includes(this.#data[this.#index]) && this.#data[this.#index + 1] == ";"){
-      return this.#readArray(this.#data[(this.#index += 2) - 2].toUpperCase());
+      return this.#readArray(this.#data[(this.#index += 2) - 2].toUpperCase() as "B" | "I" | "L");
     }
 
     const array: ListTag = [];

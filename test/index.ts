@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
-const RIDICULOUS = new URL("./nbt/ridiculous.nbt",import.meta.url);
+const RIDICULOUS = new URL("./nbt/bigtest.nbt",import.meta.url);
 
 const data = await readFile(RIDICULOUS);
 console.log(data,"\n");
@@ -9,7 +9,7 @@ console.log(data,"\n");
 const result = await NBT.read(data);
 console.log(result,"\n");
 
-const stringed = NBT.stringify(result.data,{ pretty: true });
+const stringed = NBT.stringify(result,{ space: 2 });
 console.log(stringed,"\n");
 
 const parsed = NBT.parse(stringed);

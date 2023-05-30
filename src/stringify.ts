@@ -1,78 +1,146 @@
-import { Int8, Int16, Int32, Float32 } from "./primitive.js";
+import { NBTData } from "./data.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { Tag, RootTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
-
-const unquotedRegExp = /^[0-9A-Za-z.+_-]+$/;
+import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface StringifyOptions {
-  pretty?: boolean;
-  breakLength?: number;
-  quote?: "single" | "double";
+  space?: string | number;
 }
 
-export function stringify(data: RootTag, options: StringifyOptions = {}): string {
-  const pretty = !!options.pretty;
-  const breakLength = options.breakLength || 70;
-  const quoteChar = options.quote == "single" ? "'" : options.quote == "double" ? '"' : null;
-  const spaces = " ".repeat(4);
-
-  function escapeString(text: string): string {
-    let q = quoteChar ?? '"';
-
-    if (quoteChar == null){
-      for (let i = 0; i < text.length && i < 8; i++){
-        switch (text[i]){
-          case "'": q = '"'; break;
-          case '"': q = "'"; break;
-          default: continue;
-        }
-        break;
-      }
-    }
-
-    return `${q}${text.replace(RegExp(`[${q}\\\\]`, "g"), x => `\\${x}`)}${q}`;
+/**
+ * Converts an NBTData object into an SNBT string.
+*/
+export function stringify(data: RootTag | NBTData, { space = "" }: StringifyOptions = {}): string {
+  if (data instanceof NBTData){
+    data = data.data as CompoundTagUnsafe;
   }
 
-  function stringify(tag: Tag, depth: number): string {
-    const space = pretty ? " " : "", sep = pretty ? ", " : ",";
+  if (typeof data !== "object" || data === null){
+    throw new TypeError("First parameter must be an object");
+  }
+  if (typeof space !== "string" && typeof space !== "number"){
+    throw new TypeError("Space option must be a string or number");
+  }
 
-    switch (true){
-      case tag instanceof Int8: return `${tag as ByteTag}b`;
-      case tag instanceof Int16: return `${tag as ShortTag}s`;
-      case tag instanceof Int32: return `${tag as IntTag}`;
-      case typeof tag == "bigint": return `${tag as LongTag}l`;
-      case tag instanceof Float32: return `${tag as FloatTag}f`;
-      case typeof tag == "number": return Number.isInteger(tag) ? `${tag}.0` : tag.toString();
-      case typeof tag == "string": return escapeString(tag as StringTag);
-      case tag instanceof Int8Array: return `[B;${space}${[...tag as ByteArrayTag].join(sep)}]`;
-      case tag instanceof Int32Array: return `[I;${space}${[...tag as IntArrayTag].join(sep)}]`;
-      case tag instanceof BigInt64Array: return `[L;${space}${[...tag as LongArrayTag].join(sep)}]`;
-      case tag instanceof Array: {
-        const list = (tag as ListTag).map(tag => stringify(tag,depth + 1));
-        if (list.reduce((acc,x) => acc + x.length,0) > breakLength || list.some(text => text.includes("\n"))){
-          return `[\n${list.map(text => spaces.repeat(depth) + text).join(",\n")}\n${spaces.repeat(depth - 1)}]`;
-        } else {
-          return `[${list.join(sep)}]`;
-        }
-      }
-      default: {
-        const pairs = (Object.entries(tag as CompoundTag)
-          .filter(([_,v]) => v != null))
-          .map(([key,tag]) => {
-            if (!unquotedRegExp.test(key)){
-              key = escapeString(key);
-            }
-            return `${key}:${space}${stringify(tag!,depth + 1)}`;
-          });
-        if (pretty && pairs.reduce((acc,x) => acc + x.length,0) > breakLength){
-          return `{\n${pairs.map(text => spaces.repeat(depth) + text).join(",\n")}\n${spaces.repeat(depth - 1)}}`;
-        } else {
-          return `{${space}${pairs.join(sep)}${space}}`;
-        }
-      }
+  const writer = new SNBTWriter();
+  return writer.write(data,{ space });
+}
+
+export interface SNBTWriterOptions {
+  space?: string | number;
+}
+
+/**
+ * The base implementation to convert an NBTData object into an SNBT string.
+*/
+export class SNBTWriter {
+  #space!: string;
+  #level!: number;
+
+  /**
+   * Initiates the writer over an NBTData object.
+  */
+  write(data: RootTag | NBTData, { space = "" }: SNBTWriterOptions = {}): string {
+    if (data instanceof NBTData){
+      data = data.data as CompoundTagUnsafe;
+    }
+
+    if (typeof data !== "object" || data === null){
+      throw new TypeError("First parameter must be an object");
+    }
+    if (typeof space !== "string" && typeof space !== "number"){
+      throw new TypeError("Space option must be a string or number");
+    }
+
+    this.#space = (typeof space === "number") ? " ".repeat(space) : space;
+    this.#level = 1;
+
+    return this.#writeCompound(data as CompoundTagUnsafe);
+  }
+
+  #writeTag(value: Tag): string {
+    const type = getTagType(value);
+    switch (type){
+      case TAG.BYTE: return this.#writeByte(value as ByteTag | BooleanTag);
+      case TAG.SHORT: return this.#writeShort(value as ShortTag);
+      case TAG.INT: return this.#writeInt(value as IntTag);
+      case TAG.LONG: return this.#writeLong(value as LongTag);
+      case TAG.FLOAT: return this.#writeFloat(value as FloatTag);
+      case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
+      case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
+      case TAG.STRING: return this.#writeString(value as StringTag);
+      case TAG.LIST: return this.#writeList(value as ListTagUnsafe);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTagUnsafe);
+      case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
+      case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
+      default: throw new Error(`Encountered unsupported tag type '${type}'`);
     }
   }
 
-  return stringify(data as Tag,1);
+  #writeByte(value: number | ByteTag | BooleanTag): string {
+    return (typeof value === "boolean") ? `${value}` : `${value.valueOf()}b`;
+  }
+
+  #writeShort(value: number | ShortTag): string {
+    return `${value.valueOf()}s`;
+  }
+
+  #writeInt(value: number | IntTag): string {
+    return `${value.valueOf()}`;
+  }
+
+  #writeLong(value: LongTag): string {
+    return `${value}l`;
+  }
+
+  #writeFloat(value: number | FloatTag): string {
+    return `${value.valueOf()}f`;
+  }
+
+  #writeDouble(value: DoubleTag): string {
+    return `${value}d`;
+  }
+
+  #writeByteArray(value: ByteArrayTag): string {
+    return `[B;${[...value].map(entry => this.#writeByte(entry)).join() satisfies string}]`;
+  }
+
+  #writeString(value: StringTag): string {
+    const singleQuoteString = value.replace(/['\\]/g,character => `\\${character}`);
+    const doubleQuoteString = value.replace(/["\\]/g,character => `\\${character}`);
+    return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
+  }
+
+  #writeList(valueUnsafe: ListTagUnsafe): string {
+    const fancy = (this.#space !== "");
+    const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
+    const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
+    const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
+    return `[${value.map(entry => `${isIndentedList ? `\n${this.#space.repeat(this.#level)}` : ""}${(() => {
+      this.#level += 1;
+      const result = this.#writeTag(entry);
+      this.#level -= 1;
+      return result;
+    })() satisfies string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
+  }
+
+  #writeCompound(valueUnsafe: CompoundTagUnsafe): string {
+    const fancy = (this.#space !== "");
+    return `{${[...Object.entries(valueUnsafe)].filter(
+      (entry): entry is [string,Tag] => getTagType(entry[1]) !== null
+    ).map(([key,value]) => `${fancy ? `\n${(this.#space satisfies string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${(() => {
+      this.#level += 1;
+      const result = this.#writeTag(value);
+      this.#level -= 1;
+      return result;
+    })() satisfies string}`).join(",")}${fancy && Object.keys(valueUnsafe).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
+  }
+
+  #writeIntArray(value: IntArrayTag): string {
+    return `[I;${[...value].map(entry => this.#writeInt(entry)).join() satisfies string}]`;
+  }
+
+  #writeLongArray(value: LongArrayTag): string {
+    return `[L;${[...value].map(entry => this.#writeLong(entry)).join() satisfies string}]`;
+  }
 }
