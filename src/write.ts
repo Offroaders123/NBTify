@@ -1,5 +1,5 @@
 import { NBTData } from "./data.js";
-import { TAG, getTagType } from "./tag.js";
+import { TAG, getTagType, sanitizeList, sanitizeCompound } from "./tag.js";
 import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
@@ -109,7 +109,7 @@ export class NBTWriter {
 
     this.#writeTagType(TAG.COMPOUND);
     if (name !== null) this.#writeString(name);
-    this.#writeCompound(data as CompoundTagUnsafe);
+    this.#writeCompoundUnsafe(data as CompoundTagUnsafe);
 
     this.#allocate(0);
     return this.#data.slice(0,this.#byteOffset);
@@ -147,8 +147,8 @@ export class NBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(value as ListTagUnsafe);
-      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTagUnsafe);
+      case TAG.LIST: return this.#writeListUnsafe(value as ListTagUnsafe);
+      case TAG.COMPOUND: return this.#writeCompoundUnsafe(value as CompoundTagUnsafe);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
     }
@@ -223,8 +223,7 @@ export class NBTWriter {
     this.#byteOffset += length;
   }
 
-  #writeList(valueUnsafe: ListTagUnsafe): void {
-    const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
+  #writeList(value: ListTag): void {
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const { length } = value;
     this.#writeTagType(type);
@@ -237,15 +236,22 @@ export class NBTWriter {
     }
   }
 
-  #writeCompound(valueUnsafe: CompoundTagUnsafe): void {
-    for (const [name,entry] of Object.entries(valueUnsafe)){
-      const type = getTagType(entry);
-      if (type === null) continue;
+  #writeListUnsafe(value: ListTagUnsafe): void {
+    this.#writeList(sanitizeList(value));
+  }
+
+  #writeCompound(value: CompoundTag): void {
+    for (const [name,entry] of Object.entries(value)){
+      const type = getTagType(entry)!;
       this.#writeTagType(type);
       this.#writeString(name);
-      this.#writeTag(entry as Tag);
+      this.#writeTag(entry);
     }
     this.#writeTagType(TAG.END);
+  }
+
+  #writeCompoundUnsafe(value: CompoundTagUnsafe): void {
+    this.#writeCompound(sanitizeCompound(value));
   }
 
   #writeIntArray(value: IntArrayTag): void {

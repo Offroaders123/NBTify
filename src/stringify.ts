@@ -1,5 +1,5 @@
 import { NBTData } from "./data.js";
-import { TAG, getTagType } from "./tag.js";
+import { TAG, getTagType, sanitizeList, sanitizeCompound } from "./tag.js";
 
 import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe, IntArrayTag, LongArrayTag } from "./tag.js";
 
@@ -55,7 +55,7 @@ export class SNBTWriter {
     this.#space = (typeof space === "number") ? " ".repeat(space) : space;
     this.#level = 1;
 
-    return this.#writeCompound(data as CompoundTagUnsafe);
+    return this.#writeCompoundUnsafe(data as CompoundTagUnsafe);
   }
 
   #writeTag(value: Tag): string {
@@ -69,8 +69,8 @@ export class SNBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(value as ListTagUnsafe);
-      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTagUnsafe);
+      case TAG.LIST: return this.#writeListUnsafe(value as ListTagUnsafe);
+      case TAG.COMPOUND: return this.#writeCompoundUnsafe(value as CompoundTagUnsafe);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
       default: throw new Error(`Encountered unsupported tag type '${type}'`);
@@ -111,9 +111,8 @@ export class SNBTWriter {
     return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
   }
 
-  #writeList(valueUnsafe: ListTagUnsafe): string {
+  #writeList(value: ListTag): string {
     const fancy = (this.#space !== "");
-    const value = valueUnsafe.filter((entry): entry is Tag => getTagType(entry) !== null);
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
     return `[${value.map(entry => `${isIndentedList ? `\n${this.#space.repeat(this.#level)}` : ""}${(() => {
@@ -124,16 +123,22 @@ export class SNBTWriter {
     })() satisfies string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
   }
 
-  #writeCompound(valueUnsafe: CompoundTagUnsafe): string {
+  #writeListUnsafe(value: ListTagUnsafe): string {
+    return this.#writeList(sanitizeList(value));
+  }
+
+  #writeCompound(value: CompoundTag): string {
     const fancy = (this.#space !== "");
-    return `{${[...Object.entries(valueUnsafe)].filter(
-      (entry): entry is [string,Tag] => getTagType(entry[1]) !== null
-    ).map(([key,value]) => `${fancy ? `\n${(this.#space satisfies string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${(() => {
+    return `{${Object.entries(value).map(([key,value]) => `${fancy ? `\n${(this.#space satisfies string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${(() => {
       this.#level += 1;
       const result = this.#writeTag(value);
       this.#level -= 1;
       return result;
-    })() satisfies string}`).join(",")}${fancy && Object.keys(valueUnsafe).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
+    })() satisfies string}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
+  }
+
+  #writeCompoundUnsafe(value: CompoundTagUnsafe): string {
+    return this.#writeCompound(sanitizeCompound(value));
   }
 
   #writeIntArray(value: IntArrayTag): string {
