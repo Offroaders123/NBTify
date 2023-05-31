@@ -1,9 +1,9 @@
-import { NBTData } from "./data.js";
+import { NBTData } from "./format.js";
 import { TAG, getTagType, sanitizeList, sanitizeCompound } from "./tag.js";
 import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
-import type { Name, Endian, Compression, BedrockLevel } from "./data.js";
+import type { Name, Endian, Compression, BedrockLevel } from "./format.js";
 import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface WriteOptions {
@@ -18,6 +18,7 @@ export interface WriteOptions {
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
+export async function write(data: RootTag | NBTData, options?: WriteOptions): Promise<Uint8Array>;
 export async function write(data: RootTag | NBTData, { name, endian, compression, bedrockLevel }: WriteOptions = {}): Promise<Uint8Array> {
   if (data instanceof NBTData){
     if (name === undefined) name = data.name;

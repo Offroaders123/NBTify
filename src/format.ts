@@ -25,6 +25,7 @@ export class NBTData<T extends RootTag = any> {
   declare readonly compression: Compression;
   declare readonly bedrockLevel: BedrockLevel;
 
+  constructor(data: T | NBTData<T>, options?: NBTDataOptions);
   constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
