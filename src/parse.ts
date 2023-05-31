@@ -9,7 +9,7 @@ export function parse<T extends RootTag = any>(data: string): T {
   return new SNBTReader().read<T>(data);
 }
 
-export class SNBTReader {
+class SNBTReader {
   #data!: string;
   #index!: number;
   #i!: number;

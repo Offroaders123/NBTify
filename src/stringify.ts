@@ -23,18 +23,17 @@ export function stringify(data: RootTag | NBTData, { space = "" }: StringifyOpti
     throw new TypeError("Space option must be a string or number");
   }
 
-  const writer = new SNBTWriter();
-  return writer.write(data,{ space });
+  return new SNBTWriter().write(data,{ space });
 }
 
-export interface SNBTWriterOptions {
+interface SNBTWriterOptions {
   space?: string | number;
 }
 
 /**
  * The base implementation to convert an NBTData object into an SNBT string.
 */
-export class SNBTWriter {
+class SNBTWriter {
   #space!: string;
   #level!: number;
 
@@ -56,7 +55,7 @@ export class SNBTWriter {
     this.#space = (typeof space === "number") ? " ".repeat(space) : space;
     this.#level = 1;
 
-    return this.#writeCompoundUnsafe(data as CompoundTagUnsafe);
+    return this.#writeCompound(sanitizeCompound(data as CompoundTagUnsafe));
   }
 
   #writeTag(value: Tag): string {
@@ -70,8 +69,8 @@ export class SNBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeListUnsafe(value as ListTagUnsafe);
-      case TAG.COMPOUND: return this.#writeCompoundUnsafe(value as CompoundTagUnsafe);
+      case TAG.LIST: return this.#writeList(sanitizeList(value as ListTagUnsafe));
+      case TAG.COMPOUND: return this.#writeCompound(sanitizeCompound(value as CompoundTagUnsafe));
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
       default: throw new Error(`Encountered unsupported tag type '${type}'`);
@@ -124,10 +123,6 @@ export class SNBTWriter {
     })() satisfies string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
   }
 
-  #writeListUnsafe(value: ListTagUnsafe): string {
-    return this.#writeList(sanitizeList(value));
-  }
-
   #writeCompound(value: CompoundTag): string {
     const fancy = (this.#space !== "");
     return `{${Object.entries(value).map(([key,value]) => `${fancy ? `\n${(this.#space satisfies string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${(() => {
@@ -136,10 +131,6 @@ export class SNBTWriter {
       this.#level -= 1;
       return result;
     })() satisfies string}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
-  }
-
-  #writeCompoundUnsafe(value: CompoundTagUnsafe): string {
-    return this.#writeCompound(sanitizeCompound(value));
   }
 
   #writeIntArray(value: IntArrayTag): string {

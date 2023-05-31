@@ -96,8 +96,7 @@ export async function read<T extends RootTag = any>(data: Uint8Array | ArrayBuff
     bedrockLevel = null;
   }
 
-  const reader = new NBTReader();
-  const result = reader.read<T>(data,{ name, endian, strict });
+  const result = new NBTReader().read<T>(data,{ name, endian, strict });
 
   return new NBTData<T>(result,{ compression, bedrockLevel });
 }
@@ -120,7 +119,7 @@ function hasBedrockLevelHeader(data: Uint8Array): boolean {
   return byteLength === data.byteLength - 8;
 }
 
-export interface NBTReaderOptions {
+interface NBTReaderOptions {
   name?: boolean | Name;
   endian?: Endian;
   strict?: boolean;
@@ -129,7 +128,7 @@ export interface NBTReaderOptions {
 /**
  * The base implementation to convert an NBT buffer into an NBTData object.
 */
-export class NBTReader {
+class NBTReader {
   #byteOffset!: number;
   #littleEndian!: boolean;
   #data!: Uint8Array;

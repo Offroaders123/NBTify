@@ -43,8 +43,7 @@ export async function write(data: RootTag | NBTData, { name, endian, compression
     throw new TypeError("Bedrock Level option must be an Int32 or null");
   }
 
-  const writer = new NBTWriter();
-  let result = writer.write(data,{ name, endian });
+  let result = new NBTWriter().write(data,{ name, endian });
 
   if (bedrockLevel !== undefined && bedrockLevel !== null){
     const { byteLength } = result;
@@ -64,7 +63,7 @@ export async function write(data: RootTag | NBTData, { name, endian, compression
   return result;
 }
 
-export interface NBTWriterOptions {
+interface NBTWriterOptions {
   name?: Name;
   endian?: Endian;
 }
@@ -72,7 +71,7 @@ export interface NBTWriterOptions {
 /**
  * The base implementation to convert an NBTData object into an NBT buffer.
 */
-export class NBTWriter {
+class NBTWriter {
   #byteOffset!: number;
   #littleEndian!: boolean;
   #data!: Uint8Array;
@@ -109,7 +108,7 @@ export class NBTWriter {
 
     this.#writeTagType(TAG.COMPOUND);
     if (name !== null) this.#writeString(name);
-    this.#writeCompoundUnsafe(data as CompoundTagUnsafe);
+    this.#writeCompound(sanitizeCompound(data as CompoundTagUnsafe));
 
     this.#allocate(0);
     return this.#data.slice(0,this.#byteOffset);
@@ -147,8 +146,8 @@ export class NBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeListUnsafe(value as ListTagUnsafe);
-      case TAG.COMPOUND: return this.#writeCompoundUnsafe(value as CompoundTagUnsafe);
+      case TAG.LIST: return this.#writeList(sanitizeList(value as ListTagUnsafe));
+      case TAG.COMPOUND: return this.#writeCompound(sanitizeCompound(value as CompoundTagUnsafe));
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
     }
@@ -164,9 +163,9 @@ export class NBTWriter {
     this.#byteOffset += 1;
   }
 
-  #writeByte(value: ByteTag | BooleanTag): void {
+  #writeByte(value: number | ByteTag | BooleanTag): void {
     this.#allocate(1);
-    this.#view.setInt8(this.#byteOffset,(typeof value === "boolean") ? Number(value) : value.valueOf());
+    this.#view.setInt8(this.#byteOffset,Number(value.valueOf()));
     this.#byteOffset += 1;
   }
 
@@ -176,13 +175,13 @@ export class NBTWriter {
     this.#byteOffset += 2;
   }
 
-  #writeShort(value: ShortTag): void {
+  #writeShort(value: number | ShortTag): void {
     this.#allocate(2);
     this.#view.setInt16(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 2;
   }
 
-  #writeInt(value: IntTag): void {
+  #writeInt(value: number | IntTag): void {
     this.#allocate(4);
     this.#view.setInt32(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 4;
@@ -194,7 +193,7 @@ export class NBTWriter {
     this.#byteOffset += 8;
   }
 
-  #writeFloat(value: FloatTag): void {
+  #writeFloat(value: number | FloatTag): void {
     this.#allocate(4);
     this.#view.setFloat32(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 4;
@@ -208,7 +207,7 @@ export class NBTWriter {
 
   #writeByteArray(value: ByteArrayTag): void {
     const { length } = value;
-    this.#writeInt(new Int32(length));
+    this.#writeInt(length);
     this.#allocate(length);
     this.#data.set(value,this.#byteOffset);
     this.#byteOffset += length;
@@ -227,17 +226,13 @@ export class NBTWriter {
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const { length } = value;
     this.#writeTagType(type);
-    this.#writeInt(new Int32(length));
+    this.#writeInt(length);
     for (const entry of value){
       if (getTagType(entry) !== type){
         throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
       }
       this.#writeTag(entry);
     }
-  }
-
-  #writeListUnsafe(value: ListTagUnsafe): void {
-    this.#writeList(sanitizeList(value));
   }
 
   #writeCompound(value: CompoundTag): void {
@@ -250,21 +245,17 @@ export class NBTWriter {
     this.#writeTagType(TAG.END);
   }
 
-  #writeCompoundUnsafe(value: CompoundTagUnsafe): void {
-    this.#writeCompound(sanitizeCompound(value));
-  }
-
   #writeIntArray(value: IntArrayTag): void {
     const { length } = value;
-    this.#writeInt(new Int32(length));
+    this.#writeInt(length);
     for (const entry of value){
-      this.#writeInt(new Int32(entry));
+      this.#writeInt(entry);
     }
   }
 
   #writeLongArray(value: LongArrayTag): void {
     const { length } = value;
-    this.#writeInt(new Int32(length));
+    this.#writeInt(length);
     for (const entry of value){
       this.#writeLong(entry);
     }

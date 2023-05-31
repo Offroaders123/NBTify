@@ -22,18 +22,17 @@ export function definition(data: RootTag | NBTData, { name }: DefinitionOptions)
     throw new TypeError("Name option must be a string");
   }
 
-  const writer = new DefinitionWriter();
-  return writer.write(data,{ name });
+  return new DefinitionWriter().write(data,{ name });
 }
 
-export interface DefinitionWriterOptions {
+interface DefinitionWriterOptions {
   name: string;
 }
 
 /**
  * The base implementation to generate a TypeScript interface definition from an NBTData object.
 */
-export class DefinitionWriter {
+class DefinitionWriter {
   #space!: string;
   #level!: number;
 
@@ -55,62 +54,26 @@ export class DefinitionWriter {
     this.#space = "  ";
     this.#level = 1;
 
-    return `interface ${name} ${this.#writeCompoundUnsafe(data as CompoundTagUnsafe)}`;
+    return `interface ${name} ${this.#writeCompound(sanitizeCompound(data as CompoundTagUnsafe))}`;
   }
 
   #writeTag(value: Tag): string {
     const type = getTagType(value);
     switch (type){
-      case TAG.BYTE: return (typeof value === "boolean") ? this.#writeBoolean() : this.#writeByte();
-      case TAG.SHORT: return this.#writeShort();
-      case TAG.INT: return this.#writeInt();
-      case TAG.LONG: return this.#writeLong();
-      case TAG.FLOAT: return this.#writeFloat();
-      case TAG.DOUBLE: return this.#writeDouble();
-      case TAG.BYTE_ARRAY: return this.#writeByteArray();
-      case TAG.STRING: return this.#writeString();
-      case TAG.LIST: return this.#writeListUnsafe(value as ListTagUnsafe);
-      case TAG.COMPOUND: return this.#writeCompoundUnsafe(value as CompoundTagUnsafe);
-      case TAG.INT_ARRAY: return this.#writeIntArray();
-      case TAG.LONG_ARRAY: return this.#writeLongArray();
+      case TAG.BYTE: return (typeof value === "boolean") ? "BooleanTag" : "ByteTag";
+      case TAG.SHORT: return "ShortTag";
+      case TAG.INT: return "IntTag";
+      case TAG.LONG: return "LongTag";
+      case TAG.FLOAT: return "FloatTag";
+      case TAG.DOUBLE: return "DoubleTag";
+      case TAG.BYTE_ARRAY: return "ByteArrayTag";
+      case TAG.STRING: return "StringTag";
+      case TAG.LIST: return this.#writeList(sanitizeList(value as ListTagUnsafe));
+      case TAG.COMPOUND: return this.#writeCompound(sanitizeCompound(value as CompoundTagUnsafe));
+      case TAG.INT_ARRAY: return "IntArrayTag";
+      case TAG.LONG_ARRAY: return "LongArrayTag";
       default: throw new Error(`Encountered unsupported tag type '${type}'`);
     }
-  }
-
-  #writeBoolean(): string {
-    return "BooleanTag";
-  }
-
-  #writeByte(): string {
-    return "ByteTag";
-  }
-
-  #writeShort(): string {
-    return "ShortTag";
-  }
-
-  #writeInt(): string {
-    return "IntTag";
-  }
-
-  #writeLong(): string {
-    return "LongTag";
-  }
-
-  #writeFloat(): string {
-    return "FloatTag";
-  }
-
-  #writeDouble(): string {
-    return "DoubleTag";
-  }
-
-  #writeByteArray(): string {
-    return "ByteArrayTag";
-  }
-
-  #writeString(): string {
-    return "StringTag";
   }
 
   #writeStringLiteral(value: string): string {
@@ -128,32 +91,16 @@ export class DefinitionWriter {
       const result = this.#writeTag(entry);
       this.#level -= 1;
       return result;
-    })() as string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
-  }
-
-  #writeListUnsafe(value: ListTagUnsafe): string {
-    return this.#writeList(sanitizeList(value));
+    })() satisfies string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${this.#space.repeat(this.#level - 1)}` : ""}]`;
   }
 
   #writeCompound(value: CompoundTag): string {
     const fancy = (this.#space !== "");
-    return `{${Object.entries(value).map(([key,value]) => `${fancy ? `\n${(this.#space as string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeStringLiteral(key)}:${fancy ? " " : ""}${(() => {
+    return `{${Object.entries(value).map(([key,value]) => `${fancy ? `\n${(this.#space satisfies string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeStringLiteral(key)}:${fancy ? " " : ""}${(() => {
       this.#level += 1;
       const result = `${this.#writeTag(value)};`;
       this.#level -= 1;
       return result;
-    })() as string}`).join("")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
-  }
-
-  #writeCompoundUnsafe(value: CompoundTagUnsafe): string {
-    return this.#writeCompound(sanitizeCompound(value));
-  }
-
-  #writeIntArray(): string {
-    return "IntArrayTag";
-  }
-
-  #writeLongArray(): string {
-    return "LongArrayTag";
+    })() satisfies string}`).join("")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
   }
 }
