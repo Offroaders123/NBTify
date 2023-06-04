@@ -1,7 +1,6 @@
 import { Int32 } from "./primitive.js";
 
 import type { RootTag } from "./tag.js";
-import type { CompressionFormat } from "./compression.js";
 
 export type Name = string | null;
 export type Endian = "big" | "little";

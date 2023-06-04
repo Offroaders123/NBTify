@@ -1,5 +1,3 @@
-export type CompressionFormat = "deflate" | "deflate-raw" | "gzip";
-
 /**
  * Compresses a Uint8Array using a specific compression format.
 */
