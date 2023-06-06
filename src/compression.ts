@@ -1,27 +1,38 @@
+export const NODE_DEFLATE_RAW_POLYFILL: boolean = await (async () => {
+  try {
+    new CompressionStream("deflate-raw");
+    new DecompressionStream("deflate-raw");
+    return false;
+  } catch {
+    try {
+      await import("node:zlib");
+      return true;
+    } catch {
+      return false;
+    }
+  }
+})();
+
 /**
  * Compresses a Uint8Array using a specific compression format.
 */
 export async function compress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
-  try {
-    const compressionStream = new CompressionStream(format);
-    return pipeThroughCompressionStream(data,compressionStream);
-  } catch (error){
-    if (format !== "deflate-raw") throw error;
-    return compress(data,"deflate").then(data => data.subarray(2,-4));
+  if (format === "deflate-raw" && NODE_DEFLATE_RAW_POLYFILL){
+    return deflateRawPolyfill(data);
   }
+  const compressionStream = new CompressionStream(format);
+  return pipeThroughCompressionStream(data,compressionStream);
 }
 
 /**
  * Decompresses a Uint8Array using a specific decompression format.
 */
 export async function decompress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
-  try {
-    const decompressionStream = new DecompressionStream(format);
-    return pipeThroughCompressionStream(data,decompressionStream);
-  } catch (error){
-    if (format !== "deflate-raw") throw error;
-    return decompress(data,"deflate");
+  if (format === "deflate-raw" && NODE_DEFLATE_RAW_POLYFILL){
+    return inflateRawPolyfill(data);
   }
+  const decompressionStream = new DecompressionStream(format);
+  return pipeThroughCompressionStream(data,decompressionStream);
 }
 
 async function pipeThroughCompressionStream(data: Uint8Array, compressionStream: CompressionStream | DecompressionStream): Promise<Uint8Array> {
@@ -51,15 +62,29 @@ async function pipeThroughCompressionStream(data: Uint8Array, compressionStream:
 
 async function* readableStreamToAsyncGenerator(stream: ReadableStream<Uint8Array>): AsyncGenerator<Uint8Array,void,void> {
   const reader = stream.getReader();
-
   try {
     while (true){
       const { done, value } = await reader.read();
       if (done) return;
-
       yield value;
     }
   } finally {
     reader.releaseLock();
   }
+}
+
+async function deflateRawPolyfill(data: Uint8Array): Promise<Uint8Array> {
+  const { promisify } = await import("node:util");
+  const { deflateRaw } = await import("node:zlib");
+  const deflateRawAsync = promisify(deflateRaw);
+  const { buffer, byteOffset, byteLength } = await deflateRawAsync(data);
+  return new Uint8Array(buffer,byteOffset,byteLength);
+}
+
+async function inflateRawPolyfill(data: Uint8Array): Promise<Uint8Array> {
+  const { promisify } = await import("node:util");
+  const { inflateRaw } = await import("node:zlib");
+  const inflateRawAsync = promisify(inflateRaw);
+  const { buffer, byteOffset, byteLength } = await inflateRawAsync(data);
+  return new Uint8Array(buffer,byteOffset,byteLength);
 }
