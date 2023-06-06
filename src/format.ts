@@ -7,7 +7,7 @@ export type Endian = "big" | "little";
 export type Compression = CompressionFormat | null;
 export type BedrockLevel = Int32 | null;
 
-export interface NBTDataOptions {
+export interface FormatOptions {
   name?: Name;
   endian?: Endian;
   compression?: Compression;
@@ -17,15 +17,15 @@ export interface NBTDataOptions {
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends RootTag = any> {
+export class NBTData<T extends RootTag = any, U extends FormatOptions = FormatOptions> {
   declare readonly data: T;
-  declare readonly name: Name;
-  declare readonly endian: Endian;
-  declare readonly compression: Compression;
-  declare readonly bedrockLevel: BedrockLevel;
+  declare readonly name: U["name"];
+  declare readonly endian: U["endian"];
+  declare readonly compression: U["compression"];
+  declare readonly bedrockLevel: U["bedrockLevel"];
 
-  constructor(data: T | NBTData<T>, options?: NBTDataOptions);
-  constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
+  constructor(data: T | NBTData<T>, options?: FormatOptions);
+  constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: FormatOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;

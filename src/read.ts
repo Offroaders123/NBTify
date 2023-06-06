@@ -3,7 +3,7 @@ import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
-import type { Name, Endian, Compression, BedrockLevel } from "./format.js";
+import type { Name, Endian, Compression, BedrockLevel, FormatOptions } from "./format.js";
 import type { RootTag, Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface ReadOptions {
@@ -19,8 +19,8 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTag = any>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T>>;
-export async function read<T extends RootTag = any>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T>> {
+export async function read<T extends RootTag = any, U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T,U>>;
+export async function read<T extends RootTag = any, U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T,U>> {
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
@@ -53,12 +53,12 @@ export async function read<T extends RootTag = any>(data: Uint8Array | ArrayBuff
   }
 
   if (endian === undefined){
-    let result: NBTData<T>;
+    let result: NBTData<T,U>;
     try {
-      result = await read<T>(data,{ name, endian: "big", compression, bedrockLevel, strict });
+      result = await read<T,U>(data,{ name, endian: "big", compression, bedrockLevel, strict });
     } catch (error){
       try {
-        result = await read<T>(data,{ name, endian: "little", compression, bedrockLevel, strict });
+        result = await read<T,U>(data,{ name, endian: "little", compression, bedrockLevel, strict });
       } catch {
         throw error;
       }
@@ -67,12 +67,12 @@ export async function read<T extends RootTag = any>(data: Uint8Array | ArrayBuff
   }
 
   if (name === undefined){
-    let result: NBTData<T>;
+    let result: NBTData<T,U>;
     try {
-      result = await read<T>(data,{ name: true, endian, compression, bedrockLevel, strict });
+      result = await read<T,U>(data,{ name: true, endian, compression, bedrockLevel, strict });
     } catch (error){
       try {
-        result = await read<T>(data,{ name: false, endian, compression, bedrockLevel, strict });
+        result = await read<T,U>(data,{ name: false, endian, compression, bedrockLevel, strict });
       } catch {
         throw error;
       }
@@ -97,9 +97,9 @@ export async function read<T extends RootTag = any>(data: Uint8Array | ArrayBuff
     bedrockLevel = null;
   }
 
-  const result = new NBTReader().read<T>(data,{ name, endian, strict });
+  const result = new NBTReader().read<T,U>(data,{ name, endian, strict });
 
-  return new NBTData<T>(result,{ compression, bedrockLevel });
+  return new NBTData<T,U>(result,{ compression, bedrockLevel });
 }
 
 function hasGzipHeader(data: Uint8Array): boolean {
@@ -139,7 +139,7 @@ class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends RootTag = any>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T> {
+  read<T extends RootTag = any, U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T,U> {
     if (!("byteOffset" in data)){
       data = new Uint8Array(data);
     }
@@ -175,7 +175,7 @@ class NBTReader {
       throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
 
-    return new NBTData<T>(value,{ name, endian });
+    return new NBTData<T,U>(value,{ name, endian });
   }
 
   #allocate(byteLength: number): void {
