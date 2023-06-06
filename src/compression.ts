@@ -2,16 +2,26 @@
  * Compresses a Uint8Array using a specific compression format.
 */
 export async function compress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
-  const compressionStream = new CompressionStream(format);
-  return pipeThroughCompressionStream(data,compressionStream);
+  try {
+    const compressionStream = new CompressionStream(format);
+    return pipeThroughCompressionStream(data,compressionStream);
+  } catch (error){
+    if (format !== "deflate-raw") throw error;
+    return compress(data,"deflate").then(data => data.subarray(2,-4));
+  }
 }
 
 /**
  * Decompresses a Uint8Array using a specific decompression format.
 */
 export async function decompress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
-  const decompressionStream = new DecompressionStream(format);
-  return pipeThroughCompressionStream(data,decompressionStream);
+  try {
+    const decompressionStream = new DecompressionStream(format);
+    return pipeThroughCompressionStream(data,decompressionStream);
+  } catch (error){
+    if (format !== "deflate-raw") throw error;
+    return decompress(data,"deflate");
+  }
 }
 
 async function pipeThroughCompressionStream(data: Uint8Array, compressionStream: CompressionStream | DecompressionStream): Promise<Uint8Array> {
