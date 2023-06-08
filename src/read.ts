@@ -19,8 +19,8 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTag = any, U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T,U>>;
-export async function read<T extends RootTag = any, U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T,U>> {
+export async function read<T extends RootTag = any, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T,U>>;
+export async function read<T extends RootTag = any, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T,U>> {
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
@@ -99,7 +99,7 @@ export async function read<T extends RootTag = any, U extends FormatOptions = Fo
 
   const result = new NBTReader().read<T,U>(data,{ name, endian, strict });
 
-  return new NBTData<T,U>(result,{ compression, bedrockLevel });
+  return new NBTData<T>(result,{ compression, bedrockLevel } as U);
 }
 
 function hasGzipHeader(data: Uint8Array): boolean {
@@ -139,7 +139,7 @@ class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends RootTag = any, U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T,U> {
+  read<T extends RootTag = any, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T,U> {
     if (!("byteOffset" in data)){
       data = new Uint8Array(data);
     }
@@ -175,7 +175,7 @@ class NBTReader {
       throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
 
-    return new NBTData<T,U>(value,{ name, endian });
+    return new NBTData<T>(value,{ name, endian } as U);
   }
 
   #allocate(byteLength: number): void {
