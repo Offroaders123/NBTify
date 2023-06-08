@@ -6,7 +6,11 @@ export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag 
 
 export type ByteTag<T extends number = number> = Int8<T>;
 
-export type BooleanTag = boolean | ByteTag<0 | 1>;
+export type BooleanTag = FalseTag | TrueTag;
+
+export type FalseTag = false | ByteTag<0>;
+
+export type TrueTag = true | ByteTag<1>;
 
 export type ShortTag<T extends number = number> = Int16<T>;
 

@@ -99,7 +99,7 @@ export async function read<T extends RootTag = any, const U extends FormatOption
 
   const result = new NBTReader().read<T,U>(data,{ name, endian, strict });
 
-  return new NBTData<T>(result,{ compression, bedrockLevel } as U);
+  return new NBTData<T,U>(result,{ compression, bedrockLevel } as U);
 }
 
 function hasGzipHeader(data: Uint8Array): boolean {
@@ -176,7 +176,7 @@ export class NBTReader {
       throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
 
-    return new NBTData<T>(value,{ name, endian } as U);
+    return new NBTData<T,U>(value,{ name, endian } as U);
   }
 
   #allocate(byteLength: number): void {
