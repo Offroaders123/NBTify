@@ -1,6 +1,6 @@
 import { Int8, NBTData } from "../../src/index.js";
 
-export default new NBTData({
+const stringy = new NBTData({
   Noice: true,
   WorkOnBooleanValuesPls: true,
   ByteTagValue: new Int8(125),
@@ -25,4 +25,12 @@ export default new NBTData({
       Door: "handle"
     }
   ]
-});
+},{ name: "", endian: "big", compression: null, bedrockLevel: null });
+
+const { name, endian, compression, bedrockLevel } = stringy;
+name;
+endian;
+compression;
+bedrockLevel;
+
+export default stringy;
