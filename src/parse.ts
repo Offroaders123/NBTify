@@ -3,18 +3,27 @@ import { TAG, getTagType } from "./tag.js";
 
 import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
-const unquotedRegExp = /^[0-9A-Za-z.+_-]+$/;
+const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 
+/**
+ * Converts an SNBT string into a CompoundTag object.
+*/
 export function parse<T extends RootTag = any>(data: string): T {
   return new SNBTReader().read<T>(data);
 }
 
-class SNBTReader {
+/**
+ * The base implementation to convert an SNBT string into a CompoundTag object.
+*/
+export class SNBTReader {
   #data!: string;
   #index!: number;
   #i!: number;
   #char!: string;
 
+  /**
+   * Initiates the reader over an SNBT string.
+  */
   read<T extends RootTag = any>(data: string): T {
     this.#data = data;
     this.#index = 0;
@@ -53,7 +62,7 @@ class SNBTReader {
       case "'": return this.#readQuotedString();
       default: {
         const value = this.#readNumber();
-        if (value != null && (this.#index == this.#data.length || !unquotedRegExp.test(this.#data[this.#index]))){
+        if (value != null && (this.#index == this.#data.length || !UNQUOTED_STRING_PATTERN.test(this.#data[this.#index]))){
           return value;
         }
         return this.#data.slice(this.#i,this.#index) + this.#readUnquotedString();
@@ -110,7 +119,7 @@ class SNBTReader {
     this.#i = this.#index;
 
     while (this.#index < this.#data.length){
-      if (!unquotedRegExp.test(this.#data[this.#index])) break;
+      if (!UNQUOTED_STRING_PATTERN.test(this.#data[this.#index])) break;
       this.#index++;
     }
 
@@ -189,7 +198,7 @@ class SNBTReader {
       if (this.#index - this.#i == 0){
         throw this.#unexpectedChar();
       }
-      if (unquotedRegExp.test(this.#data[this.#index])){
+      if (UNQUOTED_STRING_PATTERN.test(this.#data[this.#index])){
         throw this.#unexpectedChar();
       }
 

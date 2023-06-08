@@ -1,5 +1,5 @@
 import { NBTData } from "./format.js";
-import { TAG, getTagType, sanitizeList, sanitizeCompound } from "./tag.js";
+import { TAG, getTagType, fromListUnsafe, fromCompoundUnsafe } from "./tag.js";
 import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
@@ -64,7 +64,7 @@ export async function write(data: RootTag | NBTData, { name, endian, compression
   return result;
 }
 
-interface NBTWriterOptions {
+export interface NBTWriterOptions {
   name?: Name;
   endian?: Endian;
 }
@@ -72,7 +72,7 @@ interface NBTWriterOptions {
 /**
  * The base implementation to convert an NBTData object into an NBT buffer.
 */
-class NBTWriter {
+export class NBTWriter {
   #byteOffset!: number;
   #littleEndian!: boolean;
   #data!: Uint8Array;
@@ -82,6 +82,7 @@ class NBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
+  write(data: RootTag | NBTData, options?: NBTWriterOptions): Uint8Array;
   write(data: RootTag | NBTData, { name, endian }: NBTWriterOptions = {}): Uint8Array {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
@@ -109,7 +110,7 @@ class NBTWriter {
 
     this.#writeTagType(TAG.COMPOUND);
     if (name !== null) this.#writeString(name);
-    this.#writeCompound(sanitizeCompound(data as CompoundTagUnsafe));
+    this.#writeCompound(fromCompoundUnsafe(data as CompoundTagUnsafe));
 
     this.#allocate(0);
     return this.#data.slice(0,this.#byteOffset);
@@ -147,8 +148,8 @@ class NBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(sanitizeList(value as ListTagUnsafe));
-      case TAG.COMPOUND: return this.#writeCompound(sanitizeCompound(value as CompoundTagUnsafe));
+      case TAG.LIST: return this.#writeList(fromListUnsafe(value as ListTagUnsafe));
+      case TAG.COMPOUND: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
     }

@@ -120,7 +120,7 @@ function hasBedrockLevelHeader(data: Uint8Array): boolean {
   return byteLength === data.byteLength - 8;
 }
 
-interface NBTReaderOptions {
+export interface NBTReaderOptions {
   name?: boolean | Name;
   endian?: Endian;
   strict?: boolean;
@@ -129,7 +129,7 @@ interface NBTReaderOptions {
 /**
  * The base implementation to convert an NBT buffer into an NBTData object.
 */
-class NBTReader {
+export class NBTReader {
   #byteOffset!: number;
   #littleEndian!: boolean;
   #data!: Uint8Array;
@@ -139,6 +139,7 @@ class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
+  read<T extends RootTag = any, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: NBTReaderOptions): NBTData<T,U>;
   read<T extends RootTag = any, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T,U> {
     if (!("byteOffset" in data)){
       data = new Uint8Array(data);

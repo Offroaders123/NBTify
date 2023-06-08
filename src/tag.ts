@@ -77,14 +77,14 @@ export function getTagType(value: any): TAG | null {
   }
 }
 
-export function sanitizeList(value: ListTagUnsafe): ListTag {
+export function fromListUnsafe(value: ListTagUnsafe): ListTag {
   return value
     .filter((entry): entry is Tag => 
       getTagType(entry) !== null
     );
 }
 
-export function sanitizeCompound(value: CompoundTagUnsafe): CompoundTag {
+export function fromCompoundUnsafe(value: CompoundTagUnsafe): CompoundTag {
   return Object.fromEntries(
     Object.entries(value)
       .filter((entry): entry is [string,Tag] => 
