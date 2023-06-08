@@ -25,10 +25,10 @@ const stringy = new NBTData({
       Door: "handle"
     }
   ]
-},{ name: "", endian: "big", compression: null, bedrockLevel: null });
+},{ /*name: "",*/ endian: "big", compression: null, bedrockLevel: null });
 
 const { name, endian, compression, bedrockLevel } = stringy;
-name;
+name; // eek
 endian;
 compression;
 bedrockLevel;
