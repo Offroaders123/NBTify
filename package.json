@@ -1,6 +1,6 @@
 {
   "name": "nbtify",
-  "version": "1.44.0",
+  "version": "1.44.1",
   "description": "A library to read and write NBT files on the web!",
   "type": "module",
   "main": "./dist/index.js",

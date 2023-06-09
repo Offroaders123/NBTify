@@ -88,7 +88,7 @@ export async function read<T extends RootTag = any, const U extends FormatOption
     bedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
   }
 
-  if (bedrockLevel !== false){
+  if (bedrockLevel !== false && bedrockLevel !== null){
     const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
     const version = view.getUint32(0,true);
     bedrockLevel = new Int32(version);
