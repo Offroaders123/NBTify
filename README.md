@@ -15,7 +15,7 @@ NBTify has entered the chat!
 
 ## Usage
 
-#### Importing NBTify as an ES Module in the browser:
+#### Importing NBTify in the browser:
 
 ```html
 <script type="module">
@@ -23,7 +23,7 @@ NBTify has entered the chat!
 </script>
 ```
 
-#### Imporing NBTify as an ES Module in Node:
+#### Importing NBTify in Node:
 
 ```ts
 import * as NBT from "nbtify";
@@ -32,20 +32,32 @@ import * as NBT from "nbtify";
 #### Reading a file using the Fetch API in the browser:
 
 ```ts
-const response: Response = await fetch("https://offroaders123.github.io/NBTify/test/nbt/bigtest.nbt");
+const response: Response = await fetch("./bigtest.nbt");
 const arrayBuffer: ArrayBuffer = await response.arrayBuffer();
-
-const result: NBTData = await NBT.read(arrayBuffer);
-console.log(result);
+const data: NBTData = await NBT.read(arrayBuffer);
 ```
 
 #### Reading a file using the File System module in Node:
 
 ```ts
-import * as fs from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 
-const buffer: Buffer = await fs.readFile("./test/nbt/bigtest.nbt");
+const buffer: Buffer = await readFile("./bigtest.nbt");
+const data: NBTData = await NBT.read(buffer);
+```
 
-const result: NBTData = await NBT.read(buffer);
-console.log(result);
+#### Writing to a file using the File API in the browser:
+
+```ts
+const result: Uint8Array = await NBT.write(data);
+const file: File = new File([result],"bigtest.nbt");
+```
+
+#### Writing to a file using the File System module in Node:
+
+```ts
+import { writeFile } from "node:fs/promises";
+
+const result: Uint8Array = await NBT.write(data);
+await writeFile("./bigtest.nbt",result);
 ```
