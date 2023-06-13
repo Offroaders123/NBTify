@@ -71,10 +71,15 @@ declare var NBTData: NBTDataConstructor;
 type Noice = { Noice: number; };
 const compound: Noice = { Noice: 5 };
 
+type NBTOptions<T extends FormatOptions | NBTData> =
+  T extends NBTData<infer _, infer U> ? U : T;
+
 const demo1 = new NBTData(compound);
 const demo2 = new NBTData(compound,{});
 const demo3 = new NBTData(compound,{ name: "" });
 const demo4 = new NBTData(compound,{ endian: "little", compression: "gzip" });
+
+type Demo4 = NBTOptions<typeof demo4>;
 
 const demo5 = new NBTData(demo1,{  });
 // not complete! should inherit properties 'endian' and 'compression' from demo4
