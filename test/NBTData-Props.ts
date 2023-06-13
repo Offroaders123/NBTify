@@ -60,7 +60,7 @@ interface NBTData<T extends object = any, U extends FormatOptions = FormatOption
 }
 
 interface NBTDataConstructor {
-  new <T extends object = any, const U extends FormatOptions = FormatOptionsLike>(data: T | NBTData<T>, options?: U): NBTData<T,Spread<[FormatOptionsLike,U]>>;
+  new <T extends object = any, const U extends FormatOptions = FormatOptionsLike>(data: T | NBTData<T>, options?: U): NBTData<T,WrapOptions<U>>;
   prototype: NBTData;
 }
 
@@ -73,6 +73,8 @@ const compound: Noice = { Noice: 5 };
 
 type NBTOptions<T extends FormatOptions | NBTData> =
   T extends NBTData<infer _, infer U> ? U : T;
+
+type WrapOptions<U extends FormatOptions> = Spread<[FormatOptionsLike,NBTOptions<U>]>;
 
 const demo1 = new NBTData(compound);
 const demo2 = new NBTData(compound,{});
