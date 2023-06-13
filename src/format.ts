@@ -24,15 +24,14 @@ export class NBTData<T extends RootTag = any, const U extends FormatOptions = Fo
   declare readonly compression: U["compression"];
   declare readonly bedrockLevel: U["bedrockLevel"];
 
-  constructor(data: T | NBTData<T>, options?: U);
-  constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: U = {} as U) {
+  constructor(data: T | NBTData<T,U>, options: U = {} as U) {
+  // constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: U = {} as U) {
     if (data instanceof NBTData){
-      if (name === undefined) name = data.name;
-      if (endian === undefined) endian = data.endian;
-      if (compression === undefined) compression = data.compression;
-      if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
+      options = data.getFormatOptions();
       data = data.data;
     }
+
+    let { name, endian, compression, bedrockLevel } = options;
 
     if (name === undefined) name = "";
     if (endian === undefined) endian = "big";
@@ -86,7 +85,15 @@ export class NBTData<T extends RootTag = any, const U extends FormatOptions = Fo
     });
   }
 
+  getFormatOptions(): U {
+    const { name, endian, compression, bedrockLevel } = this;
+    return { name, endian, compression, bedrockLevel } as U;
+  }
+
   get [Symbol.toStringTag]() {
     return "NBTData" as const;
   }
 }
+
+const demo0 = new NBTData({},{ name: "" });
+const format0 = demo0.getFormatOptions();
