@@ -19,10 +19,10 @@ export interface FormatOptions {
 */
 export class NBTData<T extends RootTag = any, const U extends FormatOptions = FormatOptions> {
   declare readonly data: T;
-  declare readonly name: U["name"];
-  declare readonly endian: U["endian"];
-  declare readonly compression: U["compression"];
-  declare readonly bedrockLevel: U["bedrockLevel"];
+  declare readonly name: U["name"] extends {} ? U["name"] : Name;
+  declare readonly endian: U["endian"] extends {} ? U["endian"] : Endian;
+  declare readonly compression: U["compression"] extends {} ? U["compression"] : Compression;
+  declare readonly bedrockLevel: U["bedrockLevel"] extends {} ? U["bedrockLevel"] : BedrockLevel;
 
   constructor(data: T | NBTData<T>, options?: U);
   constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: U = {} as U) {
