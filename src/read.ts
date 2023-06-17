@@ -21,6 +21,8 @@ export interface ReadOptions {
 */
 export async function read<T extends RootTag = any, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T,U>>;
 export async function read<T extends RootTag = any, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T,U>> {
+  // console.log(JSON.stringify({ name, endian, compression, bedrockLevel }));
+
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
@@ -53,31 +55,27 @@ export async function read<T extends RootTag = any, const U extends FormatOption
   }
 
   if (endian === undefined){
-    let result: NBTData<T,U>;
     try {
-      result = await read<T,U>(data,{ name, endian: "big", compression, bedrockLevel, strict });
+      return await read<T,U>(data,{ name, endian: "big", compression, bedrockLevel, strict });
     } catch (error){
       try {
-        result = await read<T,U>(data,{ name, endian: "little", compression, bedrockLevel, strict });
+        return await read<T,U>(data,{ name, endian: "little", compression, bedrockLevel, strict });
       } catch {
         throw error;
       }
     }
-    return result;
   }
 
   if (name === undefined){
-    let result: NBTData<T,U>;
     try {
-      result = await read<T,U>(data,{ name: true, endian, compression, bedrockLevel, strict });
+      return await read<T,U>(data,{ name: true, endian, compression, bedrockLevel, strict });
     } catch (error){
       try {
-        result = await read<T,U>(data,{ name: false, endian, compression, bedrockLevel, strict });
+        return await read<T,U>(data,{ name: false, endian, compression, bedrockLevel, strict });
       } catch {
         throw error;
       }
     }
-    return result;
   }
 
   if (compression !== null){
