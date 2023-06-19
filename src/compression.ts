@@ -20,11 +20,44 @@ export async function decompress(data: Uint8Array, format: CompressionFormat): P
   return pipeThroughCompressionStream(data,decompressionStream);
 }
 
-async function pipeThroughCompressionStream(data: Uint8Array, stream: CompressionStream | DecompressionStream): Promise<Uint8Array> {
-  const { body } = new Response(data);
-  const readable = body!.pipeThrough(stream);
-  const buffer = await new Response(readable).arrayBuffer();
-  return new Uint8Array(buffer);
+async function pipeThroughCompressionStream(data: Uint8Array, { readable, writable }: CompressionStream | DecompressionStream): Promise<Uint8Array> {
+  const writer = writable.getWriter();
+
+  await writer.write(data);
+  await writer.close();
+
+  const chunks: Uint8Array[] = [];
+  let byteLength = 0;
+
+  const generator = (Symbol.asyncIterator in readable) ? readable : readableStreamToAsyncGenerator(readable as ReadableStream<Uint8Array>);
+
+  for await (const chunk of generator){
+    chunks.push(chunk);
+    byteLength += chunk.byteLength;
+  }
+
+  const result = new Uint8Array(byteLength);
+  let byteOffset = 0;
+
+  for (const chunk of chunks){
+    result.set(chunk,byteOffset);
+    byteOffset += chunk.byteLength;
+  }
+
+  return result;
+}
+
+async function* readableStreamToAsyncGenerator<T>(readable: ReadableStream<T>): AsyncGenerator<T,void,void> {
+  const reader = readable.getReader();
+  try {
+    while (true){
+      const { done, value } = await reader.read();
+      if (done) return;
+      yield value;
+    }
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 const NODE_DEFLATE_RAW_POLYFILL: Promise<boolean> = (async () => {
