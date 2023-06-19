@@ -47,10 +47,22 @@ export async function read<T extends RootTag = any, const U extends FormatOption
   }
 
   if (compression === undefined){
-    switch (true){
-      case hasGzipHeader(data): compression = "gzip"; break;
-      case hasZlibHeader(data): compression = "deflate"; break;
-      default: compression = null; break;
+    try {
+      return await read<T,U>(data,{ name, endian, compression: null, bedrockLevel, strict });
+    } catch (error){
+      try {
+        return await read<T,U>(data,{ name, endian, compression: "gzip", bedrockLevel, strict });
+      } catch {
+        try {
+          return await read<T,U>(data,{ name, endian, compression: "deflate", bedrockLevel, strict });
+        } catch {
+          try {
+            return await read<T,U>(data,{ name, endian, compression: "deflate-raw", bedrockLevel, strict });
+          } catch {
+            throw error;
+          }
+        }
+      }
     }
   }
 
@@ -98,18 +110,6 @@ export async function read<T extends RootTag = any, const U extends FormatOption
   const result = new NBTReader().read<T,U>(data,{ name, endian, strict });
 
   return new NBTData<T,U>(result,{ compression, bedrockLevel } as U);
-}
-
-function hasGzipHeader(data: Uint8Array): boolean {
-  const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
-  const header = view.getUint16(0,false);
-  return header === 0x1F8B;
-}
-
-function hasZlibHeader(data: Uint8Array): boolean {
-  const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
-  const header = view.getUint8(0);
-  return header === 0x78;
 }
 
 function hasBedrockLevelHeader(data: Uint8Array): boolean {
