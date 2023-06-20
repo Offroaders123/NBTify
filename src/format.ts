@@ -14,15 +14,17 @@ export interface FormatOptions {
   bedrockLevel?: BedrockLevel;
 }
 
+type FormatOption<T extends FormatOptions, U extends keyof FormatOptions> = T[U] extends null | {} ? T[U] : Exclude<FormatOptions[U],undefined>;
+
 /**
  * An object which represents a set of NBT data.
 */
 export class NBTData<T extends RootTag = any, const U extends FormatOptions = FormatOptions> {
   declare readonly data: T;
-  declare readonly name: U["name"] extends {} ? U["name"] : Name;
-  declare readonly endian: U["endian"] extends {} ? U["endian"] : Endian;
-  declare readonly compression: U["compression"] extends {} ? U["compression"] : Compression;
-  declare readonly bedrockLevel: U["bedrockLevel"] extends {} ? U["bedrockLevel"] : BedrockLevel;
+  declare readonly name: FormatOption<U,"name">;
+  declare readonly endian: FormatOption<U,"endian">;
+  declare readonly compression: FormatOption<U,"compression">;
+  declare readonly bedrockLevel: FormatOption<U,"bedrockLevel">;
 
   constructor(data: T | NBTData<T>, options?: U);
   constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: U = {} as U) {

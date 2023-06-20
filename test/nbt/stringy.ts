@@ -25,10 +25,15 @@ const stringy = new NBTData({
       Door: "handle"
     }
   ]
-},{ /*name: "",*/ endian: "big", compression: null, bedrockLevel: null });
+} as any,{ /*name: "",*/ endian: "big", compression: null, bedrockLevel: null });
 
-const { name, endian, compression, bedrockLevel } = stringy;
-name; // eek
+const edit = new NBTData(stringy,{ compression: "deflate-raw" });
+// should inherit 'endian' and 'bedrockLevel', and override 'compression'
+
+const noicea = new NBTData({},stringy);
+
+const { name, endian, compression, bedrockLevel } = noicea;
+name; // epic
 endian;
 compression;
 bedrockLevel;
