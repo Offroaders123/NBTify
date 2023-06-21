@@ -17,5 +17,9 @@ console.log(recompile,"\n");
 
 console.log(Buffer.compare(buffer,recompile),"\n");
 
-// This should error
-console.log(NBT.parse("[B;0b,1b,2b,3b,4b,5b,6b,7b,8b,9b]"));
+// ~~This should error~~ 👍
+const byteArray = NBT.parse("[B;0b,1b,2b,3b,4b,5b,6b,7b,8b,9b]");
+console.log(byteArray);
+
+const stringed = NBT.stringify(byteArray);
+console.log(stringed);

@@ -38,7 +38,7 @@ export class SNBTReader {
     this.#i = 0;
     this.#char = "";
 
-    return this.#readTag() as T;
+    return this.#readRoot() as T;
   }
 
   #unexpectedEnd(): Error {
@@ -55,6 +55,26 @@ export class SNBTReader {
       if (this.#data[this.#index] != " " && this.#data[this.#index] != "\n") return;
       this.#index += 1;
     }
+  }
+
+  #readRoot(): RootTag {
+    this.#skipWhitespace();
+
+    this.#i = this.#index;
+    this.#char = this.#data[this.#index];
+
+    switch (this.#char){
+      case "{": return (this.#index++,this.#readCompound());
+      case "[": {
+        this.#index++;
+        const list = this.#readList();
+        const type = getTagType(list);
+        if (type !== TAG.LIST) break;
+        return list;
+      };
+    }
+
+    throw new Error("Encountered unexpected Root tag type, must be either a List or Compound tag");
   }
 
   #readTag(): Tag {
