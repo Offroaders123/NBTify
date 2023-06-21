@@ -1,4 +1,4 @@
-import { type CompoundTag, Int8, Int16, NBTData } from "../../src/index.js";
+import { type CompoundTag, Int8, Int16, NBTData } from "../src/index.js";
 
 export default new NBTData({
   ByteTag: new Int8(127),

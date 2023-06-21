@@ -1,4 +1,4 @@
-import { Int8, NBTData } from "../../src/index.js";
+import { Int8, NBTData } from "../src/index.js";
 
 const stringy = new NBTData({
   Noice: true,
