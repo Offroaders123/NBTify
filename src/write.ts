@@ -29,7 +29,7 @@ export async function write(data: RootTag | NBTData, { name, endian, compression
   }
 
   if (typeof data !== "object" || data === null){
-    throw new TypeError("First parameter must be an object");
+    throw new TypeError("First parameter must be an object or array");
   }
   if (name !== undefined && typeof name !== "string" && name !== null){
     throw new TypeError("Name option must be a string or null");

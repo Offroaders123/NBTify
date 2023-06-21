@@ -18,7 +18,7 @@ export function stringify(data: RootTag | NBTData, { space = "" }: StringifyOpti
   }
 
   if (typeof data !== "object" || data === null){
-    throw new TypeError("First parameter must be an object");
+    throw new TypeError("First parameter must be an object or array");
   }
   if (typeof space !== "string" && typeof space !== "number"){
     throw new TypeError("Space option must be a string or number");
@@ -48,7 +48,7 @@ export class SNBTWriter {
     }
 
     if (typeof data !== "object" || data === null){
-      throw new TypeError("First parameter must be an object");
+      throw new TypeError("First parameter must be an object or array");
     }
     if (typeof space !== "string" && typeof space !== "number"){
       throw new TypeError("Space option must be a string or number");

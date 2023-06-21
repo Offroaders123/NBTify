@@ -42,7 +42,7 @@ export class NBTData<T extends RootTag = any, const U extends FormatOptions = Fo
     if (bedrockLevel === undefined) bedrockLevel = null;
 
     if (typeof data !== "object" || data === null){
-      throw new TypeError("First parameter must be an object");
+      throw new TypeError("First parameter must be an object or array");
     }
     if (typeof name !== "string" && name !== null){
       throw new TypeError("Name option must be a string or null");

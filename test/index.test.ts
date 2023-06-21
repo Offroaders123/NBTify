@@ -3,7 +3,8 @@ import { strictEqual } from "node:assert";
 import { readFile, readdir } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
-const paths = await readdir(new URL("./nbt/",import.meta.url));
+const paths = await readdir(new URL("./nbt/",import.meta.url))
+  .then(paths => paths.sort(Intl.Collator().compare));
 
 const files = await Promise.all(paths.map(async name => {
   const buffer = await readFile(new URL(`./nbt/${name}`,import.meta.url));
