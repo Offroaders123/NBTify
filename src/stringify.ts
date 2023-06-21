@@ -14,7 +14,7 @@ export interface StringifyOptions {
 export function stringify(data: RootTag | NBTData, options?: StringifyOptions): string;
 export function stringify(data: RootTag | NBTData, { space = "" }: StringifyOptions = {}): string {
   if (data instanceof NBTData){
-    data = data.data as CompoundTagUnsafe;
+    data = data.data as RootTag;
   }
 
   if (typeof data !== "object" || data === null){
@@ -44,7 +44,7 @@ export class SNBTWriter {
   write(data: RootTag | NBTData, options?: SNBTWriterOptions): string;
   write(data: RootTag | NBTData, { space = "" }: SNBTWriterOptions = {}): string {
     if (data instanceof NBTData){
-      data = data.data as CompoundTagUnsafe;
+      data = data.data as RootTag;
     }
 
     if (typeof data !== "object" || data === null){
@@ -57,7 +57,19 @@ export class SNBTWriter {
     this.#space = (typeof space === "number") ? " ".repeat(space) : space;
     this.#level = 1;
 
-    return this.#writeCompound(fromCompoundUnsafe(data as CompoundTagUnsafe));
+    return this.#writeRoot(data);
+  }
+
+  #writeRoot(value: RootTag): string {
+    const type = getTagType(value);
+    if (type !== TAG.LIST && type !== TAG.COMPOUND){
+      throw new TypeError("Encountered unexpected Root tag type, must be either a List or Compound tag");
+    }
+
+    switch (type){
+      case 9: return this.#writeList(fromListUnsafe(value as ListTagUnsafe));
+      case 10: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
+    }
   }
 
   #writeTag(value: Tag): string {

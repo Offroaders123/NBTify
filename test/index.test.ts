@@ -9,6 +9,7 @@ const FILES = {
   EXTREME: "extreme.nbt",
   HELLO_WORLD: "hello_world.nbt",
   BEDROCK_LEVEL: "level.dat",
+  LIST_ROOT: "list-root.nbt",
   MCA_CHUNK: "mca-chunk.nbt",
   LCE_PLAYER_0: "N_280dfc7dac2f_100000001_.dat",
   LCE_PLAYER_1: "P_280dfc7dac2f_00000001_knarF_520.dat",
