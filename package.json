@@ -6,9 +6,9 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "npm run test; tsc --project ./tsconfig.build.json",
+    "build": "tsc -p ./tsconfig.build.json",
     "dev": "tsc -w",
-    "test": "tsx --test ./test/index.test.ts"
+    "test": "tsx --test --watch ./test/index.test.ts"
   },
   "repository": {
     "type": "git",
