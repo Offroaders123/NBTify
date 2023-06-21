@@ -69,6 +69,12 @@ export class SNBTReader {
       case '"':
       case "'": return this.#readQuotedString();
       default: {
+        if (
+          /^(true)$/.test(this.#data.slice(this.#i,this.#index + 4)) ||
+          /^(false)$/.test(this.#data.slice(this.#i,this.#index + 5))
+        ){
+          return this.#readUnquotedString() as "true" | "false" === "true";
+        }
         const value = this.#readNumber();
         if (value != null && (this.#index == this.#data.length || !UNQUOTED_STRING_PATTERN.test(this.#data[this.#index]))){
           return value;
