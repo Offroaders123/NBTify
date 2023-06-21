@@ -167,13 +167,8 @@ export class NBTReader {
     this.#data = data;
     this.#view = new DataView(data.buffer,data.byteOffset,data.byteLength);
 
-    const type = this.#readTagType();
-    if (type !== TAG.COMPOUND){
-      throw new Error(`Expected an opening Compound tag at the start of the buffer, encountered tag type '${type}'`);
-    }
-
-    name = (name !== false) ? this.#readString() : null;
-    const value = this.#readCompound() as T;
+    let value: T;
+    [name,value] = this.#readRoot<T>(name);
 
     if (strict && data.byteLength > this.#byteOffset){
       const remaining = data.byteLength - this.#byteOffset;
@@ -187,6 +182,23 @@ export class NBTReader {
     if (this.#byteOffset + byteLength > this.#data.byteLength){
       throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
     }
+  }
+
+  #readRoot<T extends RootTag>(name: boolean | Name): [Name,T] {
+    const type = this.#readTagType();
+    if (type !== TAG.LIST && type !== TAG.COMPOUND){
+      throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
+    }
+
+    name = (name !== false) ? this.#readString() : null;
+    let value: T;
+
+    switch (type){
+      case 9: value = this.#readList() as T; break;
+      case 10: value = this.#readCompound() as T; break;
+    }
+
+    return [name,value];
   }
 
   #readTag(type: TAG): Tag {

@@ -25,7 +25,7 @@ export async function write(data: RootTag | NBTData, { name, endian, compression
     if (endian === undefined) endian = data.endian;
     if (compression === undefined) compression = data.compression;
     if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
-    data = data.data as CompoundTagUnsafe;
+    data = data.data as RootTag;
   }
 
   if (typeof data !== "object" || data === null){
@@ -87,14 +87,14 @@ export class NBTWriter {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
-      data = data.data as CompoundTagUnsafe;
+      data = data.data as RootTag;
     }
 
     if (name === undefined) name = "";
     if (endian === undefined) endian = "big";
 
     if (typeof data !== "object" || data === null){
-      throw new TypeError("First parameter must be an object");
+      throw new TypeError("First parameter must be an object or array");
     }
     if (typeof name !== "string" && name !== null){
       throw new TypeError("Name option must be a string or null");
@@ -108,9 +108,7 @@ export class NBTWriter {
     this.#data = new Uint8Array(1024);
     this.#view = new DataView(this.#data.buffer);
 
-    this.#writeTagType(TAG.COMPOUND);
-    if (name !== null) this.#writeString(name);
-    this.#writeCompound(fromCompoundUnsafe(data as CompoundTagUnsafe));
+    this.#writeRoot(name,data);
 
     this.#allocate(0);
     return this.#data.slice(0,this.#byteOffset);
@@ -135,6 +133,21 @@ export class NBTWriter {
 
     this.#data = data;
     this.#view = new DataView(data.buffer);
+  }
+
+  #writeRoot(name: Name, value: RootTag): void {
+    const type = getTagType(value);
+    if (type !== TAG.LIST && type !== TAG.COMPOUND){
+      throw new TypeError("Encountered unexpected Root tag type, must be either a List or Compound tag");
+    }
+
+    this.#writeTagType(type);
+    if (name !== null) this.#writeString(name);
+
+    switch (type){
+      case 9: return this.#writeList(fromListUnsafe(value as ListTagUnsafe));
+      case 10: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
+    }
   }
 
   #writeTag(value: Tag): void {
