@@ -6,7 +6,7 @@ export async function compress(data: Uint8Array, format: CompressionFormat): Pro
     return deflateRawPolyfill(data);
   }
   const compressionStream = new CompressionStream(format);
-  return pipeThroughCompressionStream(data,compressionStream);
+  return pipeThroughCompressionStream(data,compressionStream,format);
 }
 
 /**
@@ -17,14 +17,14 @@ export async function decompress(data: Uint8Array, format: CompressionFormat): P
     return inflateRawPolyfill(data);
   }
   const decompressionStream = new DecompressionStream(format);
-  return pipeThroughCompressionStream(data,decompressionStream);
+  return pipeThroughCompressionStream(data,decompressionStream,format);
 }
 
-async function pipeThroughCompressionStream(data: Uint8Array, { readable, writable }: CompressionStream | DecompressionStream): Promise<Uint8Array> {
+async function pipeThroughCompressionStream(data: Uint8Array, { readable, writable }: CompressionStream | DecompressionStream, format: CompressionFormat): Promise<Uint8Array> {
   const writer = writable.getWriter();
 
-  writer.write(data);
-  writer.close();
+  writer.write(data).then(noice => console.log("only-in-node!",format,noice)).catch(err => console.warn(1,format,err));
+  writer.close().then(noice => console.log("only-in-node!",format,noice)).catch(err => console.warn(2,format,err));
 
   const chunks: Uint8Array[] = [];
   let byteLength = 0;
