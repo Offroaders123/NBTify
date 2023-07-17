@@ -1,6 +1,6 @@
 import { write, Int32 } from "../src/index.js";
 
-import type { Tag, IntTag, CompoundTag } from "../src/tag.js";
+import type { Tag, IntTag, CompoundTag } from "../src/index.js";
 
 export type Difficulty = IntTag<0 | 1 | 2 | 3>;
 
@@ -21,3 +21,8 @@ levelDat.Difficulty;
 levelDat.NON_THINGO
 
 await write(levelDat);
+
+// @ts-expect-error - Index signature for type 'string' is missing in type '(Anonymous class)'. ts(1360)
+await write(new class {} satisfies CompoundTag);
+
+await write(new class { [name: string]: Tag; });
