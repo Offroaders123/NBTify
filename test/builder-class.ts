@@ -15,5 +15,9 @@ export class BedrockLevelDat implements BedrockLevelDatLike {
 }
 
 const levelDat = new BedrockLevelDat();
+levelDat.Difficulty;
+
+// @ts-expect-error - Property 'NON_THINGO' comes from an index signature. ts(4111)
+levelDat.NON_THINGO
 
 await write(levelDat);

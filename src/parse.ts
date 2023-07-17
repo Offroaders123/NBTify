@@ -70,7 +70,7 @@ export class SNBTReader {
         const list = this.#readList();
         const type = getTagType(list);
         if (type !== TAG.LIST) break;
-        return list;
+        return list as ListTag;
       };
     }
 

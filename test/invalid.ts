@@ -1,4 +1,4 @@
-import { type CompoundTag, Int8, Int16, NBTData } from "../src/index.js";
+import { Int8, Int16, NBTData } from "../src/index.js";
 
 export default new NBTData({
   ByteTag: new Int8(127),
@@ -37,4 +37,4 @@ export default new NBTData({
   ],
   IntArrayTag: new Int32Array([45,8,6,3,2,345,67,887452,123123,254]),
   LongArrayTag: new BigInt64Array([34234n,2343464756n,23425457n])
-} satisfies CompoundTag);
+});
