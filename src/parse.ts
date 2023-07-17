@@ -41,18 +41,26 @@ export class SNBTReader {
     return this.#readRoot() as T;
   }
 
+  #peek(byteOffset: number = this.#index): string {
+    const value = this.#data[byteOffset];
+    if (value === undefined){
+      throw this.#unexpectedEnd();
+    }
+    return value;
+  }
+
   #unexpectedEnd(): Error {
     return new Error("Unexpected end");
   }
 
   #unexpectedChar(i?: number): Error {
     if (i == null) i = this.#index;
-    return new Error(`Unexpected character ${this.#data[this.#index]} at position ${this.#index}`);
+    return new Error(`Unexpected character ${this.#peek()} at position ${this.#index}`);
   }
 
   #skipWhitespace(): void {
     while (this.#index < this.#data.length){
-      if (this.#data[this.#index] != " " && this.#data[this.#index] != "\n") return;
+      if (this.#peek() != " " && this.#peek() != "\n") return;
       this.#index += 1;
     }
   }
@@ -61,7 +69,7 @@ export class SNBTReader {
     this.#skipWhitespace();
 
     this.#i = this.#index;
-    this.#char = this.#data[this.#index];
+    this.#char = this.#peek();
 
     switch (this.#char){
       case "{": return (this.#index++,this.#readCompound());
@@ -81,7 +89,7 @@ export class SNBTReader {
     this.#skipWhitespace();
 
     this.#i = this.#index;
-    this.#char = this.#data[this.#index];
+    this.#char = this.#peek();
 
     switch (this.#char){
       case "{": return (this.#index++,this.#readCompound());
@@ -96,7 +104,7 @@ export class SNBTReader {
           return this.#readUnquotedString() as "true" | "false" === "true";
         }
         const value = this.#readNumber();
-        if (value != null && (this.#index == this.#data.length || !UNQUOTED_STRING_PATTERN.test(this.#data[this.#index]))){
+        if (value != null && (this.#index == this.#data.length || !UNQUOTED_STRING_PATTERN.test(this.#peek()))){
           return value;
         }
         return this.#data.slice(this.#i,this.#index) + this.#readUnquotedString();
@@ -105,13 +113,13 @@ export class SNBTReader {
   }
 
   #readNumber(): ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null {
-    if (!"-0123456789".includes(this.#data[this.#index])) return null;
+    if (!"-0123456789".includes(this.#peek())) return null;
 
     this.#i = this.#index++;
     let hasFloatingPoint = false;
 
     while (this.#index < this.#data.length){
-      this.#char = this.#data[this.#index++];
+      this.#char = this.#peek(this.#index++);
       if ("0123456789".includes(this.#char)) continue;
 
       switch (this.#char.toLowerCase()){
@@ -142,7 +150,7 @@ export class SNBTReader {
   }
 
   #readString(): string {
-    if (this.#data[this.#index] == '"' || this.#data[this.#index] == "'"){
+    if (this.#peek() == '"' || this.#peek() == "'"){
       return this.#readQuotedString();
     } else {
       return this.#readUnquotedString();
@@ -153,7 +161,7 @@ export class SNBTReader {
     this.#i = this.#index;
 
     while (this.#index < this.#data.length){
-      if (!UNQUOTED_STRING_PATTERN.test(this.#data[this.#index])) break;
+      if (!UNQUOTED_STRING_PATTERN.test(this.#peek())) break;
       this.#index++;
     }
 
@@ -165,15 +173,15 @@ export class SNBTReader {
   }
 
   #readQuotedString(): string {
-    const quoteChar = this.#data[this.#index];
+    const quoteChar = this.#peek();
     this.#i = ++this.#index;
     let string = "";
 
     while (this.#index < this.#data.length){
-      this.#char = this.#data[this.#index++];
+      this.#char = this.#peek(this.#index++);
 
       if (this.#char == "\\"){
-        string += this.#data.slice(this.#i,this.#index - 1) + this.#data[this.#index];
+        string += this.#data.slice(this.#i,this.#index - 1) + this.#peek();
         this.#i = ++this.#index;
       } else if (this.#char == quoteChar){
         return string + this.#data.slice(this.#i,this.#index - 1);
@@ -186,14 +194,14 @@ export class SNBTReader {
   #skipCommas(isFirst: boolean, end: string): void {
     this.#skipWhitespace();
 
-    if (this.#data[this.#index] == ","){
+    if (this.#peek() == ","){
       if (isFirst){
         throw this.#unexpectedChar();
       } else {
         this.#index++;
         this.#skipWhitespace();
       }
-    } else if (!isFirst && this.#data[this.#index] != end){
+    } else if (!isFirst && this.#peek() != end){
       throw this.#unexpectedChar();
     }
   }
@@ -204,7 +212,7 @@ export class SNBTReader {
     while (this.#index < this.#data.length){
       this.#skipCommas(array.length == 0, "]");
 
-      if (this.#data[this.#index] == "]"){
+      if (this.#peek() == "]"){
         this.#index++;
         switch (type){
           case "B": return Int8Array.from(array.map(v => +v));
@@ -214,25 +222,25 @@ export class SNBTReader {
       }
 
       this.#i = this.#index;
-      if (this.#data[this.#index] == "-"){
+      if (this.#peek() == "-"){
         this.#index++;
       }
 
       while (this.#index < this.#data.length){
-        if (!"0123456789".includes(this.#data[this.#index])) break;
+        if (!"0123456789".includes(this.#peek())) break;
         this.#index++;
       }
 
       const prefix = (type === "B") ? "b" : (type === "L") ? "l" : "";
 
-      if (this.#data[this.#index] == prefix){
+      if (this.#peek() == prefix){
         this.#index++;
       }
 
       if (this.#index - this.#i == 0){
         throw this.#unexpectedChar();
       }
-      if (UNQUOTED_STRING_PATTERN.test(this.#data[this.#index])){
+      if (UNQUOTED_STRING_PATTERN.test(this.#peek())){
         throw this.#unexpectedChar();
       }
 
@@ -243,8 +251,8 @@ export class SNBTReader {
   }
 
   #readList(): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {
-    if ("BILbil".includes(this.#data[this.#index]) && this.#data[this.#index + 1] == ";"){
-      return this.#readArray(this.#data[(this.#index += 2) - 2].toUpperCase() as "B" | "I" | "L");
+    if ("BILbil".includes(this.#peek()) && this.#data[this.#index + 1] == ";"){
+      return this.#readArray(this.#peek((this.#index += 2) - 2).toUpperCase() as "B" | "I" | "L");
     }
 
     const array: ListTag = [];
@@ -252,18 +260,18 @@ export class SNBTReader {
     while (this.#index < this.#data.length){
       this.#skipWhitespace();
 
-      if (this.#data[this.#index] == ","){
+      if (this.#peek() == ","){
         if (array.length == 0){
           throw this.#unexpectedChar();
         } else {
           this.#index++;
           this.#skipWhitespace();
         }
-      } else if (array.length > 0 && this.#data[this.#index] != "]"){
+      } else if (array.length > 0 && this.#peek() != "]"){
         throw this.#unexpectedChar(this.#index - 1);
       }
 
-      if (this.#data[this.#index] == "]"){
+      if (this.#peek() == "]"){
         return (this.#index++,array);
       }
 
@@ -281,7 +289,7 @@ export class SNBTReader {
       this.#skipCommas(first,"}");
       first = false;
 
-      if (this.#data[this.#index] == "}"){
+      if (this.#peek() == "}"){
         this.#index++;
         return entries.reduce<CompoundTag>((obj,[k,v]) => (obj[k] = v,obj),{});
       }
