@@ -5,6 +5,7 @@
     "target": "ESNext",
     "noEmit": true,
     "strict": true,
-    "noImplicitOverride": true
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true
   }
 }
