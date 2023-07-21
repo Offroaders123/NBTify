@@ -307,10 +307,10 @@ export class NBTReader {
     return value;
   }
 
-  #readList(): ListTag {
+  #readList(): ListTag<Tag> {
     const type = this.#readTagType();
     const length = this.#readInt(true);
-    const value: ListTag = [];
+    const value: ListTag<Tag> = [];
     for (let i = 0; i < length; i++){
       const entry = this.#readTag(type);
       value.push(entry);

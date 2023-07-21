@@ -67,7 +67,7 @@ export class SNBTWriter {
     }
 
     switch (type){
-      case 9: return this.#writeList(fromListUnsafe(value as ListTagUnsafe));
+      case 9: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
       case 10: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
     }
   }
@@ -83,7 +83,7 @@ export class SNBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(fromListUnsafe(value as ListTagUnsafe));
+      case TAG.LIST: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
       case TAG.COMPOUND: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
@@ -125,7 +125,7 @@ export class SNBTWriter {
     return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
   }
 
-  #writeList(value: ListTag): string {
+  #writeList(value: ListTag<Tag>): string {
     const fancy = (this.#space !== "");
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);

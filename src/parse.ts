@@ -78,7 +78,7 @@ export class SNBTReader {
         const list = this.#readList();
         const type = getTagType(list);
         if (type !== TAG.LIST) break;
-        return list as ListTag;
+        return list as ListTag<Tag>;
       };
     }
 
@@ -250,12 +250,12 @@ export class SNBTReader {
     throw this.#unexpectedEnd();
   }
 
-  #readList(): ByteArrayTag | ListTag | IntArrayTag | LongArrayTag {
+  #readList(): ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag {
     if ("BILbil".includes(this.#peek()) && this.#data[this.#index + 1] == ";"){
       return this.#readArray(this.#peek((this.#index += 2) - 2).toUpperCase() as "B" | "I" | "L");
     }
 
-    const array: ListTag = [];
+    const array: ListTag<Tag> = [];
 
     while (this.#index < this.#data.length){
       this.#skipWhitespace();

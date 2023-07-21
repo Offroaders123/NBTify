@@ -145,7 +145,7 @@ export class NBTWriter {
     if (name !== null) this.#writeString(name);
 
     switch (type){
-      case 9: return this.#writeList(fromListUnsafe(value as ListTagUnsafe));
+      case 9: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
       case 10: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
     }
   }
@@ -161,7 +161,7 @@ export class NBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(fromListUnsafe(value as ListTagUnsafe));
+      case TAG.LIST: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
       case TAG.COMPOUND: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
@@ -237,7 +237,7 @@ export class NBTWriter {
     this.#byteOffset += length;
   }
 
-  #writeList(value: ListTag): void {
+  #writeList(value: ListTag<Tag>): void {
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const { length } = value;
     this.#writeTagType(type);

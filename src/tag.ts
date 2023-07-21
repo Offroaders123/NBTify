@@ -1,8 +1,8 @@
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 
-export type RootTag = CompoundTag | ListTag;
+export type RootTag = CompoundTag | ListTag<Tag>;
 
-export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag | CompoundTag | IntArrayTag | LongArrayTag;
+export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag<Tag> | CompoundTag | IntArrayTag | LongArrayTag;
 
 export type ByteTag<T extends number = number> = Int8<T>;
 
@@ -26,9 +26,9 @@ export type ByteArrayTag = Int8Array;
 
 export type StringTag = string;
 
-export interface ListTag<T extends Tag = Tag> extends Array<T> {}
+export interface ListTag<T extends Tag> extends Array<T> {}
 
-export interface ListTagUnsafe extends Array<unknown> {}
+export interface ListTagUnsafe<T extends Tag> extends Array<T | unknown> {}
 
 export interface CompoundTag {
   [name: string]: Tag;
@@ -81,9 +81,9 @@ export function getTagType(value: any): TAG | null {
   }
 }
 
-export function fromListUnsafe(value: ListTagUnsafe): ListTag {
-  return value
-    .filter((entry): entry is Tag => 
+export function fromListUnsafe<T extends Tag>(value: ListTag<T> | ListTagUnsafe<T>): ListTag<T> {
+  return (value as ListTagUnsafe<T>)
+    .filter((entry): entry is T => 
       getTagType(entry) !== null
     );
 }
