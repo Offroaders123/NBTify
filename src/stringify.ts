@@ -11,8 +11,8 @@ export interface StringifyOptions {
 /**
  * Converts an NBTData object into an SNBT string.
 */
-export function stringify<T extends RootTag>(data: T | NBTData<T>, options?: StringifyOptions): string;
-export function stringify<T extends RootTag>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
+export function stringify<T extends RootTag = never>(data: T | NBTData<T>, options?: StringifyOptions): string;
+export function stringify<T extends RootTag = never>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
   if (data instanceof NBTData){
     data = data.data;
   }
@@ -41,8 +41,8 @@ export class SNBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write<T extends RootTag>(data: T | NBTData<T>, options?: SNBTWriterOptions): string;
-  write<T extends RootTag>(data: T | NBTData<T>, { space = "" }: SNBTWriterOptions = {}): string {
+  write<T extends RootTag = never>(data: T | NBTData<T>, options?: SNBTWriterOptions): string;
+  write<T extends RootTag = never>(data: T | NBTData<T>, { space = "" }: SNBTWriterOptions = {}): string {
     if (data instanceof NBTData){
       data = data.data;
     }

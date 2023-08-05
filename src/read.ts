@@ -19,8 +19,8 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTag, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T,U>>;
-export async function read<T extends RootTag, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T,U>> {
+export async function read<T extends RootTag = never, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T,U>>;
+export async function read<T extends RootTag = never, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T,U>> {
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
@@ -143,8 +143,8 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends RootTag, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: NBTReaderOptions): NBTData<T,U>;
-  read<T extends RootTag, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T,U> {
+  read<T extends RootTag = never, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: NBTReaderOptions): NBTData<T,U>;
+  read<T extends RootTag = never, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T,U> {
     if (!("byteOffset" in data)){
       data = new Uint8Array(data);
     }
@@ -184,7 +184,7 @@ export class NBTReader {
     }
   }
 
-  #readRoot<T extends RootTag>(name: boolean | Name): [Name,T] {
+  #readRoot<T extends RootTag = never>(name: boolean | Name): [Name,T] {
     const type = this.#readTagType();
     if (type !== TAG.LIST && type !== TAG.COMPOUND){
       throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
