@@ -1,5 +1,11 @@
 import * as NBT from "../src/index.js";
 
+declare const noice: Uint8Array;
+const nbt = await NBT.read(noice);
+
+// This is not ideal; the type is 'RootTag' when not narrowed by the user
+type ImplicitType = typeof nbt.data;
+
 const result = new NBT.NBTData([true,false]);
 console.log(result,"\n");
 
