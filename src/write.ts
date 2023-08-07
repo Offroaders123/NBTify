@@ -1,10 +1,9 @@
 import { NBTData } from "./format.js";
-import { TAG, getTagType, fromListUnsafe, fromCompoundUnsafe } from "./tag.js";
-import { Int32 } from "./primitive.js";
+import { TAG, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
 
 import type { Name, Endian, Compression, BedrockLevel } from "./format.js";
-import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe, IntArrayTag, LongArrayTag } from "./tag.js";
+import { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface WriteOptions {
   name?: Name;
@@ -28,7 +27,7 @@ export async function write<T extends RootTag>(data: T | NBTData<T>, { name, end
     data = data.data;
   }
 
-  if (typeof data !== "object" || data === null){
+  if (data instanceof CompoundTag === data instanceof ListTag){
     throw new TypeError("First parameter must be an object or array");
   }
   if (name !== undefined && typeof name !== "string" && name !== null){
@@ -40,7 +39,7 @@ export async function write<T extends RootTag>(data: T | NBTData<T>, { name, end
   if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
     throw new TypeError("Compression option must be a valid compression type");
   }
-  if (bedrockLevel !== undefined && !(bedrockLevel instanceof Int32) && bedrockLevel !== null){
+  if (bedrockLevel !== undefined && !(bedrockLevel instanceof IntTag) && bedrockLevel !== null){
     throw new TypeError("Bedrock Level option must be an Int32 or null");
   }
 
@@ -93,7 +92,7 @@ export class NBTWriter {
     if (name === undefined) name = "";
     if (endian === undefined) endian = "big";
 
-    if (typeof data !== "object" || data === null){
+    if (data instanceof CompoundTag === data instanceof ListTag){
       throw new TypeError("First parameter must be an object or array");
     }
     if (typeof name !== "string" && name !== null){
@@ -142,11 +141,11 @@ export class NBTWriter {
     }
 
     this.#writeTagType(type);
-    if (name !== null) this.#writeString(name);
+    if (name !== null) this.#writeString(new StringTag(name));
 
     switch (type){
-      case 9: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
-      case 10: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
+      case 9: return this.#writeList(value as ListTag<Tag>);
+      case 10: return this.#writeCompound(value as CompoundTag);
     }
   }
 
@@ -161,8 +160,8 @@ export class NBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
-      case TAG.COMPOUND: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
+      case TAG.LIST: return this.#writeList(value as ListTag<Tag>);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
     }
@@ -178,7 +177,7 @@ export class NBTWriter {
     this.#byteOffset += 1;
   }
 
-  #writeByte(value: number | ByteTag | BooleanTag): void {
+  #writeByte(value: ByteTag | BooleanTag): void {
     this.#allocate(1);
     this.#view.setInt8(this.#byteOffset,Number(value.valueOf()));
     this.#byteOffset += 1;
@@ -190,13 +189,13 @@ export class NBTWriter {
     this.#byteOffset += 2;
   }
 
-  #writeShort(value: number | ShortTag): void {
+  #writeShort(value: ShortTag): void {
     this.#allocate(2);
     this.#view.setInt16(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 2;
   }
 
-  #writeInt(value: number | IntTag): void {
+  #writeInt(value: IntTag): void {
     this.#allocate(4);
     this.#view.setInt32(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 4;
@@ -204,11 +203,11 @@ export class NBTWriter {
 
   #writeLong(value: LongTag): void {
     this.#allocate(8);
-    this.#view.setBigInt64(this.#byteOffset,value,this.#littleEndian);
+    this.#view.setBigInt64(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 8;
   }
 
-  #writeFloat(value: number | FloatTag): void {
+  #writeFloat(value: FloatTag): void {
     this.#allocate(4);
     this.#view.setFloat32(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 4;
@@ -216,20 +215,20 @@ export class NBTWriter {
 
   #writeDouble(value: DoubleTag): void {
     this.#allocate(8);
-    this.#view.setFloat64(this.#byteOffset,value,this.#littleEndian);
+    this.#view.setFloat64(this.#byteOffset,value.valueOf(),this.#littleEndian);
     this.#byteOffset += 8;
   }
 
   #writeByteArray(value: ByteArrayTag): void {
     const { length } = value;
-    this.#writeInt(length);
+    this.#writeInt(new IntTag(length));
     this.#allocate(length);
     this.#data.set(value,this.#byteOffset);
     this.#byteOffset += length;
   }
 
   #writeString(value: StringTag): void {
-    const entry = this.#encoder.encode(value);
+    const entry = this.#encoder.encode(value.valueOf());
     const { length } = entry;
     this.#writeUnsignedShort(length);
     this.#allocate(length);
@@ -241,7 +240,7 @@ export class NBTWriter {
     const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
     const { length } = value;
     this.#writeTagType(type);
-    this.#writeInt(length);
+    this.#writeInt(new IntTag(length));
     for (const entry of value){
       if (getTagType(entry) !== type){
         throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
@@ -254,25 +253,25 @@ export class NBTWriter {
     for (const [name,entry] of Object.entries(value)){
       const type = getTagType(entry)!;
       this.#writeTagType(type);
-      this.#writeString(name);
-      this.#writeTag(entry);
+      this.#writeString(new StringTag(name));
+      this.#writeTag(entry!);
     }
     this.#writeTagType(TAG.END);
   }
 
   #writeIntArray(value: IntArrayTag): void {
     const { length } = value;
-    this.#writeInt(length);
+    this.#writeInt(new IntTag(length));
     for (const entry of value){
-      this.#writeInt(entry);
+      this.#writeInt(new IntTag(entry));
     }
   }
 
   #writeLongArray(value: LongArrayTag): void {
     const { length } = value;
-    this.#writeInt(length);
+    this.#writeInt(new IntTag(length));
     for (const entry of value){
-      this.#writeLong(entry);
+      this.#writeLong(new LongTag(entry));
     }
   }
 }

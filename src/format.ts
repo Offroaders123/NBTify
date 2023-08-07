@@ -1,11 +1,11 @@
-import { Int32 } from "./primitive.js";
+import { IntTag, ListTag, CompoundTag } from "./tag.js";
 
 import type { RootTag } from "./tag.js";
 
 export type Name = string | null;
 export type Endian = "big" | "little";
 export type Compression = CompressionFormat | null;
-export type BedrockLevel = Int32 | null;
+export type BedrockLevel = IntTag | null;
 
 export interface FormatOptions {
   name?: Name;
@@ -41,7 +41,7 @@ export class NBTData<T extends RootTag, const U extends FormatOptions = FormatOp
     if (compression === undefined) compression = null;
     if (bedrockLevel === undefined) bedrockLevel = null;
 
-    if (typeof data !== "object" || data === null){
+    if (data instanceof CompoundTag === data instanceof ListTag){
       throw new TypeError("First parameter must be an object or array");
     }
     if (typeof name !== "string" && name !== null){
@@ -53,7 +53,7 @@ export class NBTData<T extends RootTag, const U extends FormatOptions = FormatOp
     if (compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
       throw new TypeError("Compression option must be a valid compression type");
     }
-    if (!(bedrockLevel instanceof Int32) && bedrockLevel !== null){
+    if (!(bedrockLevel instanceof IntTag) && bedrockLevel !== null){
       throw new TypeError("Bedrock Level option must be an Int32 or null");
     }
 

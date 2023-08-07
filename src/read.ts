@@ -1,10 +1,9 @@
 import { NBTData } from "./format.js";
-import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
 import type { Name, Endian, Compression, BedrockLevel, FormatOptions } from "./format.js";
-import type { RootTag, Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import { RootTag, Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface ReadOptions {
   name?: boolean | Name;
@@ -37,7 +36,7 @@ export async function read<T extends RootTag, const U extends FormatOptions = Fo
   if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
     throw new TypeError("Compression option must be a valid compression type");
   }
-  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && !(bedrockLevel instanceof Int32) && bedrockLevel !== null){
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && !(bedrockLevel instanceof IntTag) && bedrockLevel !== null){
     throw new TypeError("Bedrock Level option must be a boolean, Int32, or null");
   }
   if (strict !== undefined && typeof strict !== "boolean"){
@@ -95,7 +94,7 @@ export async function read<T extends RootTag, const U extends FormatOptions = Fo
   if (bedrockLevel !== false && bedrockLevel !== null){
     const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
     const version = view.getUint32(0,true);
-    bedrockLevel = new Int32(version);
+    bedrockLevel = new IntTag(version);
     data = data.subarray(8);
   } else {
     bedrockLevel = null;
@@ -190,7 +189,7 @@ export class NBTReader {
       throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
     }
 
-    name = (name !== false) ? this.#readString() : null;
+    name = (name !== false) ? this.#readString().valueOf() : null;
     let value: T;
 
     switch (type){
@@ -234,13 +233,11 @@ export class NBTReader {
     return value;
   }
 
-  #readByte(valueOf?: false): ByteTag;
-  #readByte(valueOf: true): number;
-  #readByte(valueOf: boolean = false): number | ByteTag {
+  #readByte(): ByteTag {
     this.#allocate(1);
     const value = this.#view.getInt8(this.#byteOffset);
     this.#byteOffset += 1;
-    return (valueOf) ? value : new Int8(value);
+    return new ByteTag(value);
   }
 
   #readUnsignedShort(): number {
@@ -250,53 +247,47 @@ export class NBTReader {
     return value;
   }
 
-  #readShort(valueOf?: false): ShortTag;
-  #readShort(valueOf: true): number;
-  #readShort(valueOf: boolean = false): number | ShortTag {
+  #readShort(): ShortTag {
     this.#allocate(2);
     const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
-    return (valueOf) ? value : new Int16(value);
+    return new ShortTag(value);
   }
 
-  #readInt(valueOf?: false): IntTag;
-  #readInt(valueOf: true): number;
-  #readInt(valueOf: boolean = false): number | IntTag {
+  #readInt(): IntTag {
     this.#allocate(4);
     const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
-    return (valueOf) ? value : new Int32(value);
+    return new IntTag(value);
   }
 
   #readLong(): LongTag {
     this.#allocate(8);
     const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
-    return value;
+    return new LongTag(value);
   }
 
-  #readFloat(valueOf?: false): FloatTag;
-  #readFloat(valueOf: true): number;
-  #readFloat(valueOf: boolean = false): number | FloatTag {
+  #readFloat(): FloatTag {
     this.#allocate(4);
     const value = this.#view.getFloat32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
-    return (valueOf) ? value : new Float32(value);
+    return new FloatTag(value);
   }
 
   #readDouble(): DoubleTag {
     this.#allocate(8);
     const value = this.#view.getFloat64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
-    return value;
+    return new DoubleTag(value);
   }
 
   #readByteArray(): ByteArrayTag {
-    const length = this.#readInt(true);
+    const length = this.#readInt().valueOf();
     this.#allocate(length);
     const value = new Int8Array(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
     this.#byteOffset += length;
-    return value;
+    return new ByteArrayTag(value);
   }
 
   #readString(): StringTag {
@@ -304,13 +295,13 @@ export class NBTReader {
     this.#allocate(length);
     const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
     this.#byteOffset += length;
-    return value;
+    return new StringTag(value);
   }
 
   #readList(): ListTag<Tag> {
     const type = this.#readTagType();
-    const length = this.#readInt(true);
-    const value: ListTag<Tag> = [];
+    const length = this.#readInt().valueOf();
+    const value = new ListTag();
     for (let i = 0; i < length; i++){
       const entry = this.#readTag(type);
       value.push(entry);
@@ -319,11 +310,11 @@ export class NBTReader {
   }
 
   #readCompound(): CompoundTag {
-    const value: CompoundTag = {};
+    const value = new CompoundTag();
     while (true){
       const type = this.#readTagType();
       if (type === TAG.END) break;
-      const name = this.#readString();
+      const name = this.#readString().valueOf();
       const entry = this.#readTag(type);
       value[name] = entry;
     }
@@ -331,22 +322,22 @@ export class NBTReader {
   }
 
   #readIntArray(): IntArrayTag {
-    const length = this.#readInt(true);
+    const length = this.#readInt().valueOf();
     const value = new Int32Array(length);
     for (const i in value){
-      const entry = this.#readInt(true);
+      const entry = this.#readInt().valueOf();
       value[i] = entry;
     }
-    return value;
+    return new IntArrayTag(value);
   }
 
   #readLongArray(): LongArrayTag {
-    const length = this.#readInt(true);
+    const length = this.#readInt().valueOf();
     const value = new BigInt64Array(length);
     for (const i in value){
-      const entry = this.#readLong();
+      const entry = this.#readLong().valueOf();
       value[i] = entry;
     }
-    return value;
+    return new LongArrayTag(value);
   }
 }

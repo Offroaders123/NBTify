@@ -5,7 +5,12 @@ const nbt = await NBT.read(noice);
 
 type ImplicitType = typeof nbt.data;
 
-const result = new NBT.NBTData([true,false]);
+const result = new NBT.NBTData(
+  new NBT.ListTag<NBT.BooleanTag>(
+    new NBT.BooleanTag(true),
+    new NBT.BooleanTag(false)
+  )
+);
 console.log(result,"\n");
 
 const buffer = await NBT.write(result).then(Buffer.from);

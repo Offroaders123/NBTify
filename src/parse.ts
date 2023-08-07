@@ -1,7 +1,6 @@
-import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 
@@ -95,19 +94,19 @@ export class SNBTReader {
       case "{": return (this.#index++,this.#readCompound());
       case "[": return (this.#index++,this.#readList());
       case '"':
-      case "'": return this.#readQuotedString();
+      case "'": return new StringTag(this.#readQuotedString());
       default: {
         if (
           /^(true)$/.test(this.#data.slice(this.#i,this.#index + 4)) ||
           /^(false)$/.test(this.#data.slice(this.#i,this.#index + 5))
         ){
-          return this.#readUnquotedString() as "true" | "false" === "true";
+          return new BooleanTag(this.#readUnquotedString() as "true" | "false" === "true");
         }
         const value = this.#readNumber();
         if (value != null && (this.#index == this.#data.length || !UNQUOTED_STRING_PATTERN.test(this.#peek()))){
           return value;
         }
-        return this.#data.slice(this.#i,this.#index) + this.#readUnquotedString();
+        return new StringTag(this.#data.slice(this.#i,this.#index) + this.#readUnquotedString());
       }
     }
   }
@@ -127,25 +126,25 @@ export class SNBTReader {
           if (hasFloatingPoint) return (this.#index--,null);
           hasFloatingPoint = true; break;
         }
-        case "f": return new Float32(+this.#data.slice(this.#i,this.#index - 1));
-        case "d": return +this.#data.slice(this.#i,this.#index - 1);
-        case "b": return new Int8(+this.#data.slice(this.#i,this.#index - 1));
-        case "s": return new Int16(+this.#data.slice(this.#i,this.#index - 1));
-        case "l": return BigInt(this.#data.slice(this.#i,this.#index - 1));
+        case "f": return new FloatTag(+this.#data.slice(this.#i,this.#index - 1));
+        case "d": return new DoubleTag(+this.#data.slice(this.#i,this.#index - 1));
+        case "b": return new ByteTag(+this.#data.slice(this.#i,this.#index - 1));
+        case "s": return new ShortTag(+this.#data.slice(this.#i,this.#index - 1));
+        case "l": return new LongTag(BigInt(this.#data.slice(this.#i,this.#index - 1)));
         default: {
           if (hasFloatingPoint){
-            return +this.#data.slice(this.#i,--this.#index);
+            return new DoubleTag(+this.#data.slice(this.#i,--this.#index));
           } else {
-            return new Int32(+this.#data.slice(this.#i,--this.#index));
+            return new IntTag(+this.#data.slice(this.#i,--this.#index));
           }
         }
       }
     }
 
     if (hasFloatingPoint){
-      return +this.#data.slice(this.#i,this.#index);
+      return new DoubleTag(+this.#data.slice(this.#i,this.#index));
     } else {
-      return new Int32(+this.#data.slice(this.#i,this.#index));
+      return new IntTag(+this.#data.slice(this.#i,this.#index));
     }
   }
 
@@ -215,9 +214,9 @@ export class SNBTReader {
       if (this.#peek() == "]"){
         this.#index++;
         switch (type){
-          case "B": return Int8Array.from(array.map(v => +v));
-          case "I": return Int32Array.from(array.map(v => +v));
-          case "L": return BigInt64Array.from(array.map(v => BigInt(v)));
+          case "B": return new ByteArrayTag(array.map(v => +v));
+          case "I": return new IntArrayTag(array.map(v => +v));
+          case "L": return new LongArrayTag(array.map(v => BigInt(v)));
         }
       }
 
@@ -255,7 +254,7 @@ export class SNBTReader {
       return this.#readArray(this.#peek((this.#index += 2) - 2).toUpperCase() as "B" | "I" | "L");
     }
 
-    const array: ListTag<Tag> = [];
+    const array = new ListTag();
 
     while (this.#index < this.#data.length){
       this.#skipWhitespace();
@@ -291,7 +290,7 @@ export class SNBTReader {
 
       if (this.#peek() == "}"){
         this.#index++;
-        return entries.reduce<CompoundTag>((obj,[k,v]) => (obj[k] = v,obj),{});
+        return new CompoundTag(entries.reduce<Record<string,Tag | undefined>>((obj,[k,v]) => (obj[k] = v,obj),{}));
       }
 
       const key = this.#readString();

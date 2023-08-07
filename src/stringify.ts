@@ -1,8 +1,7 @@
 import { NBTData } from "./format.js";
-import { TAG, getTagType, fromListUnsafe, fromCompoundUnsafe } from "./tag.js";
-import { Int8, Int32 } from "./primitive.js";
+import { TAG, getTagType } from "./tag.js";
 
-import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe, IntArrayTag, LongArrayTag } from "./tag.js";
+import { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface StringifyOptions {
   space?: string | number;
@@ -17,7 +16,7 @@ export function stringify<T extends RootTag>(data: T | NBTData<T>, { space = "" 
     data = data.data;
   }
 
-  if (typeof data !== "object" || data === null){
+  if (data instanceof CompoundTag === data instanceof ListTag){
     throw new TypeError("First parameter must be an object or array");
   }
   if (typeof space !== "string" && typeof space !== "number"){
@@ -47,7 +46,7 @@ export class SNBTWriter {
       data = data.data;
     }
 
-    if (typeof data !== "object" || data === null){
+    if (data instanceof CompoundTag === data instanceof ListTag){
       throw new TypeError("First parameter must be an object or array");
     }
     if (typeof space !== "string" && typeof space !== "number"){
@@ -67,8 +66,8 @@ export class SNBTWriter {
     }
 
     switch (type){
-      case 9: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
-      case 10: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
+      case 9: return this.#writeList(value as ListTag<Tag>);
+      case 10: return this.#writeCompound(value as CompoundTag);
     }
   }
 
@@ -83,8 +82,8 @@ export class SNBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
-      case TAG.COMPOUND: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
+      case TAG.LIST: return this.#writeList(value as ListTag<Tag>);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
       default: throw new Error(`Encountered unsupported tag type '${type}'`);
@@ -104,7 +103,7 @@ export class SNBTWriter {
   }
 
   #writeLong(value: LongTag): string {
-    return `${value}l`;
+    return `${value.valueOf()}l`;
   }
 
   #writeFloat(value: FloatTag): string {
@@ -112,11 +111,11 @@ export class SNBTWriter {
   }
 
   #writeDouble(value: DoubleTag): string {
-    return `${value}d`;
+    return `${value.valueOf()}d`;
   }
 
   #writeByteArray(value: ByteArrayTag): string {
-    return `[B;${[...value].map(entry => this.#writeByte(new Int8(entry))).join() satisfies string}]`;
+    return `[B;${[...value].map(entry => this.#writeByte(new ByteTag(entry))).join() satisfies string}]`;
   }
 
   #writeString(value: StringTag): string {
@@ -139,19 +138,19 @@ export class SNBTWriter {
 
   #writeCompound(value: CompoundTag): string {
     const fancy = (this.#space !== "");
-    return `{${Object.entries(value).map(([key,value]) => `${fancy ? `\n${(this.#space satisfies string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${(() => {
+    return `{${Object.entries(value).map(([key,value]) => `${fancy ? `\n${(this.#space satisfies string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(new StringTag(key))}:${fancy ? " " : ""}${(() => {
       this.#level += 1;
-      const result = this.#writeTag(value);
+      const result = this.#writeTag(value!);
       this.#level -= 1;
       return result;
     })() satisfies string}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
   }
 
   #writeIntArray(value: IntArrayTag): string {
-    return `[I;${[...value].map(entry => this.#writeInt(new Int32(entry))).join() satisfies string}]`;
+    return `[I;${[...value].map(entry => this.#writeInt(new IntTag(entry))).join() satisfies string}]`;
   }
 
   #writeLongArray(value: LongArrayTag): string {
-    return `[L;${[...value].map(entry => this.#writeLong(entry)).join() satisfies string}]`;
+    return `[L;${[...value].map(entry => this.#writeLong(new LongTag(entry))).join() satisfies string}]`;
   }
 }
