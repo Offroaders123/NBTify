@@ -19,7 +19,7 @@ export default new NBTData({
   },
   // @ts-expect-error
   Symbol: Symbol(25),
-  // @ts-expect-error
+  //// @ts-expect-error
   Undefined: undefined,
   // @ts-expect-error
   Null: null,
@@ -30,7 +30,7 @@ export default new NBTData({
     },
     // @ts-expect-error
     Symbol(25),
-    // @ts-expect-error
+    //// @ts-expect-error
     undefined,
     // @ts-expect-error
     null

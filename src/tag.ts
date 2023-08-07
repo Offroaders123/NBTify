@@ -31,7 +31,7 @@ export interface ListTag<T extends Tag> extends Array<T> {}
 export interface ListTagUnsafe<T extends Tag> extends Array<T | unknown> {}
 
 export interface CompoundTag {
-  [name: string]: Tag;
+  [name: string]: Tag | undefined;
 }
 
 export interface CompoundTagUnsafe {

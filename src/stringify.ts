@@ -11,8 +11,8 @@ export interface StringifyOptions {
 /**
  * Converts an NBTData object into an SNBT string.
 */
-export function stringify<T extends RootTag>(data: T | NBTData<T>, options?: StringifyOptions): string;
-export function stringify<T extends RootTag>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
+export function stringify<T extends RootTag = any>(data: T | NBTData<T>, options?: StringifyOptions): string;
+export function stringify<T extends RootTag = any>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
   if (data instanceof NBTData){
     data = data.data;
   }
@@ -41,8 +41,8 @@ export class SNBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write<T extends RootTag>(data: T | NBTData<T>, options?: SNBTWriterOptions): string;
-  write<T extends RootTag>(data: T | NBTData<T>, { space = "" }: SNBTWriterOptions = {}): string {
+  write<T extends RootTag = any>(data: T | NBTData<T>, options?: SNBTWriterOptions): string;
+  write<T extends RootTag = any>(data: T | NBTData<T>, { space = "" }: SNBTWriterOptions = {}): string {
     if (data instanceof NBTData){
       data = data.data;
     }
@@ -141,7 +141,7 @@ export class SNBTWriter {
     const fancy = (this.#space !== "");
     return `{${Object.entries(value).map(([key,value]) => `${fancy ? `\n${(this.#space satisfies string).repeat(this.#level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : this.#writeString(key)}:${fancy ? " " : ""}${(() => {
       this.#level += 1;
-      const result = this.#writeTag(value);
+      const result = this.#writeTag(value!);
       this.#level -= 1;
       return result;
     })() satisfies string}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${this.#space.repeat(this.#level - 1)}` : ""}}`;
