@@ -254,7 +254,8 @@ export class NBTWriter {
   #writeCompound(value: CompoundTag): void {
     for (const [name,entry] of Object.entries(value)){
       if (entry === undefined) continue;
-      const type = getTagType(entry);
+      const type = getTagType(entry as unknown);
+      if (type === null) continue;
       this.#writeTagType(type);
       this.#writeString(name);
       this.#writeTag(entry);

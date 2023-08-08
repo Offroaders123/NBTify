@@ -1,30 +1,25 @@
 import * as NBT from "../src/index.js";
+import gg from "./invalid.js";
 
-declare const noice: Uint8Array;
-const nbt = await NBT.read(noice);
+console.log(gg.data,"\n");
 
-type ImplicitType = typeof nbt.data;
+const buf = await NBT.write(gg);
+console.log(Buffer.from(buf),"\n");
 
-const result = new NBT.NBTData([true,false]);
-console.log(result,"\n");
+const gghe = await NBT.read(buf);
+console.log(gghe.data,"\n");
 
-const buffer = await NBT.write(result).then(Buffer.from);
-console.log(buffer,"\n");
+const oogha = NBT.stringify(gg,{ space: 2 });
+console.log(oogha,"\n");
 
-const stringified = NBT.stringify(result);
-console.log(stringified,"\n");
+const oioh = NBT.stringify(gghe,{ space: 2 });
+console.log(oioh,"\n");
 
-const parsed = NBT.parse(stringified);
-console.log(parsed,"\n");
+const aeugh = NBT.parse(oioh);
+console.log(aeugh,"\n");
 
-const recompile = await NBT.write(parsed,result).then(Buffer.from);
-console.log(recompile,"\n");
+const bug = await NBT.write(aeugh);
+console.log(Buffer.from(bug),"\n");
 
-console.log(Buffer.compare(buffer,recompile),"\n");
-
-// ~~This should error~~ 👍
-const byteArray = NBT.parse("[B;0b,1b,2b,3b,4b,5b,6b,7b,8b,9b]");
-console.log(byteArray);
-
-const stringed = NBT.stringify(byteArray);
-console.log(stringed);
+console.log(Buffer.compare(buf,bug),oogha === oioh,"\n");
+console.log("(Looks like the SNBT strings aren't symmetrical, but only because of the 'true' to '1b' type conversion for 'CompoundTag.ThisIsAnotherCompoundTag')");
