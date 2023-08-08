@@ -4,7 +4,7 @@ import { TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
 import type { Name, Endian, Compression, BedrockLevel, FormatOptions } from "./format.js";
-import type { RootTag, Tag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface ReadOptions {
   name?: boolean | Name;

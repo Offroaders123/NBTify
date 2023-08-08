@@ -1,8 +1,8 @@
 import { NBTData } from "./format.js";
-import { isTag, TAG, getTagType } from "./tag.js";
+import { TAG, isTag, getTagType } from "./tag.js";
 import { Int8, Int32 } from "./primitive.js";
 
-import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface StringifyOptions {
   space?: string | number;

@@ -1,8 +1,8 @@
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 
-export type RootTag = CompoundTag | ListTag<Tag>;
-
 export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag<Tag> | CompoundTag | IntArrayTag | LongArrayTag;
+
+export type RootTag = CompoundTag | ListTag<Tag>;
 
 export type ByteTag<T extends number = number> = Int8<T>;
 
@@ -36,10 +36,6 @@ export type IntArrayTag = Int32Array;
 
 export type LongArrayTag = BigInt64Array;
 
-export function isTag<T extends Tag>(value: any): value is T {
-  return getTagType(value) !== null;
-}
-
 export type TAG = typeof TAG[keyof typeof TAG];
 
 export const TAG = {
@@ -59,6 +55,10 @@ export const TAG = {
 } as const;
 
 Object.freeze(TAG);
+
+export function isTag<T extends Tag>(value: any): value is T {
+  return getTagType(value) !== null;
+}
 
 export function getTagType(value: Tag): TAG;
 export function getTagType(value: any): TAG | null;

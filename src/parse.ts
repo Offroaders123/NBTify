@@ -1,7 +1,7 @@
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 
@@ -101,13 +101,13 @@ export class SNBTReader {
           /^(true)$/.test(this.#data.slice(this.#i,this.#index + 4)) ||
           /^(false)$/.test(this.#data.slice(this.#i,this.#index + 5))
         ){
-          return this.#readUnquotedString() as "true" | "false" === "true";
+          return (this.#readUnquotedString() as "true" | "false" === "true") as BooleanTag;
         }
         const value = this.#readNumber();
         if (value != null && (this.#index == this.#data.length || !UNQUOTED_STRING_PATTERN.test(this.#peek()))){
           return value;
         }
-        return this.#data.slice(this.#i,this.#index) + this.#readUnquotedString();
+        return (this.#data.slice(this.#i,this.#index) + this.#readUnquotedString()) as StringTag;
       }
     }
   }
@@ -149,7 +149,7 @@ export class SNBTReader {
     }
   }
 
-  #readString(): string {
+  #readString(): StringTag {
     if (this.#peek() == '"' || this.#peek() == "'"){
       return this.#readQuotedString();
     } else {
@@ -157,7 +157,7 @@ export class SNBTReader {
     }
   }
 
-  #readUnquotedString(): string {
+  #readUnquotedString(): StringTag {
     this.#i = this.#index;
 
     while (this.#index < this.#data.length){
@@ -172,7 +172,7 @@ export class SNBTReader {
     return this.#data.slice(this.#i, this.#index);
   }
 
-  #readQuotedString(): string {
+  #readQuotedString(): StringTag {
     const quoteChar = this.#peek();
     this.#i = ++this.#index;
     let string = "";

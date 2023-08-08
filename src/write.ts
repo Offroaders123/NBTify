@@ -1,10 +1,10 @@
 import { NBTData } from "./format.js";
-import { isTag, TAG, getTagType } from "./tag.js";
+import { TAG, isTag, getTagType } from "./tag.js";
 import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
 import type { Name, Endian, Compression, BedrockLevel } from "./format.js";
-import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface WriteOptions {
   name?: Name;
