@@ -1,10 +1,10 @@
 import { NBTData } from "./format.js";
-import { TAG, getTagType, fromListUnsafe, fromCompoundUnsafe } from "./tag.js";
+import { isTag, TAG, getTagType } from "./tag.js";
 import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
 import type { Name, Endian, Compression, BedrockLevel } from "./format.js";
-import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, ListTagUnsafe, CompoundTag, CompoundTagUnsafe, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { RootTag, Tag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface WriteOptions {
   name?: Name;
@@ -145,8 +145,8 @@ export class NBTWriter {
     if (name !== null) this.#writeString(name);
 
     switch (type){
-      case 9: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
-      case 10: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
+      case 9: return this.#writeList(value as ListTag<Tag>);
+      case 10: return this.#writeCompound(value as CompoundTag);
     }
   }
 
@@ -161,8 +161,8 @@ export class NBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(fromListUnsafe(value as ListTagUnsafe<Tag>));
-      case TAG.COMPOUND: return this.#writeCompound(fromCompoundUnsafe(value as CompoundTagUnsafe));
+      case TAG.LIST: return this.#writeList(value as ListTag<Tag>);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
     }
@@ -238,7 +238,8 @@ export class NBTWriter {
   }
 
   #writeList(value: ListTag<Tag>): void {
-    const type = (value.length !== 0) ? getTagType(value[0])! : TAG.END;
+    value = value.filter(isTag);
+    const type: TAG = (value[0] !== undefined) ? getTagType(value[0]) : TAG.END;
     const { length } = value;
     this.#writeTagType(type);
     this.#writeInt(length);
@@ -252,10 +253,11 @@ export class NBTWriter {
 
   #writeCompound(value: CompoundTag): void {
     for (const [name,entry] of Object.entries(value)){
-      const type = getTagType(entry)!;
+      if (entry === undefined) continue;
+      const type = getTagType(entry);
       this.#writeTagType(type);
       this.#writeString(name);
-      this.#writeTag(entry!);
+      this.#writeTag(entry);
     }
     this.#writeTagType(TAG.END);
   }

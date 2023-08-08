@@ -28,19 +28,17 @@ export type StringTag = string;
 
 export interface ListTag<T extends Tag> extends Array<T> {}
 
-export interface ListTagUnsafe<T extends Tag> extends Array<T | unknown> {}
-
 export interface CompoundTag {
   [name: string]: Tag | undefined;
-}
-
-export interface CompoundTagUnsafe {
-  [name: string]: unknown;
 }
 
 export type IntArrayTag = Int32Array;
 
 export type LongArrayTag = BigInt64Array;
+
+export function isTag<T extends Tag>(value: any): value is T {
+  return getTagType(value) !== null;
+}
 
 export type TAG = typeof TAG[keyof typeof TAG];
 
@@ -62,6 +60,8 @@ export const TAG = {
 
 Object.freeze(TAG);
 
+export function getTagType(value: Tag): TAG;
+export function getTagType(value: any): TAG | null;
 export function getTagType(value: any): TAG | null {
   switch (true){
     case value instanceof Int8:
@@ -79,20 +79,4 @@ export function getTagType(value: any): TAG | null {
     case typeof value === "object" && value !== null: return TAG.COMPOUND;
     default: return null;
   }
-}
-
-export function fromListUnsafe<T extends Tag>(value: ListTag<T> | ListTagUnsafe<T>): ListTag<T> {
-  return (value as ListTagUnsafe<T>)
-    .filter((entry): entry is T => 
-      getTagType(entry) !== null
-    );
-}
-
-export function fromCompoundUnsafe(value: CompoundTagUnsafe): CompoundTag {
-  return Object.fromEntries(
-    Object.entries(value)
-      .filter((entry): entry is [string,Tag] => 
-        getTagType(entry[1]) !== null
-      )
-  );
 }
