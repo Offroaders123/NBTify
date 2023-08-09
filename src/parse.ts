@@ -180,15 +180,27 @@ export class SNBTReader {
     while (this.#index < this.#data.length){
       this.#char = this.#peek(this.#index++);
 
-      if (this.#char == "\\"){
+      /*if (this.#char == "\\"){
         string += this.#data.slice(this.#i,this.#index - 1) + this.#peek();
         this.#i = ++this.#index;
-      } else if (this.#char == quoteChar){
-        return string + this.#data.slice(this.#i,this.#index - 1);
+        console.log(string);
+      } else*/ if (this.#char == quoteChar){
+        return this.#unescapeString(string + this.#data.slice(this.#i,this.#index - 1));
       }
     }
 
     throw this.#unexpectedEnd();
+  }
+
+  #unescapeString(value: StringTag): string {
+    // \b \f \n \r \t \" \\
+    return value
+      .replaceAll("\\\\","\\")
+      .replaceAll("\\b","\b")
+      .replaceAll("\\f","\f")
+      .replaceAll("\\n","\n")
+      .replaceAll("\\r","\r")
+      .replaceAll("\\t","\t");
   }
 
   #skipCommas(isFirst: boolean, end: string): void {
