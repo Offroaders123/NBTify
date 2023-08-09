@@ -1,25 +1,21 @@
+import { readFile, writeFile } from "node:fs/promises";
 import * as NBT from "../src/index.js";
-import gg from "./invalid.js";
 
-console.log(gg.data,"\n");
+const file = new URL("./nbt/bigtest.nbt",import.meta.url);
 
-const buf = await NBT.write(gg);
-console.log(Buffer.from(buf),"\n");
+const nbt = await readFile(file).then(NBT.read);
+console.log(nbt);
 
-const gghe = await NBT.read(buf);
-console.log(gghe.data,"\n");
+nbt.data.byteArrayTest = nbt.data["byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...))"].slice(0,5);
+delete nbt.data["byteArrayTest (the first 1000 values of (n*n*255+n*7)%100, starting with n=0 (0, 62, 34, 16, 8, ...))"];
 
-const oogha = NBT.stringify(gg,{ space: 2 });
-console.log(oogha,"\n");
+nbt.data.intArrayTest = new Int32Array([543,123,7567,244]);
+nbt.data.longArrayTest = new BigInt64Array([7676n,53534n,34534n,345345345n]);
 
-const oioh = NBT.stringify(gghe,{ space: 2 });
-console.log(oioh,"\n");
+nbt.data.escapedString = '"noice, I gotchya"';
+nbt.data.escapeSequences = "\b\f\n\r\t\"\\";
 
-const aeugh = NBT.parse(oioh);
-console.log(aeugh,"\n");
+const snbt = NBT.stringify(nbt,{ space: 2 });
+console.log(snbt);
 
-const bug = await NBT.write(aeugh);
-console.log(Buffer.from(bug),"\n");
-
-console.log(Buffer.compare(buf,bug),oogha === oioh,"\n");
-console.log("(Looks like the SNBT strings aren't symmetrical, but only because of the 'true' to '1b' type conversion for 'CompoundTag.ThisIsAnotherCompoundTag')");
+await writeFile(new URL(file.href.replace(".nbt",".snbt")),snbt);

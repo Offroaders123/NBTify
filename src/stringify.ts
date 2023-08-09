@@ -120,9 +120,20 @@ export class SNBTWriter {
   }
 
   #writeString(value: StringTag): string {
-    const singleQuoteString = value.replace(/['\\]/g,character => `\\${character}`);
-    const doubleQuoteString = value.replace(/["\\]/g,character => `\\${character}`);
+    const singleQuoteString = this.#escapeString(value.replace(/['\\]/g,character => `\\${character}`));
+    const doubleQuoteString = this.#escapeString(value.replace(/["\\]/g,character => `\\${character}`));
     return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
+  }
+
+  #escapeString(value: StringTag): string {
+    // \b \f \n \r \t \" \\
+    return value
+      // .replaceAll("\\","\\\\")
+      .replaceAll("\b","\\b")
+      .replaceAll("\f","\\f")
+      .replaceAll("\n","\\n")
+      .replaceAll("\r","\\r")
+      .replaceAll("\t","\\t");
   }
 
   #writeList(value: ListTag<Tag>): string {
