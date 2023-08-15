@@ -180,11 +180,7 @@ export class SNBTReader {
     while (this.#index < this.#data.length){
       this.#char = this.#peek(this.#index++);
 
-      /*if (this.#char == "\\"){
-        string += this.#data.slice(this.#i,this.#index - 1) + this.#peek();
-        this.#i = ++this.#index;
-        console.log(string);
-      } else*/ if (this.#char == quoteChar){
+      if (this.#char == quoteChar){
         return this.#unescapeString(string + this.#data.slice(this.#i,this.#index - 1));
       }
     }
@@ -193,7 +189,6 @@ export class SNBTReader {
   }
 
   #unescapeString(value: StringTag): string {
-    // \b \f \n \r \t \" \\
     return value
       .replaceAll("\\\\","\\")
       .replaceAll("\\b","\b")

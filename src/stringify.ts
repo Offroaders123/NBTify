@@ -126,9 +126,7 @@ export class SNBTWriter {
   }
 
   #escapeString(value: StringTag): string {
-    // \b \f \n \r \t \" \\
     return value
-      // .replaceAll("\\","\\\\")
       .replaceAll("\b","\\b")
       .replaceAll("\f","\\f")
       .replaceAll("\n","\\n")
