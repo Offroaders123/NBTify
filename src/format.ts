@@ -19,7 +19,7 @@ type FormatProperty<T extends FormatOptions, U extends keyof FormatOptions> = T[
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends RootTag = any, const U extends FormatOptions = FormatOptions> {
+export class NBTData<T extends RootTag = RootTag, const U extends FormatOptions = FormatOptions> {
   declare readonly data: T;
   declare readonly name: FormatProperty<U,"name">;
   declare readonly endian: FormatProperty<U,"endian">;

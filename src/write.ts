@@ -18,8 +18,8 @@ export interface WriteOptions {
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write<T extends RootTag = any>(data: T | NBTData<T>, options?: WriteOptions): Promise<Uint8Array>;
-export async function write<T extends RootTag = any>(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: WriteOptions = {}): Promise<Uint8Array> {
+export async function write<T extends RootTag>(data: T | NBTData<T>, options?: WriteOptions): Promise<Uint8Array>;
+export async function write<T extends RootTag>(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: WriteOptions = {}): Promise<Uint8Array> {
   if (data instanceof NBTData){
     if (name === undefined) name = data.name;
     if (endian === undefined) endian = data.endian;
@@ -82,8 +82,8 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write<T extends RootTag = any>(data: T | NBTData<T>, options?: NBTWriterOptions): Uint8Array;
-  write<T extends RootTag = any>(data: T | NBTData<T>, { name, endian }: NBTWriterOptions = {}): Uint8Array {
+  write<T extends RootTag>(data: T | NBTData<T>, options?: NBTWriterOptions): Uint8Array;
+  write<T extends RootTag>(data: T | NBTData<T>, { name, endian }: NBTWriterOptions = {}): Uint8Array {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
