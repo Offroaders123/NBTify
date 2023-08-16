@@ -14,20 +14,27 @@ const files = await Promise.all(paths.map(async name => {
 describe("Read, Stringify, Parse and Write",() => {
   for (const { name, buffer } of files){
     it(name,async () => {
+      /** Determines if the file is SNBT */
+      const snbt = name.endsWith(".snbt");
+
       /** Disables strict mode for the Legacy Console Edition player data files. */
       const strict = !name.includes("_280dfc");
 
       /** Reads the NBT file buffer by auto-detecting the file format. */
-      const result = await NBT.read(buffer,{ strict });
+      const result = (snbt)
+        ? NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
+        : await NBT.read<NBT.RootTag>(buffer,{ strict });
 
       /** Stringifies the NBTData result to an SNBT string. */
       const stringified = NBT.stringify(result);
 
       /** Parses the SNBT string to a new NBTData result. */
-      const parsed = NBT.parse(stringified);
+      const parsed = NBT.parse<NBT.RootTag>(stringified);
 
       /** Writes the new NBTData result to a recompiled NBT buffer. */
-      const recompile = await NBT.write(parsed,result);
+      const recompile = (snbt)
+        ? Buffer.from(NBT.stringify(parsed,{ space: 2 }))
+        : await NBT.write(parsed,(result instanceof NBT.NBTData) ? result : {});
 
       /**
        * Skip the following checks for Legacy Console Edition player data files,
@@ -35,7 +42,9 @@ describe("Read, Stringify, Parse and Write",() => {
        * than the full file size.
       */
       if (!strict) return;
-      const { compression } = result;
+      const compression = (result instanceof NBT.NBTData)
+        ? result.compression
+        : null;
       const header = (compression !== null && compression !== "deflate-raw") ? 10 : 0;
 
       /**
