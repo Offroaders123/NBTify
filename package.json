@@ -2,11 +2,16 @@
   "name": "nbtify",
   "version": "1.68.0",
   "description": "A library to read and write NBT files on the web!",
-  "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "exports": {
+    ".": {
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsc -p ./tsconfig.build.json",
+    "build": "tsc -p ./tsconfig.cjs.json; tsc -p ./tsconfig.esm.json",
     "dev": "tsc -w",
     "test": "tsx --test --watch ./test/index.test.ts"
   },
