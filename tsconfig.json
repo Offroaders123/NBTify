@@ -1,14 +1,15 @@
 {
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
     "target": "ESNext",
+    "isolatedModules": true,
     "noEmit": true,
     "strict": true,
     "stripInternal": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
+    "allowUnreachableCode": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true
   }
