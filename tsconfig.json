@@ -5,8 +5,11 @@
     "target": "ESNext",
     "noEmit": true,
     "strict": true,
+    "stripInternal": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "noUncheckedIndexedAccess": true
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   }
 }

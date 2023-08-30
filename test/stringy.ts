@@ -28,7 +28,7 @@ const stringy = new NBTData({
 } as any,{ /*name: "",*/ endian: "big", compression: null, bedrockLevel: null });
 
 const edit = new NBTData(stringy,{ compression: "deflate-raw" });
-// should inherit 'endian' and 'bedrockLevel', and override 'compression'
+edit; // should inherit 'endian' and 'bedrockLevel', and override 'compression'
 
 const noicea = new NBTData({},stringy);
 
