@@ -22,7 +22,7 @@ describe("Read, Stringify, Parse and Write",() => {
 
       /** Reads the NBT file buffer by auto-detecting the file format. */
       const result = (snbt)
-        ? NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
+        ? NBT.parse<NBT.RootTag>(buffer.toString("utf-8"),snbt && name.startsWith("escapes"))
         : await NBT.read<NBT.RootTag>(buffer,{ strict });
 
       /** Stringifies the NBTData result to an SNBT string. */

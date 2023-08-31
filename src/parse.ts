@@ -8,12 +8,14 @@ const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 /**
  * Converts an SNBT string into a CompoundTag object.
 */
-export function parse<T extends RootTag>(data: string): T {
+export function parse<T extends RootTag>(data: string, logChar: boolean = false): T {
   if (typeof data !== "string"){
     throw new TypeError("First parameter must be a string");
   }
 
-  return new SNBTReader().read<T>(data);
+  const gg = new SNBTReader(logChar).read<T>(data);
+  if (logChar) console.log(gg);
+  return gg;
 }
 
 /**
@@ -24,6 +26,8 @@ export class SNBTReader {
   #index!: number;
   #i!: number;
   #char!: string;
+
+  constructor(public logChar: boolean) {}
 
   /**
    * Initiates the reader over an SNBT string.
@@ -178,9 +182,17 @@ export class SNBTReader {
     let string = "";
 
     while (this.#index < this.#data.length){
+      let isEscaped = false;
       this.#char = this.#peek(this.#index++);
+      if (this.#char === "\\"){
+        isEscaped = true;
+        this.#char = this.#peek(this.#index++);
+      }
+      if (this.logChar){
+        console.log(this.#char,isEscaped);
+      }
 
-      if (this.#char == quoteChar){
+      if (this.#char == quoteChar && !isEscaped){
         return this.#unescapeString(string + this.#data.slice(this.#i,this.#index - 1));
       }
     }
@@ -191,6 +203,8 @@ export class SNBTReader {
   #unescapeString(value: StringTag): string {
     return value
       .replaceAll("\\\\","\\")
+      .replaceAll("\\\"","\"")
+      .replaceAll("\\'","'")
       .replaceAll("\\b","\b")
       .replaceAll("\\f","\f")
       .replaceAll("\\n","\n")
