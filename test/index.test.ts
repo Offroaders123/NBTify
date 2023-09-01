@@ -57,12 +57,6 @@ describe("Read, Stringify, Parse and Write",() => {
 
       const experiment = recompile.subarray(header);
 
-      if (snbt && name.startsWith("escapes")){
-        console.log(buffer.toString("utf-8"));
-        console.log(control.toString("utf-8"));
-        console.log(experiment.toString("utf-8"));
-      }
-
       /**
        * Compare the original NBT file buffer to that of the recompiled buffer,
        * ensure that they are byte-for-byte the same, asserting that NBTify has
