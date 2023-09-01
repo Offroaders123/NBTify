@@ -21,7 +21,7 @@ const json = `{
 }`;
 console.log(json);
 
-const obj = NBT.parse(json,true);
+const obj = NBT.parse(json);
 console.log(obj);
 
 const result = NBT.stringify(obj,{ space: 2 });

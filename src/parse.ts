@@ -8,14 +8,12 @@ const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 /**
  * Converts an SNBT string into a CompoundTag object.
 */
-export function parse<T extends RootTag>(data: string, logChar: boolean = false): T {
+export function parse<T extends RootTag>(data: string): T {
   if (typeof data !== "string"){
     throw new TypeError("First parameter must be a string");
   }
 
-  const gg = new SNBTReader(logChar).read<T>(data);
-  if (logChar) console.log(gg);
-  return gg;
+  return new SNBTReader().read<T>(data);
 }
 
 /**
@@ -26,8 +24,6 @@ export class SNBTReader {
   #index!: number;
   #i!: number;
   #char!: string;
-
-  constructor(public logChar: boolean) {}
 
   /**
    * Initiates the reader over an SNBT string.
@@ -187,9 +183,6 @@ export class SNBTReader {
       if (this.#char === "\\"){
         isEscaped = true;
         this.#char = this.#peek(this.#index++);
-      }
-      if (this.logChar){
-        console.log(this.#char,isEscaped);
       }
 
       if (this.#char == quoteChar && !isEscaped){

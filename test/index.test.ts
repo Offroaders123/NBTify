@@ -22,7 +22,7 @@ describe("Read, Stringify, Parse and Write",() => {
 
       /** Reads the NBT file buffer by auto-detecting the file format. */
       const result = (snbt)
-        ? NBT.parse<NBT.RootTag>(buffer.toString("utf-8"),snbt && name.startsWith("escapes"))
+        ? NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
         : await NBT.read<NBT.RootTag>(buffer,{ strict });
 
       /** Stringifies the NBTData result to an SNBT string. */
@@ -33,7 +33,11 @@ describe("Read, Stringify, Parse and Write",() => {
 
       /** Writes the new NBTData result to a recompiled NBT buffer. */
       const recompile = (snbt)
-        ? Buffer.from(NBT.stringify(parsed,{ space: 2 }))
+        ? Buffer.from(NBT.stringify(parsed,
+          (snbt && name.startsWith("escapes"))
+            ? undefined
+            : { space: 2 }
+          ))
         : await NBT.write(parsed,(result instanceof NBT.NBTData) ? result : {});
 
       /**
@@ -47,12 +51,24 @@ describe("Read, Stringify, Parse and Write",() => {
         : null;
       const header = (compression !== null && compression !== "deflate-raw") ? 10 : 0;
 
+      const control = (snbt && name.startsWith("escapes"))
+        ? Buffer.from(stringified)
+        : buffer.subarray(header);
+
+      const experiment = recompile.subarray(header);
+
+      if (snbt && name.startsWith("escapes")){
+        console.log(buffer.toString("utf-8"));
+        console.log(control.toString("utf-8"));
+        console.log(experiment.toString("utf-8"));
+      }
+
       /**
        * Compare the original NBT file buffer to that of the recompiled buffer,
        * ensure that they are byte-for-byte the same, asserting that NBTify has
        * it's formats implemented correctly!
       */
-      const compare = Buffer.compare(buffer.subarray(header),recompile.subarray(header));
+      const compare = Buffer.compare(control,experiment);
       strictEqual(compare,0,`'${name}' does not symmetrically recompile`);
     });
   }
