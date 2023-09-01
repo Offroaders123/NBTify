@@ -178,16 +178,17 @@ export class SNBTReader {
     let string = "";
 
     while (this.#index < this.#data.length){
-      let isEscaped = false;
       this.#char = this.#peek(this.#index++);
+
       if (this.#char === "\\"){
-        isEscaped = true;
-        this.#char = this.#peek(this.#index++);
+        this.#char = `\\${this.#peek(this.#index++)}`;
       }
 
-      if (this.#char == quoteChar && !isEscaped){
-        return this.#unescapeString(string + this.#data.slice(this.#i,this.#index - 1));
+      if (this.#char === quoteChar){
+        return string;
       }
+
+      string += this.#unescapeString(this.#char);
     }
 
     throw this.#unexpectedEnd();

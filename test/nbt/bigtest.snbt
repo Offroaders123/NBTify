@@ -31,5 +31,6 @@
   intArrayTest: [I;543,123,7567,244],
   longArrayTest: [L;7676l,53534l,34534l,345345345l],
   escapedString: '"noice, I gotchya"',
-  escapeSequences: '\b\f\n\r\t"\\'
+  escapeSequences: '\b\f\n\r\t"\'\\',
+  otherEscape: "\""
 }

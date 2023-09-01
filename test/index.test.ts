@@ -34,7 +34,7 @@ describe("Read, Stringify, Parse and Write",() => {
       /** Writes the new NBTData result to a recompiled NBT buffer. */
       const recompile = (snbt)
         ? Buffer.from(NBT.stringify(parsed,
-          (snbt && name.startsWith("escapes"))
+          (snbt)
             ? undefined
             : { space: 2 }
           ))
@@ -51,7 +51,7 @@ describe("Read, Stringify, Parse and Write",() => {
         : null;
       const header = (compression !== null && compression !== "deflate-raw") ? 10 : 0;
 
-      const control = (snbt && name.startsWith("escapes"))
+      const control = (snbt)
         ? Buffer.from(stringified)
         : buffer.subarray(header);
 
