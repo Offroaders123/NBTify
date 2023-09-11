@@ -2,7 +2,7 @@
 
 import { argv } from "node:process";
 import { readFile } from "node:fs/promises";
-import { read } from "./index.js";
+import { read, parse } from "./index.js";
 
 const args = argv.slice(2);
 console.log(args);
@@ -14,10 +14,15 @@ if (file === undefined){
   process.exit(1);
 }
 
-const { buffer } = await readFile(file).catch(error => {
+const buffer = await readFile(file).catch(error => {
   console.error(`${error}`);
   process.exit(1);
 });
 
-const nbt = await read(buffer);
-console.log(nbt);
+try {
+  const snbt = parse(buffer.toString());
+  console.log(snbt);
+} catch {
+  const nbt = await read(buffer);
+  console.log(nbt);
+}
