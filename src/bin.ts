@@ -2,7 +2,7 @@
 
 import { extname } from "node:path";
 import { readFile } from "node:fs/promises";
-import { read, parse } from "./index.js";
+import { read, parse, stringify } from "./index.js";
 
 process.on("uncaughtException",event => {
   console.error(`${event}`);
@@ -14,16 +14,13 @@ const args = process.argv.slice(2);
 
 const [file] = args;
 
+const snbt = args.some(arg => arg === "--snbt");
+
 if (file === undefined){
   throw new Error("Missing argument 'input'");
 }
 
 const buffer = await readFile(file);
 
-if (extname(file) === ".snbt"){
-  const snbt = parse(buffer.toString());
-  console.log(snbt);
-} else {
-  const nbt = await read(buffer);
-  console.log(nbt);
-}
+const nbt = extname(file) === ".snbt" ? parse(buffer.toString()) : await read(buffer);
+console.log(snbt ? stringify(nbt,{ space: 2 }) : nbt);
