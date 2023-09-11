@@ -4,8 +4,8 @@ This is a comparison chart which lays out the differences between the [NBT](http
 
 | NBT            | SNBT       | JavaScript      | JSON      | NBTify           |
 |----------------|------------|-----------------|-----------|------------------|
-| TAG_Byte       | Byte       | -               | -         | ByteTag *        |
 | -              | Boolean    | `boolean`       | `boolean` | BooleanTag * **  |
+| TAG_Byte       | Byte       | -               | -         | ByteTag *        |
 | TAG_Short      | Short      | -               | -         | ShortTag *       |
 | TAG_Int        | Int        | -               | -         | IntTag *         |
 | TAG_Long       | Long       | `bigint`        | -         | LongTag          |
@@ -17,6 +17,7 @@ This is a comparison chart which lays out the differences between the [NBT](http
 | TAG_Compound   | Compound   | `object`        | `object`  | CompoundTag      |
 | TAG_Int_Array  | Int Array  | Int32Array      | -         | IntArrayTag      |
 | TAG_Long_Array | Long Array | BigInt64Array   | -         | LongArrayTag     |
+| -              | -          | `null`          | `null`    | -                |
 
 \* Provided by building on top of the `Number` primitive wrapper object.
 
