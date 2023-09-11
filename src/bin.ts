@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { argv } from "node:process";
+import { extname } from "node:path";
 import { readFile } from "node:fs/promises";
 import { read, parse } from "./index.js";
 
@@ -19,10 +20,10 @@ const buffer = await readFile(file).catch(error => {
   process.exit(1);
 });
 
-try {
+if (extname(file) === ".snbt"){
   const snbt = parse(buffer.toString());
   console.log(snbt);
-} catch {
+} else {
   const nbt = await read(buffer);
   console.log(nbt);
 }
