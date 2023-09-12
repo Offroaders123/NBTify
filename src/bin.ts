@@ -2,7 +2,7 @@
 
 import { extname } from "node:path";
 import { readFile } from "node:fs/promises";
-import { read, parse, stringify, NBTData } from "./index.js";
+import { read, write, parse, stringify, NBTData } from "./index.js";
 
 import type { RootTag, Name, Endian, Compression, BedrockLevel } from "./index.js";
 
@@ -28,9 +28,13 @@ if (file === undefined){
   throw new Error("Missing argument 'input'");
 }
 
-const buffer = await readFile(file);
+const input = await readFile(file);
 
-const input: RootTag | NBTData = extname(file) === ".snbt" ? parse(buffer.toString()) : await read(buffer);
+const data: RootTag | NBTData = extname(file) === ".snbt" ? parse(input.toString()) : await read(input);
 
-const nbt = new NBTData(input,{ name, endian, compression, bedrockLevel });
+const nbt: NBTData = new NBTData(data,{ name, endian, compression, bedrockLevel });
 console.log(snbt ? stringify(nbt,{ space: 2 }) : nbt);
+
+const output = snbt ? stringify(nbt,{ space: 2 }) : await write(nbt);
+
+await new Promise(resolve => process.stdout.write(output,resolve));
