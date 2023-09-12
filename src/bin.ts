@@ -2,7 +2,9 @@
 
 import { extname } from "node:path";
 import { readFile } from "node:fs/promises";
-import { read, parse, stringify } from "./index.js";
+import { read, parse, stringify, NBTData } from "./index.js";
+
+import type { RootTag, Name, Endian, Compression, BedrockLevel } from "./index.js";
 
 process.on("uncaughtException",event => {
   console.error(`${event}`);
@@ -15,6 +17,12 @@ const args = process.argv.slice(2);
 const [file] = args;
 
 const snbt = args.some(arg => arg === "--snbt");
+const name = args.find(arg => arg.startsWith("--name="))?.slice(7) as Name | undefined;
+const endian = args.find(arg => arg.startsWith("--endian="))?.slice(9) as Endian | undefined;
+const compression = args.find(arg => arg.startsWith("--compression="))?.slice(14) as Compression | undefined;
+const bedrockLevel = args.find(arg => arg.startsWith("--bedrock-level="))?.slice(16) as BedrockLevel | undefined;
+
+console.log({ name, endian, compression, bedrockLevel });
 
 if (file === undefined){
   throw new Error("Missing argument 'input'");
@@ -22,5 +30,7 @@ if (file === undefined){
 
 const buffer = await readFile(file);
 
-const nbt = extname(file) === ".snbt" ? parse(buffer.toString()) : await read(buffer);
+const input: RootTag | NBTData = extname(file) === ".snbt" ? parse(buffer.toString()) : await read(buffer);
+
+const nbt = new NBTData(input,{ name, endian, compression, bedrockLevel });
 console.log(snbt ? stringify(nbt,{ space: 2 }) : nbt);
