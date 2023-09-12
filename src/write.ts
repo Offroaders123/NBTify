@@ -4,7 +4,7 @@ import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
 import type { Name, Endian, Compression, BedrockLevel } from "./format.js";
-import type { Tag, RootTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface WriteOptions {
   name?: Name;
@@ -18,8 +18,8 @@ export interface WriteOptions {
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write<T extends RootTag>(data: T | NBTData<T>, options?: WriteOptions): Promise<Uint8Array>;
-export async function write<T extends RootTag>(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: WriteOptions = {}): Promise<Uint8Array> {
+export async function write<T extends RootTagLike>(data: T | NBTData<T>, options?: WriteOptions): Promise<Uint8Array>;
+export async function write<T extends RootTagLike>(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: WriteOptions = {}): Promise<Uint8Array> {
   if (data instanceof NBTData){
     if (name === undefined) name = data.name;
     if (endian === undefined) endian = data.endian;
@@ -82,8 +82,8 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write<T extends RootTag>(data: T | NBTData<T>, options?: NBTWriterOptions): Uint8Array;
-  write<T extends RootTag>(data: T | NBTData<T>, { name, endian }: NBTWriterOptions = {}): Uint8Array {
+  write<T extends RootTagLike>(data: T | NBTData<T>, options?: NBTWriterOptions): Uint8Array;
+  write<T extends RootTagLike>(data: T | NBTData<T>, { name, endian }: NBTWriterOptions = {}): Uint8Array {
     if (data instanceof NBTData){
       if (name === undefined) name = data.name;
       if (endian === undefined) endian = data.endian;
@@ -108,7 +108,7 @@ export class NBTWriter {
     this.#data = new Uint8Array(1024);
     this.#view = new DataView(this.#data.buffer);
 
-    this.#writeRoot(name,data);
+    this.#writeRoot(name,data as RootTag);
 
     this.#allocate(0);
     return this.#data.slice(0,this.#byteOffset);

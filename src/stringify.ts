@@ -2,7 +2,7 @@ import { NBTData } from "./format.js";
 import { TAG, isTag, getTagType } from "./tag.js";
 import { Int8, Int32 } from "./primitive.js";
 
-import type { Tag, RootTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface StringifyOptions {
   space?: string | number;
@@ -11,8 +11,8 @@ export interface StringifyOptions {
 /**
  * Converts an NBTData object into an SNBT string.
 */
-export function stringify<T extends RootTag>(data: T | NBTData<T>, options?: StringifyOptions): string;
-export function stringify<T extends RootTag>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
+export function stringify<T extends RootTagLike>(data: T | NBTData<T>, options?: StringifyOptions): string;
+export function stringify<T extends RootTagLike>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
   if (data instanceof NBTData){
     data = data.data;
   }
@@ -41,8 +41,8 @@ export class SNBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write<T extends RootTag>(data: T | NBTData<T>, options?: SNBTWriterOptions): string;
-  write<T extends RootTag>(data: T | NBTData<T>, { space = "" }: SNBTWriterOptions = {}): string {
+  write<T extends RootTagLike>(data: T | NBTData<T>, options?: SNBTWriterOptions): string;
+  write<T extends RootTagLike>(data: T | NBTData<T>, { space = "" }: SNBTWriterOptions = {}): string {
     if (data instanceof NBTData){
       data = data.data;
     }
@@ -57,7 +57,7 @@ export class SNBTWriter {
     this.#space = (typeof space === "number") ? " ".repeat(space) : space;
     this.#level = 1;
 
-    return this.#writeRoot(data);
+    return this.#writeRoot(data as RootTag);
   }
 
   #writeRoot(value: RootTag): string {

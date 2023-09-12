@@ -4,7 +4,7 @@ import { extname } from "node:path";
 import { readFile } from "node:fs/promises";
 import { read, write, parse, stringify, NBTData } from "./index.js";
 
-import type { RootTag, Name, Endian, Compression, BedrockLevel } from "./index.js";
+import type { RootTagLike, Name, Endian, Compression, BedrockLevel } from "./index.js";
 
 process.on("uncaughtException",error => {
   console.error(`${error}`);
@@ -31,7 +31,7 @@ if (file === undefined){
 
 const input = await readFile(file);
 
-const data: RootTag | NBTData = extname(file) === ".snbt" ? parse(input.toString()) : await read(input);
+const data: RootTagLike | NBTData = extname(file) === ".snbt" ? parse(input.toString()) : await read(input);
 
 const nbt: NBTData = new NBTData(data,{ name, endian, compression, bedrockLevel });
 if (!pipe){

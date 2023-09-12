@@ -1,6 +1,6 @@
 import { Int32 } from "./primitive.js";
 
-import type { RootTag } from "./tag.js";
+import type { RootTagLike } from "./tag.js";
 
 export type Name = string | null;
 export type Endian = "big" | "little";
@@ -19,7 +19,7 @@ type FormatProperty<T extends FormatOptions, U extends keyof FormatOptions> = T[
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends RootTag = RootTag, const U extends FormatOptions = FormatOptions> {
+export class NBTData<T extends RootTagLike = RootTagLike, const U extends FormatOptions = FormatOptions> {
   declare readonly data: T;
   declare readonly name: FormatProperty<U,"name">;
   declare readonly endian: FormatProperty<U,"endian">;

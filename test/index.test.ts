@@ -22,14 +22,14 @@ describe("Read, Stringify, Parse and Write",() => {
 
       /** Reads the NBT file buffer by auto-detecting the file format. */
       const result = (snbt)
-        ? NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
-        : await NBT.read<NBT.RootTag>(buffer,{ strict });
+        ? NBT.parse<NBT.RootTagLike>(buffer.toString("utf-8"))
+        : await NBT.read<NBT.RootTagLike>(buffer,{ strict });
 
       /** Stringifies the NBTData result to an SNBT string. */
       const stringified = NBT.stringify(result);
 
       /** Parses the SNBT string to a new NBTData result. */
-      const parsed = NBT.parse<NBT.RootTag>(stringified);
+      const parsed = NBT.parse<NBT.RootTagLike>(stringified);
 
       /** Writes the new NBTData result to a recompiled NBT buffer. */
       const recompile = (snbt)

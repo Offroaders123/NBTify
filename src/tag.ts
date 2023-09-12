@@ -4,6 +4,8 @@ export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag 
 
 export type RootTag = CompoundTag | ListTag<Tag>;
 
+export type RootTagLike = CompoundTagLike | ListTagLike;
+
 export type ByteTag<T extends number = number> = Int8<T>;
 
 export type BooleanTag = FalseTag | TrueTag;
@@ -28,9 +30,13 @@ export type StringTag = string;
 
 export interface ListTag<T extends Tag | undefined> extends Array<T> {}
 
+export type ListTagLike = any[];
+
 export interface CompoundTag {
   [name: string]: Tag | undefined;
 }
+
+export type CompoundTagLike = object;
 
 export type IntArrayTag = Int32Array;
 

@@ -1,14 +1,14 @@
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { Tag, RootTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 
 /**
  * Converts an SNBT string into a CompoundTag object.
 */
-export function parse<T extends RootTag>(data: string): T {
+export function parse<T extends RootTagLike>(data: string): T {
   if (typeof data !== "string"){
     throw new TypeError("First parameter must be a string");
   }
@@ -28,7 +28,7 @@ export class SNBTReader {
   /**
    * Initiates the reader over an SNBT string.
   */
-  read<T extends RootTag>(data: string): T {
+  read<T extends RootTagLike>(data: string): T {
     if (typeof data !== "string"){
       throw new TypeError("First parameter must be a string");
     }
