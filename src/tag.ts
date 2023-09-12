@@ -26,7 +26,7 @@ export type ByteArrayTag = Int8Array;
 
 export type StringTag = string;
 
-export interface ListTag<T extends Tag> extends Array<T> {}
+export interface ListTag<T extends Tag | undefined> extends Array<T> {}
 
 export interface CompoundTag {
   [name: string]: Tag | undefined;
