@@ -6,8 +6,8 @@ import { read, write, parse, stringify, NBTData } from "./index.js";
 
 import type { RootTag, Name, Endian, Compression, BedrockLevel } from "./index.js";
 
-process.on("uncaughtException",event => {
-  console.error(`${event}`);
+process.on("uncaughtException",error => {
+  console.error(`${error}`);
   process.exit(1);
 });
 
@@ -26,7 +26,7 @@ const bedrockLevel = args.find(arg => arg.startsWith("--bedrock-level="))?.slice
 // console.log({ name, endian, compression, bedrockLevel });
 
 if (file === undefined){
-  throw new Error("Missing argument 'input'");
+  throw new TypeError("Missing argument 'input'");
 }
 
 const input = await readFile(file);
