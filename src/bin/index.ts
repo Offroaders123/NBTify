@@ -2,9 +2,9 @@
 
 import { extname } from "node:path";
 import { readFile } from "node:fs/promises";
-import { read, write, parse, stringify, NBTData } from "./index.js";
+import { read, write, parse, stringify, NBTData } from "../index.js";
 
-import type { RootTagLike, Name, Endian, Compression, BedrockLevel } from "./index.js";
+import type { RootTagLike, Name, Endian, Compression, BedrockLevel } from "../index.js";
 
 process.on("uncaughtException",error => {
   console.error(`${error}`);
