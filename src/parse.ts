@@ -271,6 +271,7 @@ export class SNBTReader {
     }
 
     const array: ListTag<Tag> = [];
+    let type: TAG | undefined;
 
     while (this.#index < this.#data.length){
       this.#skipWhitespace();
@@ -290,7 +291,16 @@ export class SNBTReader {
         return (this.#index++,array);
       }
 
-      array.push(this.#readTag());
+      const entry = this.#readTag();
+
+      if (type === undefined){
+        type = getTagType(entry);
+      }
+      if (getTagType(entry) !== type){
+        throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
+      }
+
+      array.push(entry);
     }
 
     throw this.#unexpectedEnd();

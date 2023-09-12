@@ -141,6 +141,9 @@ export class SNBTWriter {
     const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
     return `[${value.map(entry => `${isIndentedList ? `\n${this.#space.repeat(this.#level)}` : ""}${(() => {
       this.#level += 1;
+      if (getTagType(entry) !== type){
+        throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
+      }
       const result = this.#writeTag(entry);
       this.#level -= 1;
       return result;

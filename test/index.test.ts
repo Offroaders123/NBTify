@@ -1,5 +1,5 @@
 import { describe, it } from "node:test";
-import { strictEqual } from "node:assert";
+import { strictEqual, throws } from "node:assert";
 import { readFile, readdir } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
@@ -17,16 +17,25 @@ describe("Read, Stringify, Parse and Write",() => {
       /** Determines if the file is SNBT */
       const snbt = name.endsWith(".snbt");
 
+      /** Reads the SNBT List Item assertion type file. */
+      const listItemAssertion = snbt && name.startsWith("list_item_check");
+
       /** Disables strict mode for the Legacy Console Edition player data files. */
       const strict = !name.includes("_280dfc");
 
       /** Reads the NBT file buffer by auto-detecting the file format. */
-      const result = (snbt)
-        ? NBT.parse<NBT.RootTagLike>(buffer.toString("utf-8"))
+      const result: void | NBT.RootTagLike | NBT.NBTData = (snbt)
+        ? (listItemAssertion)
+          ? throws(() => NBT.parse<NBT.RootTagLike>(buffer.toString("utf-8")),`'${name}' parses from SNBT when it shouldn't`)
+          : NBT.parse<NBT.RootTagLike>(buffer.toString("utf-8"))
         : await NBT.read<NBT.RootTagLike>(buffer,{ strict });
+      if (result === undefined) return;
 
       /** Stringifies the NBTData result to an SNBT string. */
-      const stringified = NBT.stringify(result);
+      const stringified: string | void = (listItemAssertion)
+        ? throws(() => NBT.stringify(result),`'${name}' stringifies to SNBT when it shouldn't`)
+        : NBT.stringify(result);
+      if (stringified === undefined) return;
 
       /** Parses the SNBT string to a new NBTData result. */
       const parsed = NBT.parse<NBT.RootTagLike>(stringified);
