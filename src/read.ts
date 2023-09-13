@@ -19,8 +19,8 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T,U>>;
-export async function read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T,U>> {
+export async function read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, options?: U): Promise<NBTData<T,U>>;
+export async function read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: U = {} as U): Promise<NBTData<T,U>> {
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
@@ -50,10 +50,10 @@ export async function read<T extends RootTagLike = RootTag, const U extends NBTD
       case hasZlibHeader(data): compression = "deflate"; break compression;
     }
     try {
-      return await read<T,U>(data,{ name, endian, compression: null, bedrockLevel, strict });
+      return await read<T,U>(data,{ name, endian, compression: null, bedrockLevel, strict } as U);
     } catch (error){
       try {
-        return await read<T,U>(data,{ name, endian, compression: "deflate-raw", bedrockLevel, strict });
+        return await read<T,U>(data,{ name, endian, compression: "deflate-raw", bedrockLevel, strict } as U);
       } catch {
         throw error;
       }
@@ -62,10 +62,10 @@ export async function read<T extends RootTagLike = RootTag, const U extends NBTD
 
   if (endian === undefined){
     try {
-      return await read<T,U>(data,{ name, endian: "big", compression, bedrockLevel, strict });
+      return await read<T,U>(data,{ name, endian: "big", compression, bedrockLevel, strict } as U);
     } catch (error){
       try {
-        return await read<T,U>(data,{ name, endian: "little", compression, bedrockLevel, strict });
+        return await read<T,U>(data,{ name, endian: "little", compression, bedrockLevel, strict } as U);
       } catch {
         throw error;
       }
@@ -74,10 +74,10 @@ export async function read<T extends RootTagLike = RootTag, const U extends NBTD
 
   if (name === undefined){
     try {
-      return await read<T,U>(data,{ name: true, endian, compression, bedrockLevel, strict });
+      return await read<T,U>(data,{ name: true, endian, compression, bedrockLevel, strict } as U);
     } catch (error){
       try {
-        return await read<T,U>(data,{ name: false, endian, compression, bedrockLevel, strict });
+        return await read<T,U>(data,{ name: false, endian, compression, bedrockLevel, strict } as U);
       } catch {
         throw error;
       }
