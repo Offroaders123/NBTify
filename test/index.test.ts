@@ -24,11 +24,11 @@ describe("Read, Stringify, Parse and Write",() => {
       const strict = !name.includes("_280dfc");
 
       /** Reads the NBT file buffer by auto-detecting the file format. */
-      const result: void | NBT.RootTagLike | NBT.NBTData = (snbt)
+      const result: void | NBT.RootTag | NBT.NBTData = (snbt)
         ? (listItemAssertion)
-          ? throws(() => NBT.parse<NBT.RootTagLike>(buffer.toString("utf-8")),`'${name}' parses from SNBT when it shouldn't`)
-          : NBT.parse<NBT.RootTagLike>(buffer.toString("utf-8"))
-        : await NBT.read<NBT.RootTagLike>(buffer,{ strict });
+          ? throws(() => NBT.parse<NBT.RootTag>(buffer.toString("utf-8")),`'${name}' parses from SNBT when it shouldn't`)
+          : NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
+        : await NBT.read<NBT.RootTag>(buffer,{ strict });
       if (result === undefined) return;
 
       /** Stringifies the NBTData result to an SNBT string. */
@@ -38,7 +38,7 @@ describe("Read, Stringify, Parse and Write",() => {
       if (stringified === undefined) return;
 
       /** Parses the SNBT string to a new NBTData result. */
-      const parsed = NBT.parse<NBT.RootTagLike>(stringified);
+      const parsed = NBT.parse<NBT.RootTag>(stringified);
 
       /** Writes the new NBTData result to a recompiled NBT buffer. */
       const recompile = (snbt)
