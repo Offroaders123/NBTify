@@ -2,10 +2,10 @@ import type { FormatOptions } from "../index.js";
 
 const SNBT_PATTERN = /^--snbt$/;
 const PIPE_PATTERN = /^--pipe$/;
-const NAME_PATTERN = /^--name=$/;
-const ENDIAN_PATTERN = /^--endian=$/;
-const COMPRESSION_PATTERN = /^--compression=$/;
-const BEDROCK_LEVEL_PATTERN = /^--bedrock-level=$/;
+const NAME_PATTERN = /^--name=/;
+const ENDIAN_PATTERN = /^--endian=/;
+const COMPRESSION_PATTERN = /^--compression=/;
+const BEDROCK_LEVEL_PATTERN = /^--bedrock-level=/;
 
 const args: string[] = process.argv.slice(2);
 
