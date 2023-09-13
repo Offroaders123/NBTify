@@ -14,10 +14,18 @@ import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, 
 export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: NBTDataOptions): Promise<Uint8Array>;
 export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}): Promise<Uint8Array> {
   if (data instanceof NBTData){
-    if (name === undefined) name = data.name;
-    if (endian === undefined) endian = data.endian;
-    if (compression === undefined) compression = data.compression;
-    if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
+    if (name === undefined){
+      name = data.name;
+    }
+    if (endian === undefined){
+      endian = data.endian;
+    }
+    if (compression === undefined){
+      compression = data.compression;
+    }
+    if (bedrockLevel === undefined){
+      bedrockLevel = data.bedrockLevel;
+    }
     data = data.data;
   }
 
@@ -78,13 +86,21 @@ export class NBTWriter {
   write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: NBTWriterOptions): Uint8Array;
   write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { name, endian }: NBTWriterOptions = {}): Uint8Array {
     if (data instanceof NBTData){
-      if (name === undefined) name = data.name;
-      if (endian === undefined) endian = data.endian;
+      if (name === undefined){
+        name = data.name;
+      }
+      if (endian === undefined){
+        endian = data.endian;
+      }
       data = data.data;
     }
 
-    if (name === undefined) name = "";
-    if (endian === undefined) endian = "big";
+    if (name === undefined){
+      name = "";
+    }
+    if (endian === undefined){
+      endian = "big";
+    }
 
     if (typeof data !== "object" || data === null){
       throw new TypeError("First parameter must be an object or array");

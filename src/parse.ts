@@ -54,7 +54,9 @@ export class SNBTReader {
   }
 
   #unexpectedChar(i?: number): Error {
-    if (i == null) i = this.#index;
+    if (i == null){
+      i = this.#index;
+    }
     return new Error(`Unexpected character ${this.#peek()} at position ${this.#index}`);
   }
 
@@ -72,14 +74,17 @@ export class SNBTReader {
     this.#char = this.#peek();
 
     switch (this.#char){
-      case "{": return (this.#index++,this.#readCompound());
+      case "{": {
+        this.#index++;
+        return this.#readCompound();
+      }
       case "[": {
         this.#index++;
         const list = this.#readList();
         const type = getTagType(list);
         if (type !== TAG.LIST) break;
         return list as ListTag<Tag>;
-      };
+      }
     }
 
     throw new Error("Encountered unexpected Root tag type, must be either a List or Compound tag");
@@ -92,7 +97,10 @@ export class SNBTReader {
     this.#char = this.#peek();
 
     switch (this.#char){
-      case "{": return (this.#index++,this.#readCompound());
+      case "{": {
+        this.#index++;
+        return this.#readCompound();
+      }
       case "[": return (this.#index++,this.#readList());
       case '"':
       case "'": return this.#readQuotedString();
@@ -124,8 +132,12 @@ export class SNBTReader {
 
       switch (this.#char.toLowerCase()){
         case ".": {
-          if (hasFloatingPoint) return (this.#index--,null);
-          hasFloatingPoint = true; break;
+          if (hasFloatingPoint){
+            this.#index--;
+            return null;
+          }
+          hasFloatingPoint = true;
+          break;
         }
         case "f": return new Float32(+this.#data.slice(this.#i,this.#index - 1));
         case "d": return +this.#data.slice(this.#i,this.#index - 1);
@@ -166,7 +178,11 @@ export class SNBTReader {
     }
 
     if (this.#index - this.#i == 0){
-      throw (this.#index == this.#data.length) ? this.#unexpectedEnd() : this.#unexpectedChar();
+      if (this.#index == this.#data.length){
+        throw this.#unexpectedEnd();
+      } else {
+        throw this.#unexpectedChar();
+      }
     }
 
     return this.#data.slice(this.#i, this.#index);
@@ -288,7 +304,8 @@ export class SNBTReader {
       }
 
       if (this.#peek() == "]"){
-        return (this.#index++,array);
+        this.#index++;
+        return array;
       }
 
       const entry = this.#readTag();

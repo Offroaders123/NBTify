@@ -31,17 +31,33 @@ export class NBTData<T extends RootTagLike = RootTag, const U extends NBTDataOpt
   constructor(data: T | NBTData<T>, options?: U);
   constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: U = {} as U) {
     if (data instanceof NBTData){
-      if (name === undefined) name = data.name;
-      if (endian === undefined) endian = data.endian;
-      if (compression === undefined) compression = data.compression;
-      if (bedrockLevel === undefined) bedrockLevel = data.bedrockLevel;
+      if (name === undefined){
+        name = data.name;
+      }
+      if (endian === undefined){
+        endian = data.endian;
+      }
+      if (compression === undefined){
+        compression = data.compression;
+      }
+      if (bedrockLevel === undefined){
+        bedrockLevel = data.bedrockLevel;
+      }
       data = data.data;
     }
 
-    if (name === undefined) name = "";
-    if (endian === undefined) endian = "big";
-    if (compression === undefined) compression = null;
-    if (bedrockLevel === undefined) bedrockLevel = null;
+    if (name === undefined){
+      name = "";
+    }
+    if (endian === undefined){
+      endian = "big";
+    }
+    if (compression === undefined){
+      compression = null;
+    }
+    if (bedrockLevel === undefined){
+      bedrockLevel = null;
+    }
 
     if (typeof data !== "object" || data === null){
       throw new TypeError("First parameter must be an object or array");
