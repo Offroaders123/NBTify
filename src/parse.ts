@@ -8,7 +8,7 @@ const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 /**
  * Converts an SNBT string into a CompoundTag object.
 */
-export function parse<T extends RootTagLike>(data: string): T {
+export function parse<T extends RootTagLike = RootTag>(data: string): T {
   if (typeof data !== "string"){
     throw new TypeError("First parameter must be a string");
   }
@@ -28,7 +28,7 @@ export class SNBTReader {
   /**
    * Initiates the reader over an SNBT string.
   */
-  read<T extends RootTagLike>(data: string): T {
+  read<T extends RootTagLike = RootTag>(data: string): T {
     if (typeof data !== "string"){
       throw new TypeError("First parameter must be a string");
     }
