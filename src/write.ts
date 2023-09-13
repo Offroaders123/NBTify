@@ -3,23 +3,16 @@ import { TAG, isTag, getTagType } from "./tag.js";
 import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
-import type { Name, Endian, Compression, BedrockLevel } from "./format.js";
+import type { Name, Endian, NBTDataOptions } from "./format.js";
 import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
-
-export interface WriteOptions {
-  name?: Name;
-  endian?: Endian;
-  compression?: Compression;
-  bedrockLevel?: BedrockLevel;
-}
 
 /**
  * Converts an NBTData object into an NBT buffer. Accepts an endian type, compression format, and file headers to write the data with.
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: WriteOptions): Promise<Uint8Array>;
-export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: WriteOptions = {}): Promise<Uint8Array> {
+export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: NBTDataOptions): Promise<Uint8Array>;
+export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}): Promise<Uint8Array> {
   if (data instanceof NBTData){
     if (name === undefined) name = data.name;
     if (endian === undefined) endian = data.endian;

@@ -3,7 +3,7 @@ import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
-import type { Name, Endian, Compression, BedrockLevel, FormatOptions } from "./format.js";
+import type { Name, Endian, Compression, BedrockLevel, NBTDataOptions } from "./format.js";
 import type { Tag, RootTag, RootTagLike, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface ReadOptions {
@@ -19,8 +19,8 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTagLike = RootTag, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T,U>>;
-export async function read<T extends RootTagLike = RootTag, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T,U>> {
+export async function read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T,U>>;
+export async function read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T,U>> {
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
@@ -143,8 +143,8 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends RootTagLike = RootTag, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, options?: NBTReaderOptions): NBTData<T,U>;
-  read<T extends RootTagLike = RootTag, const U extends FormatOptions = FormatOptions>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T,U> {
+  read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, options?: NBTReaderOptions): NBTData<T,U>;
+  read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T,U> {
     if (!("byteOffset" in data)){
       data = new Uint8Array(data);
     }

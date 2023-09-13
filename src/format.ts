@@ -7,24 +7,26 @@ export type Endian = "big" | "little";
 export type Compression = CompressionFormat | null;
 export type BedrockLevel = Int32 | null;
 
-export interface FormatOptions {
-  name?: Name;
-  endian?: Endian;
-  compression?: Compression;
-  bedrockLevel?: BedrockLevel;
+export interface Format {
+  name: Name;
+  endian: Endian;
+  compression: Compression;
+  bedrockLevel: BedrockLevel;
 }
 
-type FormatProperty<T extends FormatOptions, U extends keyof FormatOptions> = T[U] extends null | {} ? T[U] : Exclude<FormatOptions[U],undefined>;
+export interface NBTDataOptions extends Partial<Format> {}
+
+export type NBTDataProperty<T extends NBTDataOptions, U extends keyof NBTDataOptions> = T[U] extends null | {} ? T[U] : Exclude<NBTDataOptions[U],undefined>;
 
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends RootTagLike = RootTag, const U extends FormatOptions = FormatOptions> {
+export class NBTData<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions> implements Format {
   declare readonly data: T;
-  declare readonly name: FormatProperty<U,"name">;
-  declare readonly endian: FormatProperty<U,"endian">;
-  declare readonly compression: FormatProperty<U,"compression">;
-  declare readonly bedrockLevel: FormatProperty<U,"bedrockLevel">;
+  declare readonly name: NBTDataProperty<U,"name">;
+  declare readonly endian: NBTDataProperty<U,"endian">;
+  declare readonly compression: NBTDataProperty<U,"compression">;
+  declare readonly bedrockLevel: NBTDataProperty<U,"bedrockLevel">;
 
   constructor(data: T | NBTData<T>, options?: U);
   constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: U = {} as U) {
