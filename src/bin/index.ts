@@ -7,22 +7,17 @@ import { file, snbt, pipe, name, endian, compression, bedrockLevel } from "./arg
 
 import type { RootTag } from "../index.js";
 
-// console.log({ name, endian, compression, bedrockLevel });
-
 if (file === undefined){
   throw new TypeError("Missing argument 'input'");
 }
 
 const input = await readFile(file);
-
 const data: RootTag | NBTData = extname(file) === ".snbt" ? parse(input.toString()) : await read(input);
-
 const nbt: NBTData = new NBTData(data,{ name, endian, compression, bedrockLevel });
+
 if (!pipe){
   console.log(snbt ? stringify(nbt,{ space: 2 }) : nbt);
-}
-
-if (pipe){
-  const output = snbt ? stringify(nbt,{ space: 2 }) : await write(nbt);
-  await new Promise(resolve => process.stdout.write(output,resolve));
+} else {
+  const output: string | Uint8Array = snbt ? stringify(nbt,{ space: 2 }) : await write(nbt);
+  await new Promise<Error | undefined>(resolve => process.stdout.write(output,resolve));
 }
