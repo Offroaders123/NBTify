@@ -1,6 +1,6 @@
 import { Int8, NBTData } from "../src/index.js";
 
-const stringy = new NBTData({
+export default new NBTData({
   Noice: true,
   WorkOnBooleanValuesPls: true,
   ByteTagValue: new Int8(125),
@@ -25,17 +25,4 @@ const stringy = new NBTData({
       Door: "handle"
     }
   ]
-} as any,{ /*name: "",*/ endian: "big", compression: null, bedrockLevel: null });
-
-const edit = new NBTData(stringy,{ compression: "deflate-raw" });
-edit; // should inherit 'endian' and 'bedrockLevel', and override 'compression'
-
-const noicea = new NBTData({},stringy);
-
-const { name, endian, compression, bedrockLevel } = noicea;
-name; // epic
-endian;
-compression;
-bedrockLevel;
-
-export default stringy;
+},{ name: "", endian: "big", compression: null, bedrockLevel: null });

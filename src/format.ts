@@ -16,20 +16,18 @@ export interface Format {
 
 export interface NBTDataOptions extends Partial<Format> {}
 
-export type NBTDataProperty<T extends NBTDataOptions, U extends keyof NBTDataOptions> = T[U] extends null | {} ? T[U] : Exclude<NBTDataOptions[U],undefined>;
-
 /**
  * An object which represents a set of NBT data.
 */
-export class NBTData<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions> implements Format {
+export class NBTData<T extends RootTagLike = RootTag> implements Format {
   declare readonly data: T;
-  declare readonly name: NBTDataProperty<U,"name">;
-  declare readonly endian: NBTDataProperty<U,"endian">;
-  declare readonly compression: NBTDataProperty<U,"compression">;
-  declare readonly bedrockLevel: NBTDataProperty<U,"bedrockLevel">;
+  declare readonly name: Name;
+  declare readonly endian: Endian;
+  declare readonly compression: Compression;
+  declare readonly bedrockLevel: BedrockLevel;
 
-  constructor(data: T | NBTData<T>, options?: U);
-  constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: U = {} as U) {
+  constructor(data: T | NBTData<T>, options?: NBTDataOptions);
+  constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
       if (name === undefined){
         name = data.name;

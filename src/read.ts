@@ -3,7 +3,7 @@ import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
-import type { Name, Endian, Compression, BedrockLevel, NBTDataOptions } from "./format.js";
+import type { Name, Endian, Compression, BedrockLevel } from "./format.js";
 import type { Tag, RootTag, RootTagLike, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface ReadOptions {
@@ -19,8 +19,8 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, options?: U): Promise<NBTData<T,U>>;
-export async function read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: U = {} as U): Promise<NBTData<T,U>> {
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T>>;
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T>> {
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
@@ -50,10 +50,10 @@ export async function read<T extends RootTagLike = RootTag, const U extends NBTD
       case hasZlibHeader(data): compression = "deflate"; break compression;
     }
     try {
-      return await read<T,U>(data,{ name, endian, compression: null, bedrockLevel, strict } as U);
+      return await read<T>(data,{ name, endian, compression: null, bedrockLevel, strict });
     } catch (error){
       try {
-        return await read<T,U>(data,{ name, endian, compression: "deflate-raw", bedrockLevel, strict } as U);
+        return await read<T>(data,{ name, endian, compression: "deflate-raw", bedrockLevel, strict });
       } catch {
         throw error;
       }
@@ -62,10 +62,10 @@ export async function read<T extends RootTagLike = RootTag, const U extends NBTD
 
   if (endian === undefined){
     try {
-      return await read<T,U>(data,{ name, endian: "big", compression, bedrockLevel, strict } as U);
+      return await read<T>(data,{ name, endian: "big", compression, bedrockLevel, strict });
     } catch (error){
       try {
-        return await read<T,U>(data,{ name, endian: "little", compression, bedrockLevel, strict } as U);
+        return await read<T>(data,{ name, endian: "little", compression, bedrockLevel, strict });
       } catch {
         throw error;
       }
@@ -74,10 +74,10 @@ export async function read<T extends RootTagLike = RootTag, const U extends NBTD
 
   if (name === undefined){
     try {
-      return await read<T,U>(data,{ name: true, endian, compression, bedrockLevel, strict } as U);
+      return await read<T>(data,{ name: true, endian, compression, bedrockLevel, strict });
     } catch (error){
       try {
-        return await read<T,U>(data,{ name: false, endian, compression, bedrockLevel, strict } as U);
+        return await read<T>(data,{ name: false, endian, compression, bedrockLevel, strict });
       } catch {
         throw error;
       }
@@ -101,9 +101,9 @@ export async function read<T extends RootTagLike = RootTag, const U extends NBTD
     bedrockLevel = null;
   }
 
-  const result = new NBTReader().read<T,U>(data,{ name, endian, strict });
+  const result = new NBTReader().read<T>(data,{ name, endian, strict });
 
-  return new NBTData<T,U>(result,{ compression, bedrockLevel } as U);
+  return new NBTData<T>(result,{ compression, bedrockLevel });
 }
 
 function hasGzipHeader(data: Uint8Array): boolean {
@@ -143,8 +143,8 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, options?: NBTReaderOptions): NBTData<T,U>;
-  read<T extends RootTagLike = RootTag, const U extends NBTDataOptions = NBTDataOptions>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T,U> {
+  read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options?: NBTReaderOptions): NBTData<T>;
+  read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T> {
     if (!("byteOffset" in data)){
       data = new Uint8Array(data);
     }
@@ -175,7 +175,7 @@ export class NBTReader {
       throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
 
-    return new NBTData<T,U>(value,{ name, endian } as U);
+    return new NBTData<T>(value,{ name, endian });
   }
 
   #allocate(byteLength: number): void {
