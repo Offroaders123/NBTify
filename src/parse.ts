@@ -139,25 +139,25 @@ export class SNBTReader {
           hasFloatingPoint = true;
           break;
         }
-        case "f": return new Float32(+this.#data.slice(this.#i,this.#index - 1));
-        case "d": return +this.#data.slice(this.#i,this.#index - 1);
-        case "b": return new Int8(+this.#data.slice(this.#i,this.#index - 1));
-        case "s": return new Int16(+this.#data.slice(this.#i,this.#index - 1));
-        case "l": return BigInt(this.#data.slice(this.#i,this.#index - 1));
+        case "f": return new Float32(+this.#data.slice(this.#i,this.#index - 1)) satisfies FloatTag;
+        case "d": return +this.#data.slice(this.#i,this.#index - 1) satisfies DoubleTag;
+        case "b": return new Int8(+this.#data.slice(this.#i,this.#index - 1)) satisfies ByteTag;
+        case "s": return new Int16(+this.#data.slice(this.#i,this.#index - 1)) satisfies ShortTag;
+        case "l": return BigInt(this.#data.slice(this.#i,this.#index - 1)) satisfies LongTag;
         default: {
           if (hasFloatingPoint){
-            return +this.#data.slice(this.#i,--this.#index);
+            return +this.#data.slice(this.#i,--this.#index) satisfies DoubleTag;
           } else {
-            return new Int32(+this.#data.slice(this.#i,--this.#index));
+            return new Int32(+this.#data.slice(this.#i,--this.#index)) satisfies IntTag;
           }
         }
       }
     }
 
     if (hasFloatingPoint){
-      return +this.#data.slice(this.#i,this.#index);
+      return +this.#data.slice(this.#i,this.#index) satisfies DoubleTag;
     } else {
-      return new Int32(+this.#data.slice(this.#i,this.#index));
+      return new Int32(+this.#data.slice(this.#i,this.#index)) satisfies IntTag;
     }
   }
 
@@ -246,9 +246,9 @@ export class SNBTReader {
       if (this.#peek() == "]"){
         this.#index++;
         switch (type){
-          case "B": return Int8Array.from(array.map(v => +v));
-          case "I": return Int32Array.from(array.map(v => +v));
-          case "L": return BigInt64Array.from(array.map(v => BigInt(v)));
+          case "B": return Int8Array.from(array.map(v => +v)) satisfies ByteArrayTag;
+          case "I": return Int32Array.from(array.map(v => +v)) satisfies IntArrayTag;
+          case "L": return BigInt64Array.from(array.map(v => BigInt(v))) satisfies LongArrayTag;
         }
       }
 
@@ -283,7 +283,7 @@ export class SNBTReader {
 
   #readList(): ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag {
     if ("BILbil".includes(this.#peek()) && this.#data[this.#index + 1] == ";"){
-      return this.#readArray(this.#peek((this.#index += 2) - 2).toUpperCase() as "B" | "I" | "L");
+      return this.#readArray(this.#peek((this.#index += 2) - 2).toUpperCase() as "B" | "I" | "L") satisfies ByteArrayTag | IntArrayTag | LongArrayTag;
     }
 
     const array: ListTag<Tag> = [];
@@ -305,7 +305,7 @@ export class SNBTReader {
 
       if (this.#peek() == "]"){
         this.#index++;
-        return array;
+        return array satisfies ListTag<Tag>;
       }
 
       const entry = this.#readTag();
@@ -324,7 +324,7 @@ export class SNBTReader {
   }
 
   #readCompound(): CompoundTag {
-    const entries: [string, Tag][] = [];
+    const entries: [string, Tag | undefined][] = [];
     let first = true;
 
     while (true){
