@@ -35,7 +35,7 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
   if (name !== undefined && typeof name !== "string" && name !== null){
     throw new TypeError("Name option must be a string or null");
   }
-  if (endian !== undefined && endian !== "big" && endian !== "little"){
+  if (endian !== undefined && endian !== "big" && endian !== "little" && endian !== "little-varint"){
     throw new TypeError("Endian option must be a valid endian type");
   }
   if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
@@ -108,12 +108,12 @@ export class NBTWriter {
     if (typeof name !== "string" && name !== null){
       throw new TypeError("Name option must be a string or null");
     }
-    if (endian !== "big" && endian !== "little"){
+    if (endian !== "big" && endian !== "little" && endian !== "little-varint"){
       throw new TypeError("Endian option must be a valid endian type");
     }
 
     this.#byteOffset = 0;
-    this.#littleEndian = (endian === "little");
+    this.#littleEndian = (endian !== "big");
     this.#data = new Uint8Array(1024);
     this.#view = new DataView(this.#data.buffer);
 

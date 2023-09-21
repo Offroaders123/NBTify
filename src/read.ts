@@ -31,7 +31,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   if (name !== undefined && typeof name !== "boolean" && typeof name !== "string" && name !== null){
     throw new TypeError("Name option must be a boolean, string, or null");
   }
-  if (endian !== undefined && endian !== "big" && endian !== "little"){
+  if (endian !== undefined && endian !== "big" && endian !== "little" && endian !== "little-varint"){
     throw new TypeError("Endian option must be a valid endian type");
   }
   if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
@@ -67,7 +67,11 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
       try {
         return await read<T>(data,{ name, endian: "little", compression, bedrockLevel, strict });
       } catch {
-        throw error;
+        try {
+          return await read<T>(data,{ name, endian: "little-varint", compression, bedrockLevel, strict });
+        } catch {
+          throw error;
+        }
       }
     }
   }
@@ -89,7 +93,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   }
 
   if (bedrockLevel === undefined){
-    bedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
+    bedrockLevel = (endian !== "big" && hasBedrockLevelHeader(data));
   }
 
   if (bedrockLevel !== false && bedrockLevel !== null){
@@ -155,7 +159,7 @@ export class NBTReader {
     if (typeof name !== "boolean" && typeof name !== "string" && name !== null){
       throw new TypeError("Name option must be a boolean, string, or null");
     }
-    if (endian !== "big" && endian !== "little"){
+    if (endian !== "big" && endian !== "little" && endian !== "little-varint"){
       throw new TypeError("Endian option must be a valid endian type");
     }
     if (typeof strict !== "boolean"){
@@ -163,7 +167,7 @@ export class NBTReader {
     }
 
     this.#byteOffset = 0;
-    this.#littleEndian = (endian === "little");
+    this.#littleEndian = (endian !== "big");
     this.#data = data;
     this.#view = new DataView(data.buffer,data.byteOffset,data.byteLength);
 
