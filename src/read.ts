@@ -256,7 +256,27 @@ export class NBTReader {
     return value;
   }
 
-  #readVarLong(): number {
+  #readVarLong(): bigint {
+    let value = 0n;
+    let position = 0;
+    let currentByte: number;
+
+    while (true){
+      this.#allocate(1);
+      currentByte = this.#view.getUint8(this.#byteOffset);
+      this.#byteOffset += 1;
+      value |= BigInt((currentByte & 0x7F) << position);
+
+      if ((currentByte & 0x80) === 0) break;
+
+      position += 7;
+
+      if (position >= 64){
+        throw new Error("VarLong is too big");
+      }
+    }
+
+    return value;
   }
 
   #readUnsignedByte(): number {
@@ -305,10 +325,14 @@ export class NBTReader {
   }
 
   #readLong(): LongTag {
-    this.#allocate(8);
-    const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
-    this.#byteOffset += 8;
-    return value;
+    if (this.#varint){
+      return this.#readVarLong();
+    } else {
+      this.#allocate(8);
+      const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
+      this.#byteOffset += 8;
+      return value;
+    }
   }
 
   #readFloat(valueOf?: false): FloatTag;
