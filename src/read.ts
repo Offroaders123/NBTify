@@ -309,19 +309,27 @@ export class NBTReader {
   #readShort(valueOf?: false): ShortTag;
   #readShort(valueOf: true): number;
   #readShort(valueOf: boolean = false): number | ShortTag {
-    this.#allocate(2);
-    const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
-    this.#byteOffset += 2;
-    return (valueOf) ? value : new Int16(value);
+    if (this.#varint){
+      return (valueOf) ? this.#readVarInt() : new Int16(this.#readVarInt());
+    } else {
+      this.#allocate(2);
+      const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
+      this.#byteOffset += 2;
+      return (valueOf) ? value : new Int16(value);
+    }
   }
 
   #readInt(valueOf?: false): IntTag;
   #readInt(valueOf: true): number;
   #readInt(valueOf: boolean = false): number | IntTag {
-    this.#allocate(4);
-    const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
-    this.#byteOffset += 4;
-    return (valueOf) ? value : new Int32(value);
+    if (this.#varint){
+      return (valueOf) ? this.#readVarInt() : new Int32(this.#readVarInt());
+    } else {
+      this.#allocate(4);
+      const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
+      this.#byteOffset += 4;
+      return (valueOf) ? value : new Int32(value);
+    }
   }
 
   #readLong(): LongTag {
