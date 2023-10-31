@@ -387,6 +387,7 @@ export class NBTReader {
       if (type === TAG.END) break;
       const name = this.#readString();
       const entry = this.#readTag(type);
+      console.log(entry);
       value[name] = entry;
     }
     return value;
