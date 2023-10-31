@@ -233,6 +233,32 @@ export class NBTReader {
     return this.#readUnsignedByte() as TAG;
   }
 
+  #readVarInt(): number {
+    let value = 0;
+    let position = 0;
+    let currentByte: number;
+
+    while (true){
+      this.#allocate(1);
+      currentByte = this.#view.getUint8(this.#byteOffset);
+      this.#byteOffset += 1;
+      value |= (currentByte & 0x7F) << position;
+
+      if ((currentByte & 0x80) === 0) break;
+
+      position += 7;
+
+      if (position >= 32){
+        throw new Error("VarInt is too big");
+      }
+    }
+
+    return value;
+  }
+
+  #readVarLong(): number {
+  }
+
   #readUnsignedByte(): number {
     this.#allocate(1);
     const value = this.#view.getUint8(this.#byteOffset);
@@ -250,10 +276,14 @@ export class NBTReader {
   }
 
   #readUnsignedShort(): number {
-    this.#allocate(2);
-    const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
-    this.#byteOffset += 2;
-    return value;
+    if (this.#varint){
+      return this.#readVarInt();
+    } else {
+      this.#allocate(2);
+      const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
+      this.#byteOffset += 2;
+      return value;
+    }
   }
 
   #readShort(valueOf?: false): ShortTag;
@@ -307,8 +337,10 @@ export class NBTReader {
 
   #readString(): StringTag {
     const length = this.#readUnsignedShort();
+    console.log(length);
     this.#allocate(length);
     const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
+    console.log(value);
     this.#byteOffset += length;
     return value;
   }
