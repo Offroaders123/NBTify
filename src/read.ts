@@ -251,7 +251,6 @@ export class NBTReader {
 
   #readUnsignedShort(): number {
     this.#allocate(2);
-    console.log("short doesn't throw");
     const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 2;
     return value;
@@ -269,62 +268,16 @@ export class NBTReader {
   #readInt(valueOf?: false): IntTag;
   #readInt(valueOf: true): number;
   #readInt(valueOf: boolean = false): number | IntTag {
-    if (this.#littleEndian && this.#varint && !valueOf){
-      console.log("var");
-      return this.#readVarInt();
-    }
     this.#allocate(4);
     const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 4;
     return (valueOf) ? value : new Int32(value);
   }
 
-  #readVarInt(): IntTag {
-    let value = 0;
-    let position = 0;
-    let currentByte = 0;
-
-    while (true){
-      currentByte = this.#readByte(true);
-      value |= (currentByte & 0x7F) << position;
-
-      if ((currentByte & 0x80) === 0) break;
-
-      position += 7;
-
-      if (position >= 32) throw new RangeError("VarInt is too big");
-    }
-
-    return new Int32(value);
-  }
-
   #readLong(): LongTag {
-    if (this.#littleEndian && this.#varint){
-      console.log("var");
-      return this.#readVarLong();
-    }
     this.#allocate(8);
     const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
     this.#byteOffset += 8;
-    return value;
-  }
-
-  #readVarLong(): LongTag {
-    let value = 0n;
-    let position = 0n;
-    let currentByte = 0n;
-
-    while (true){
-      currentByte = BigInt(this.#readByte(true));
-      value |= (currentByte & 0x7Fn) << position;
-
-      if ((currentByte & 0x80n) === 0n) break;
-
-      position += 7n;
-
-      if (position >= 64n) throw new RangeError("VarLong is too big");
-    }
-
     return value;
   }
 
@@ -354,8 +307,6 @@ export class NBTReader {
 
   #readString(): StringTag {
     const length = this.#readUnsignedShort();
-    console.log(this.#data.slice(0,this.#byteOffset));
-    console.log(`string's length - ShortTag value: ${length}`);
     this.#allocate(length);
     const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
     this.#byteOffset += length;
