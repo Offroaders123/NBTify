@@ -67,11 +67,11 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
       try {
         return await read<T>(data,{ name, endian: "little", compression, bedrockLevel, strict });
       } catch {
-        try {
-          return await read<T>(data,{ name, endian: "little-varint", compression, bedrockLevel, strict });
-        } catch {
+        // try {
+        //   return await read<T>(data,{ name, endian: "little-varint", compression, bedrockLevel, strict });
+        // } catch {
           throw error;
-        }
+        // }
       }
     }
   }
@@ -169,7 +169,7 @@ export class NBTReader {
 
     this.#byteOffset = 0;
     this.#littleEndian = (endian !== "big");
-    this.#varint = (endian === "little-varint");
+    this.#varint = false;//(endian === "little-varint");
     this.#data = data;
     this.#view = new DataView(data.buffer,data.byteOffset,data.byteLength);
 
@@ -369,10 +369,10 @@ export class NBTReader {
 
   #readString(): StringTag {
     const length = this.#readUnsignedShort();
-    console.log(length);
+    // console.log(length);
     this.#allocate(length);
     const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
-    console.log(value);
+    // console.log(value);
     this.#byteOffset += length;
     return value;
   }
@@ -395,7 +395,7 @@ export class NBTReader {
       if (type === TAG.END) break;
       const name = this.#readString();
       const entry = this.#readTag(type);
-      console.log(entry);
+      // console.log(entry);
       value[name] = entry;
     }
     return value;
