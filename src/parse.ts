@@ -80,7 +80,7 @@ export class SNBTReader {
       }
       case "[": {
         this.#index++;
-        const list = this.#readList();
+        const list = this.#readList("[root]");
         const type = getTagType(list);
         if (type !== TAG.LIST) break;
         return list as ListTag<Tag>;
@@ -90,7 +90,7 @@ export class SNBTReader {
     throw new Error("Encountered unexpected Root tag type, must be either a List or Compound tag");
   }
 
-  #readTag(): Tag {
+  #readTag(key: string): Tag {
     this.#skipWhitespace();
 
     this.#i = this.#index;
@@ -101,7 +101,7 @@ export class SNBTReader {
         this.#index++;
         return this.#readCompound();
       }
-      case "[": return (this.#index++,this.#readList());
+      case "[": return (this.#index++,this.#readList(key));
       case '"':
       case "'": return this.#readQuotedString();
       default: {
@@ -281,7 +281,7 @@ export class SNBTReader {
     throw this.#unexpectedEnd();
   }
 
-  #readList(): ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag {
+  #readList(key: string): ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag {
     if ("BILbil".includes(this.#peek()) && this.#data[this.#index + 1] == ";"){
       return this.#readArray(this.#peek((this.#index += 2) - 2).toUpperCase() as "B" | "I" | "L") satisfies ByteArrayTag | IntArrayTag | LongArrayTag;
     }
@@ -308,13 +308,13 @@ export class SNBTReader {
         return array satisfies ListTag<Tag>;
       }
 
-      const entry = this.#readTag();
+      const entry = this.#readTag(key);
 
       if (type === undefined){
         type = getTagType(entry);
       }
       if (getTagType(entry) !== type){
-        throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
+        throw new TypeError(`Encountered unexpected item type '${getTagType(entry)}' in List '${key}' at index ${array.length}, expected item type '${type}'. All tags in a List tag must be of the same type`);
       }
 
       array.push(entry);
@@ -343,7 +343,7 @@ export class SNBTReader {
         throw this.#unexpectedChar();
       }
 
-      entries.push([key,this.#readTag()]);
+      entries.push([key,this.#readTag(key)]);
     }
   }
 }
