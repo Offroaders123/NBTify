@@ -108,11 +108,11 @@ export class SNBTWriter {
   }
 
   #writeFloat(value: FloatTag): string {
-    return `${value.valueOf()}f`;
+    return `${value.valueOf()}${Number.isInteger(value.valueOf()) ? ".0" : ""}f`;
   }
 
   #writeDouble(value: DoubleTag): string {
-    return `${value}d`;
+    return `${value}${Number.isInteger(value) ? ".0" : ""}d`;
   }
 
   #writeByteArray(value: ByteArrayTag): string {
