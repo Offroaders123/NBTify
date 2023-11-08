@@ -3,7 +3,7 @@ import { Int32 } from "./primitive.js";
 import type { RootTag, RootTagLike } from "./tag.js";
 
 export type Name = string | null;
-export type Endian = "big" | "little" | "little-varint";
+export type Endian = "big" | "little";
 export type Compression = CompressionFormat | null;
 export type BedrockLevel = Int32 | null;
 
@@ -63,7 +63,7 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
     if (typeof name !== "string" && name !== null){
       throw new TypeError("Name option must be a string or null");
     }
-    if (endian !== "big" && endian !== "little" && endian !== "little-varint"){
+    if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
     }
     if (compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){

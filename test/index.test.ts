@@ -29,8 +29,7 @@ describe("Read, Stringify, Parse and Write",() => {
         ? (listItemAssertion)
           ? throws(() => NBT.parse<NBT.RootTag>(buffer.toString("utf-8")),`'${name}' parses from SNBT when it shouldn't`)
           : NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
-        : await NBT.read<NBT.RootTag>(buffer,{ /*name: true, endian: "little-varint", compression: null,*/ strict });
-      // console.log(result);
+        : await NBT.read<NBT.RootTag>(buffer,{ strict });
       if (result === undefined) return;
 
       /** Stringifies the NBTData result to an SNBT string. */

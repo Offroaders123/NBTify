@@ -31,7 +31,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   if (name !== undefined && typeof name !== "boolean" && typeof name !== "string" && name !== null){
     throw new TypeError("Name option must be a boolean, string, or null");
   }
-  if (endian !== undefined && endian !== "big" && endian !== "little" && endian !== "little-varint"){
+  if (endian !== undefined && endian !== "big" && endian !== "little"){
     throw new TypeError("Endian option must be a valid endian type");
   }
   if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
@@ -67,11 +67,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
       try {
         return await read<T>(data,{ name, endian: "little", compression, bedrockLevel, strict });
       } catch {
-        // try {
-        //   return await read<T>(data,{ name, endian: "little-varint", compression, bedrockLevel, strict });
-        // } catch {
-          throw error;
-        // }
+        throw error;
       }
     }
   }
@@ -93,7 +89,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   }
 
   if (bedrockLevel === undefined){
-    bedrockLevel = (endian !== "big" && hasBedrockLevelHeader(data));
+    bedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
   }
 
   if (bedrockLevel !== false && bedrockLevel !== null){
@@ -140,7 +136,6 @@ export interface NBTReaderOptions {
 export class NBTReader {
   #byteOffset!: number;
   #littleEndian!: boolean;
-  #varint!: boolean;
   #data!: Uint8Array;
   #view!: DataView;
   #decoder = new TextDecoder();
@@ -160,7 +155,7 @@ export class NBTReader {
     if (typeof name !== "boolean" && typeof name !== "string" && name !== null){
       throw new TypeError("Name option must be a boolean, string, or null");
     }
-    if (endian !== "big" && endian !== "little" && endian !== "little-varint"){
+    if (endian !== "big" && endian !== "little"){
       throw new TypeError("Endian option must be a valid endian type");
     }
     if (typeof strict !== "boolean"){
@@ -168,8 +163,7 @@ export class NBTReader {
     }
 
     this.#byteOffset = 0;
-    this.#littleEndian = (endian !== "big");
-    this.#varint = false;//(endian === "little-varint");
+    this.#littleEndian = (endian === "little");
     this.#data = data;
     this.#view = new DataView(data.buffer,data.byteOffset,data.byteLength);
 
@@ -233,52 +227,6 @@ export class NBTReader {
     return this.#readUnsignedByte() as TAG;
   }
 
-  #readVarInt(): number {
-    let value = 0;
-    let position = 0;
-    let currentByte: number;
-
-    while (true){
-      this.#allocate(1);
-      currentByte = this.#view.getUint8(this.#byteOffset);
-      this.#byteOffset += 1;
-      value |= (currentByte & 0x7F) << position;
-
-      if ((currentByte & 0x80) === 0) break;
-
-      position += 7;
-
-      if (position >= 32){
-        throw new Error("VarInt is too big");
-      }
-    }
-
-    return value;
-  }
-
-  #readVarLong(): bigint {
-    let value = 0n;
-    let position = 0;
-    let currentByte: number;
-
-    while (true){
-      this.#allocate(1);
-      currentByte = this.#view.getUint8(this.#byteOffset);
-      this.#byteOffset += 1;
-      value |= BigInt((currentByte & 0x7F) << position);
-
-      if ((currentByte & 0x80) === 0) break;
-
-      position += 7;
-
-      if (position >= 64){
-        throw new Error("VarLong is too big");
-      }
-    }
-
-    return value;
-  }
-
   #readUnsignedByte(): number {
     this.#allocate(1);
     const value = this.#view.getUint8(this.#byteOffset);
@@ -296,51 +244,35 @@ export class NBTReader {
   }
 
   #readUnsignedShort(): number {
-    if (this.#varint){
-      return this.#readVarInt();
-    } else {
-      this.#allocate(2);
-      const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
-      this.#byteOffset += 2;
-      return value;
-    }
+    this.#allocate(2);
+    const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
+    this.#byteOffset += 2;
+    return value;
   }
 
   #readShort(valueOf?: false): ShortTag;
   #readShort(valueOf: true): number;
   #readShort(valueOf: boolean = false): number | ShortTag {
-    if (this.#varint){
-      return (valueOf) ? this.#readVarInt() : new Int16(this.#readVarInt());
-    } else {
-      this.#allocate(2);
-      const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
-      this.#byteOffset += 2;
-      return (valueOf) ? value : new Int16(value);
-    }
+    this.#allocate(2);
+    const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
+    this.#byteOffset += 2;
+    return (valueOf) ? value : new Int16(value);
   }
 
   #readInt(valueOf?: false): IntTag;
   #readInt(valueOf: true): number;
   #readInt(valueOf: boolean = false): number | IntTag {
-    if (this.#varint){
-      return (valueOf) ? this.#readVarInt() : new Int32(this.#readVarInt());
-    } else {
-      this.#allocate(4);
-      const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
-      this.#byteOffset += 4;
-      return (valueOf) ? value : new Int32(value);
-    }
+    this.#allocate(4);
+    const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
+    this.#byteOffset += 4;
+    return (valueOf) ? value : new Int32(value);
   }
 
   #readLong(): LongTag {
-    if (this.#varint){
-      return this.#readVarLong();
-    } else {
-      this.#allocate(8);
-      const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
-      this.#byteOffset += 8;
-      return value;
-    }
+    this.#allocate(8);
+    const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
+    this.#byteOffset += 8;
+    return value;
   }
 
   #readFloat(valueOf?: false): FloatTag;
@@ -369,10 +301,8 @@ export class NBTReader {
 
   #readString(): StringTag {
     const length = this.#readUnsignedShort();
-    // console.log(length);
     this.#allocate(length);
     const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
-    // console.log(value);
     this.#byteOffset += length;
     return value;
   }
@@ -395,7 +325,6 @@ export class NBTReader {
       if (type === TAG.END) break;
       const name = this.#readString();
       const entry = this.#readTag(type);
-      // console.log(entry);
       value[name] = entry;
     }
     return value;
