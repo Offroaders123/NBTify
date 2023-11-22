@@ -194,8 +194,8 @@ export class NBTReader {
     let value: T;
 
     switch (type){
-      case 9: value = this.#readList() as T; break;
-      case 10: value = this.#readCompound() as T; break;
+      case TAG.LIST: value = this.#readList() as T; break;
+      case TAG.COMPOUND: value = this.#readCompound() as T; break;
     }
 
     return [name,value];

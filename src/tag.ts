@@ -42,23 +42,21 @@ export type IntArrayTag = Int32Array;
 
 export type LongArrayTag = BigInt64Array;
 
-export type TAG = typeof TAG[keyof typeof TAG];
-
-export const TAG = {
-  END: 0,
-  BYTE: 1,
-  SHORT: 2,
-  INT: 3,
-  LONG: 4,
-  FLOAT: 5,
-  DOUBLE: 6,
-  BYTE_ARRAY: 7,
-  STRING: 8,
-  LIST: 9,
-  COMPOUND: 10,
-  INT_ARRAY: 11,
-  LONG_ARRAY: 12
-} as const;
+export enum TAG {
+  END = 0,
+  BYTE,
+  SHORT,
+  INT,
+  LONG,
+  FLOAT,
+  DOUBLE,
+  BYTE_ARRAY,
+  STRING,
+  LIST,
+  COMPOUND,
+  INT_ARRAY,
+  LONG_ARRAY
+}
 
 Object.freeze(TAG);
 

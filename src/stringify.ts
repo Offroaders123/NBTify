@@ -67,8 +67,8 @@ export class SNBTWriter {
     }
 
     switch (type){
-      case 9: return this.#writeList(value as ListTag<Tag>);
-      case 10: return this.#writeCompound(value as CompoundTag);
+      case TAG.LIST: return this.#writeList(value as ListTag<Tag>);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
     }
   }
 
