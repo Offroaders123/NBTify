@@ -76,30 +76,35 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
     Object.defineProperty(this,"data",{
       configurable: true,
       enumerable: true,
+      writable: false,
       value: data
     });
 
     Object.defineProperty(this,"name",{
       configurable: true,
       enumerable: true,
+      writable: false,
       value: name
     });
 
     Object.defineProperty(this,"endian",{
       configurable: true,
       enumerable: true,
+      writable: false,
       value: endian
     });
 
     Object.defineProperty(this,"compression",{
       configurable: true,
       enumerable: (compression !== null),
+      writable: false,
       value: compression
     });
 
     Object.defineProperty(this,"bedrockLevel",{
       configurable: true,
       enumerable: (bedrockLevel !== null),
+      writable: false,
       value: bedrockLevel
     });
   }
