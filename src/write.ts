@@ -250,11 +250,6 @@ export class NBTWriter {
     value = value.filter(isTag);
     const type: TAG = (value[0] !== undefined) ? getTagType(value[0]) : TAG.END;
     const { length } = value;
-
-    if (length < 1){
-      console.log("write:",type,value);
-    }
-
     this.#writeTagType(type);
     this.#writeInt(length);
     for (const entry of value){
