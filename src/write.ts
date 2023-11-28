@@ -1,5 +1,5 @@
 import { NBTData } from "./format.js";
-import { TAG, NBT_LIST_TYPE, isTag, getTagType } from "./tag.js";
+import { TAG, isTag, getTagType } from "./tag.js";
 import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
@@ -247,12 +247,11 @@ export class NBTWriter {
   }
 
   #writeList(value: ListTag<Tag>): void {
-    if (value[NBT_LIST_TYPE] !== undefined) console.log(value[NBT_LIST_TYPE]);
     value = value.filter(isTag);
-    const type: TAG = value[NBT_LIST_TYPE] ?? ((value[0] !== undefined) ? getTagType(value[0]) : TAG.END);
+    const type: TAG = (value[0] !== undefined) ? getTagType(value[0]) : TAG.END;
     const { length } = value;
 
-    if (length < 1 && type !== TAG.END){
+    if (length < 1){
       console.log("write:",type,value);
     }
 

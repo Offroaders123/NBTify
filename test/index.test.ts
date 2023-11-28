@@ -67,10 +67,10 @@ describe("Read, Stringify, Parse and Write",() => {
 
       let experiment = recompile.subarray(header);
 
-      if (name.endsWith(".schem")){
-        control = await NBT.decompress(control,"gzip");
-        experiment = await NBT.decompress(experiment,"gzip");
-      }
+      // if (name.endsWith(".schem")){
+      //   control = await NBT.decompress(control,"gzip");
+      //   experiment = await NBT.decompress(experiment,"gzip");
+      // }
 
       /**
        * Compare the original NBT file buffer to that of the recompiled buffer,
