@@ -59,13 +59,18 @@ describe("Read, Stringify, Parse and Write",() => {
       const compression = (result instanceof NBT.NBTData)
         ? result.compression
         : null;
-      const header = (compression !== null && compression !== "deflate-raw") ? 10 : 0;
+      const header = (compression !== null && compression !== "deflate-raw" && !name.endsWith(".schem")) ? 10 : 0;
 
-      const control = (snbt)
+      let control: Buffer | Uint8Array = (snbt)
         ? Buffer.from(stringified)
         : buffer.subarray(header);
 
-      const experiment = recompile.subarray(header);
+      let experiment = recompile.subarray(header);
+
+      if (name.endsWith(".schem")){
+        control = await NBT.decompress(control,"gzip");
+        experiment = await NBT.decompress(experiment,"gzip");
+      }
 
       /**
        * Compare the original NBT file buffer to that of the recompiled buffer,
@@ -73,6 +78,8 @@ describe("Read, Stringify, Parse and Write",() => {
        * it's formats implemented correctly!
       */
       const compare = Buffer.compare(control,experiment);
+      // if (name.endsWith("schem")) console.log(control.join(" "),"\n");
+      // if (name.endsWith("schem")) console.log(experiment.join(" "));
       strictEqual(compare,0,`'${name}' does not symmetrically recompile`);
     });
   }

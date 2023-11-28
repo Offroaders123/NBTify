@@ -315,6 +315,10 @@ export class NBTReader {
       const entry = this.#readTag(type);
       value.push(entry);
     }
+    if (type === TAG.STRING || length < 1){
+      console.log(type);
+      console.log(value);
+    }
     return value;
   }
 
