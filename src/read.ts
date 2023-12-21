@@ -68,6 +68,8 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     }
   }
 
+  compression satisfies Compression;
+
   if (endian === undefined){
     try {
       return await read<T>(data,{ ...options, endian: "big" });
@@ -79,6 +81,8 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
       }
     }
   }
+
+  endian satisfies Endian;
 
   if (name === undefined){
     try {
@@ -92,6 +96,8 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     }
   }
 
+  name satisfies boolean | Name;
+
   if (compression !== null){
     data = await decompress(data,compression);
   }
@@ -99,6 +105,8 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   if (bedrockLevel === undefined){
     bedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
   }
+
+  bedrockLevel satisfies boolean | BedrockLevel;
 
   if (bedrockLevel !== false && bedrockLevel !== null){
     const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
