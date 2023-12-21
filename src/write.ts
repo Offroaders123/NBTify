@@ -10,23 +10,24 @@ import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, 
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: NBTDataOptions): Promise<Uint8Array>;
-export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { rootName, endian, compression, bedrockLevel }: NBTDataOptions = {}): Promise<Uint8Array> {
+export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options: NBTDataOptions = {}): Promise<Uint8Array> {
   if (data instanceof NBTData){
-    if (rootName === undefined){
-      rootName = data.rootName;
+    if (options.rootName === undefined){
+      options.rootName = data.rootName;
     }
-    if (endian === undefined){
-      endian = data.endian;
+    if (options.endian === undefined){
+      options.endian = data.endian;
     }
-    if (compression === undefined){
-      compression = data.compression;
+    if (options.compression === undefined){
+      options.compression = data.compression;
     }
-    if (bedrockLevel === undefined){
-      bedrockLevel = data.bedrockLevel;
+    if (options.bedrockLevel === undefined){
+      options.bedrockLevel = data.bedrockLevel;
     }
     data = data.data;
   }
+
+  const { rootName, endian, compression, bedrockLevel } = options;
 
   if (typeof data !== "object" || data === null){
     data satisfies never;
@@ -78,6 +79,7 @@ export interface NBTWriterOptions {
  * The base implementation to convert an NBTData object into an NBT buffer.
 */
 export class NBTWriter {
+  #rootName!: RootName;
   #byteOffset!: number;
   #littleEndian!: boolean;
   #data!: Uint8Array;
@@ -87,24 +89,18 @@ export class NBTWriter {
   /**
    * Initiates the writer over an NBTData object.
   */
-  write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: NBTWriterOptions): Uint8Array;
-  write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { rootName, endian }: NBTWriterOptions = {}): Uint8Array {
+  write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options: NBTWriterOptions = {}): Uint8Array {
     if (data instanceof NBTData){
-      if (rootName === undefined){
-        rootName = data.rootName;
+      if (options.rootName === undefined){
+        options.rootName = data.rootName;
       }
-      if (endian === undefined){
-        endian = data.endian;
+      if (options.endian === undefined){
+        options.endian = data.endian;
       }
       data = data.data;
     }
 
-    if (rootName === undefined){
-      rootName = "";
-    }
-    if (endian === undefined){
-      endian = "big";
-    }
+    const { rootName = "", endian = "big" } = options;
 
     if (typeof data !== "object" || data === null){
       data satisfies never;
@@ -119,12 +115,13 @@ export class NBTWriter {
       throw new TypeError("Endian option must be a valid endian type");
     }
 
+    this.#rootName = rootName;
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
     this.#data = new Uint8Array(1024);
     this.#view = new DataView(this.#data.buffer);
 
-    this.#writeRoot(rootName,data as RootTag);
+    this.#writeRoot(data as RootTag);
 
     this.#allocate(0);
     return this.#data.slice(0,this.#byteOffset);
@@ -151,19 +148,24 @@ export class NBTWriter {
     this.#view = new DataView(data.buffer);
   }
 
-  #writeRoot(rootName: RootName, value: RootTag): void {
+  #writeRoot(value: RootTag): void {
     const type = getTagType(value);
     if (type !== TAG.LIST && type !== TAG.COMPOUND){
       throw new TypeError("Encountered unexpected Root tag type, must be either a List or Compound tag");
     }
 
     this.#writeTagType(type);
-    if (rootName !== null) this.#writeString(rootName);
+    this.#writeRootName(this.#rootName);
 
     switch (type){
-      case 9: return this.#writeList(value as ListTag<Tag>);
-      case 10: return this.#writeCompound(value as CompoundTag);
+      case TAG.LIST: return this.#writeList(value as ListTag<Tag>);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
     }
+  }
+
+  #writeRootName(value: RootName): void {
+    if (value === null) return;
+    this.#writeString(value);
   }
 
   #writeTag(value: Tag): void {
