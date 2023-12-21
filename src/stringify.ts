@@ -18,9 +18,11 @@ export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>,
   }
 
   if (typeof data !== "object" || data === null){
+    data satisfies never;
     throw new TypeError("First parameter must be an object or array");
   }
   if (typeof space !== "string" && typeof space !== "number"){
+    space satisfies never;
     throw new TypeError("Space option must be a string or number");
   }
 
@@ -48,9 +50,11 @@ export class SNBTWriter {
     }
 
     if (typeof data !== "object" || data === null){
+      data satisfies never;
       throw new TypeError("First parameter must be an object or array");
     }
     if (typeof space !== "string" && typeof space !== "number"){
+      space satisfies never;
       throw new TypeError("Space option must be a string or number");
     }
 

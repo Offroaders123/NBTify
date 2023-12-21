@@ -58,18 +58,23 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
     }
 
     if (typeof data !== "object" || data === null){
+      data satisfies never;
       throw new TypeError("First parameter must be an object or array");
     }
     if (typeof name !== "string" && name !== null){
+      name satisfies never;
       throw new TypeError("Name option must be a string or null");
     }
     if (endian !== "big" && endian !== "little"){
+      endian satisfies never;
       throw new TypeError("Endian option must be a valid endian type");
     }
     if (compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
+      compression satisfies never;
       throw new TypeError("Compression option must be a valid compression type");
     }
     if (!(bedrockLevel instanceof Int32) && bedrockLevel !== null){
+      bedrockLevel satisfies never;
       throw new TypeError("Bedrock Level option must be an Int32 or null");
     }
 

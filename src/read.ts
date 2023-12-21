@@ -26,21 +26,27 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   }
 
   if (!(data instanceof Uint8Array)){
+    data satisfies never;
     throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
   }
   if (name !== undefined && typeof name !== "boolean" && typeof name !== "string" && name !== null){
+    name satisfies never;
     throw new TypeError("Name option must be a boolean, string, or null");
   }
   if (endian !== undefined && endian !== "big" && endian !== "little"){
+    endian satisfies never;
     throw new TypeError("Endian option must be a valid endian type");
   }
   if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
+    compression satisfies never;
     throw new TypeError("Compression option must be a valid compression type");
   }
   if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && !(bedrockLevel instanceof Int32) && bedrockLevel !== null){
+    bedrockLevel satisfies never;
     throw new TypeError("Bedrock Level option must be a boolean, Int32, or null");
   }
   if (strict !== undefined && typeof strict !== "boolean"){
+    strict satisfies never;
     throw new TypeError("Strict option must be a boolean");
   }
 
@@ -150,15 +156,19 @@ export class NBTReader {
     }
 
     if (!(data instanceof Uint8Array)){
+      data satisfies never;
       throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
     }
     if (typeof name !== "boolean" && typeof name !== "string" && name !== null){
+      name satisfies never;
       throw new TypeError("Name option must be a boolean, string, or null");
     }
     if (endian !== "big" && endian !== "little"){
+      endian satisfies never;
       throw new TypeError("Endian option must be a valid endian type");
     }
     if (typeof strict !== "boolean"){
+      strict satisfies never;
       throw new TypeError("Strict option must be a boolean");
     }
 

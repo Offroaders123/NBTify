@@ -8,6 +8,7 @@ import { file, snbt, pipe, name, endian, compression, bedrockLevel } from "./arg
 import type { RootTag } from "../index.js";
 
 if (file === undefined){
+  file satisfies never;
   throw new TypeError("Missing argument 'input'");
 }
 
