@@ -1,9 +1,8 @@
 import { NBTData } from "./format.js";
 import { TAG, isTag, getTagType } from "./tag.js";
-import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
-import type { Name, Endian, NBTDataOptions } from "./format.js";
+import type { RootName, Endian, NBTDataOptions } from "./format.js";
 import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 /**
@@ -12,10 +11,10 @@ import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
 export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: NBTDataOptions): Promise<Uint8Array>;
-export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}): Promise<Uint8Array> {
+export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { rootName, endian, compression, bedrockLevel }: NBTDataOptions = {}): Promise<Uint8Array> {
   if (data instanceof NBTData){
-    if (name === undefined){
-      name = data.name;
+    if (rootName === undefined){
+      rootName = data.rootName;
     }
     if (endian === undefined){
       endian = data.endian;
@@ -33,9 +32,9 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
     data satisfies never;
     throw new TypeError("First parameter must be an object or array");
   }
-  if (name !== undefined && typeof name !== "string" && name !== null){
-    name satisfies never;
-    throw new TypeError("Name option must be a string or null");
+  if (rootName !== undefined && typeof rootName !== "string" && rootName !== null){
+    rootName satisfies never;
+    throw new TypeError("Root Name option must be a string or null");
   }
   if (endian !== undefined && endian !== "big" && endian !== "little"){
     endian satisfies never;
@@ -45,12 +44,12 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
     compression satisfies never;
     throw new TypeError("Compression option must be a valid compression type");
   }
-  if (bedrockLevel !== undefined && !(bedrockLevel instanceof Int32) && bedrockLevel !== null){
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "number" && bedrockLevel !== null){
     bedrockLevel satisfies never;
-    throw new TypeError("Bedrock Level option must be an Int32 or null");
+    throw new TypeError("Bedrock Level option must be a number or null");
   }
 
-  let result = new NBTWriter().write(data,{ name, endian });
+  let result = new NBTWriter().write(data,{ rootName, endian });
 
   if (bedrockLevel !== undefined && bedrockLevel !== null){
     const { byteLength } = result;
@@ -71,7 +70,7 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
 }
 
 export interface NBTWriterOptions {
-  name?: Name;
+  rootName?: RootName;
   endian?: Endian;
 }
 
@@ -89,10 +88,10 @@ export class NBTWriter {
    * Initiates the writer over an NBTData object.
   */
   write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: NBTWriterOptions): Uint8Array;
-  write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { name, endian }: NBTWriterOptions = {}): Uint8Array {
+  write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { rootName, endian }: NBTWriterOptions = {}): Uint8Array {
     if (data instanceof NBTData){
-      if (name === undefined){
-        name = data.name;
+      if (rootName === undefined){
+        rootName = data.rootName;
       }
       if (endian === undefined){
         endian = data.endian;
@@ -100,8 +99,8 @@ export class NBTWriter {
       data = data.data;
     }
 
-    if (name === undefined){
-      name = "";
+    if (rootName === undefined){
+      rootName = "";
     }
     if (endian === undefined){
       endian = "big";
@@ -111,9 +110,9 @@ export class NBTWriter {
       data satisfies never;
       throw new TypeError("First parameter must be an object or array");
     }
-    if (typeof name !== "string" && name !== null){
-      name satisfies never;
-      throw new TypeError("Name option must be a string or null");
+    if (typeof rootName !== "string" && rootName !== null){
+      rootName satisfies never;
+      throw new TypeError("Root Name option must be a string or null");
     }
     if (endian !== "big" && endian !== "little"){
       endian satisfies never;
@@ -125,7 +124,7 @@ export class NBTWriter {
     this.#data = new Uint8Array(1024);
     this.#view = new DataView(this.#data.buffer);
 
-    this.#writeRoot(name,data as RootTag);
+    this.#writeRoot(rootName,data as RootTag);
 
     this.#allocate(0);
     return this.#data.slice(0,this.#byteOffset);
@@ -152,14 +151,14 @@ export class NBTWriter {
     this.#view = new DataView(data.buffer);
   }
 
-  #writeRoot(name: Name, value: RootTag): void {
+  #writeRoot(rootName: RootName, value: RootTag): void {
     const type = getTagType(value);
     if (type !== TAG.LIST && type !== TAG.COMPOUND){
       throw new TypeError("Encountered unexpected Root tag type, must be either a List or Compound tag");
     }
 
     this.#writeTagType(type);
-    if (name !== null) this.#writeString(name);
+    if (rootName !== null) this.#writeString(rootName);
 
     switch (type){
       case 9: return this.#writeList(value as ListTag<Tag>);

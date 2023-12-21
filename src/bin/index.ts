@@ -3,7 +3,7 @@
 import { extname } from "node:path";
 import { readFile } from "node:fs/promises";
 import { read, write, parse, stringify, NBTData } from "../index.js";
-import { file, snbt, pipe, name, endian, compression, bedrockLevel } from "./args.js";
+import { file, snbt, pipe, rootName, endian, compression, bedrockLevel } from "./args.js";
 
 import type { RootTag } from "../index.js";
 
@@ -14,7 +14,7 @@ if (file === undefined){
 
 const input = await readFile(file);
 const data: RootTag | NBTData = extname(file) === ".snbt" ? parse(input.toString()) : await read(input);
-const nbt: NBTData = new NBTData(data,{ name, endian, compression, bedrockLevel });
+const nbt: NBTData = new NBTData(data,{ rootName, endian, compression, bedrockLevel });
 
 if (!pipe){
   console.log(snbt ? stringify(nbt,{ space: 2 }) : nbt);

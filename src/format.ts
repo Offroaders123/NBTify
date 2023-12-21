@@ -1,14 +1,12 @@
-import { Int32 } from "./primitive.js";
-
 import type { RootTag, RootTagLike } from "./tag.js";
 
-export type Name = string | null;
+export type RootName = string | null;
 export type Endian = "big" | "little";
 export type Compression = CompressionFormat | null;
-export type BedrockLevel = Int32 | null;
+export type BedrockLevel = number | null;
 
 export interface Format {
-  name: Name;
+  rootName: RootName;
   endian: Endian;
   compression: Compression;
   bedrockLevel: BedrockLevel;
@@ -21,16 +19,16 @@ export interface NBTDataOptions extends Partial<Format> {}
 */
 export class NBTData<T extends RootTagLike = RootTag> implements Format {
   declare readonly data: T;
-  declare readonly name: Name;
+  declare readonly rootName: RootName;
   declare readonly endian: Endian;
   declare readonly compression: Compression;
   declare readonly bedrockLevel: BedrockLevel;
 
   constructor(data: T | NBTData<T>, options?: NBTDataOptions);
-  constructor(data: T | NBTData<T>, { name, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
+  constructor(data: T | NBTData<T>, { rootName, endian, compression, bedrockLevel }: NBTDataOptions = {}) {
     if (data instanceof NBTData){
-      if (name === undefined){
-        name = data.name;
+      if (rootName === undefined){
+        rootName = data.rootName;
       }
       if (endian === undefined){
         endian = data.endian;
@@ -44,8 +42,8 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
       data = data.data;
     }
 
-    if (name === undefined){
-      name = "";
+    if (rootName === undefined){
+      rootName = "";
     }
     if (endian === undefined){
       endian = "big";
@@ -61,9 +59,9 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
       data satisfies never;
       throw new TypeError("First parameter must be an object or array");
     }
-    if (typeof name !== "string" && name !== null){
-      name satisfies never;
-      throw new TypeError("Name option must be a string or null");
+    if (typeof rootName !== "string" && rootName !== null){
+      rootName satisfies never;
+      throw new TypeError("Root Name option must be a string or null");
     }
     if (endian !== "big" && endian !== "little"){
       endian satisfies never;
@@ -73,9 +71,9 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
       compression satisfies never;
       throw new TypeError("Compression option must be a valid compression type");
     }
-    if (!(bedrockLevel instanceof Int32) && bedrockLevel !== null){
+    if (typeof bedrockLevel !== "number" && bedrockLevel !== null){
       bedrockLevel satisfies never;
-      throw new TypeError("Bedrock Level option must be an Int32 or null");
+      throw new TypeError("Bedrock Level option must be a number or null");
     }
 
     Object.defineProperty(this,"data",{
@@ -85,11 +83,11 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
       value: data
     });
 
-    Object.defineProperty(this,"name",{
+    Object.defineProperty(this,"rootName",{
       configurable: true,
       enumerable: true,
       writable: false,
-      value: name
+      value: rootName
     });
 
     Object.defineProperty(this,"endian",{

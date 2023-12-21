@@ -3,11 +3,11 @@ import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG } from "./tag.js";
 import { decompress } from "./compression.js";
 
-import type { Name, Endian, Compression, BedrockLevel } from "./format.js";
+import type { RootName, Endian, Compression, BedrockLevel } from "./format.js";
 import type { Tag, RootTag, RootTagLike, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface ReadOptions {
-  name?: boolean | Name;
+  rootName?: boolean | RootName;
   endian?: Endian;
   compression?: Compression;
   bedrockLevel?: boolean | BedrockLevel;
@@ -29,11 +29,11 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
   }
 
-  let { name, endian, compression, bedrockLevel, strict } = options;
+  let { rootName, endian, compression, bedrockLevel, strict } = options;
 
-  if (name !== undefined && typeof name !== "boolean" && typeof name !== "string" && name !== null){
-    name satisfies never;
-    throw new TypeError("Name option must be a boolean, string, or null");
+  if (rootName !== undefined && typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null){
+    rootName satisfies never;
+    throw new TypeError("Root Name option must be a boolean, string, or null");
   }
   if (endian !== undefined && endian !== "big" && endian !== "little"){
     endian satisfies never;
@@ -43,9 +43,9 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     compression satisfies never;
     throw new TypeError("Compression option must be a valid compression type");
   }
-  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && !(bedrockLevel instanceof Int32) && bedrockLevel !== null){
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && typeof bedrockLevel !== "number" && bedrockLevel !== null){
     bedrockLevel satisfies never;
-    throw new TypeError("Bedrock Level option must be a boolean, Int32, or null");
+    throw new TypeError("Bedrock Level option must be a boolean, number, or null");
   }
   if (strict !== undefined && typeof strict !== "boolean"){
     strict satisfies never;
@@ -84,19 +84,19 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
   endian satisfies Endian;
 
-  if (name === undefined){
+  if (rootName === undefined){
     try {
-      return await read<T>(data,{ ...options, name: true });
+      return await read<T>(data,{ ...options, rootName: true });
     } catch (error){
       try {
-        return await read<T>(data,{ ...options, name: false });
+        return await read<T>(data,{ ...options, rootName: false });
       } catch {
         throw error;
       }
     }
   }
 
-  name satisfies boolean | Name;
+  rootName satisfies boolean | RootName;
 
   if (compression !== null){
     data = await decompress(data,compression);
@@ -111,13 +111,13 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   if (bedrockLevel !== false && bedrockLevel !== null){
     const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
     const version = view.getUint32(0,true);
-    bedrockLevel = new Int32(version);
+    bedrockLevel = version;
     data = data.subarray(8);
   } else {
     bedrockLevel = null;
   }
 
-  const result = new NBTReader().read<T>(data,{ name, endian, strict });
+  const result = new NBTReader().read<T>(data,{ rootName, endian, strict });
 
   return new NBTData<T>(result,{ compression, bedrockLevel });
 }
@@ -141,7 +141,7 @@ function hasBedrockLevelHeader(data: Uint8Array): boolean {
 }
 
 export interface NBTReaderOptions {
-  name?: boolean | Name;
+  rootName?: boolean | RootName;
   endian?: Endian;
   strict?: boolean;
 }
@@ -169,11 +169,11 @@ export class NBTReader {
       throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
     }
 
-    let { name = true, endian = "big", strict = true } = options;
+    let { rootName = true, endian = "big", strict = true } = options;
 
-    if (typeof name !== "boolean" && typeof name !== "string" && name !== null){
-      name satisfies never;
-      throw new TypeError("Name option must be a boolean, string, or null");
+    if (typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null){
+      rootName satisfies never;
+      throw new TypeError("Root Name option must be a boolean, string, or null");
     }
     if (endian !== "big" && endian !== "little"){
       endian satisfies never;
@@ -190,14 +190,14 @@ export class NBTReader {
     this.#view = new DataView(data.buffer,data.byteOffset,data.byteLength);
 
     let value: T;
-    [name,value] = this.#readRoot(name) as [Name,T];
+    [rootName,value] = this.#readRoot(rootName) as [RootName,T];
 
     if (strict && data.byteLength > this.#byteOffset){
       const remaining = data.byteLength - this.#byteOffset;
       throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
 
-    return new NBTData<T>(value,{ name, endian });
+    return new NBTData<T>(value,{ rootName, endian });
   }
 
   #allocate(byteLength: number): void {
@@ -206,13 +206,13 @@ export class NBTReader {
     }
   }
 
-  #readRoot<T extends RootTag>(name: boolean | Name): [Name,T] {
+  #readRoot<T extends RootTag>(rootName: boolean | RootName): [RootName,T] {
     const type = this.#readTagType();
     if (type !== TAG.LIST && type !== TAG.COMPOUND){
       throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
     }
 
-    name = (name !== false) ? this.#readString() : null;
+    rootName = (rootName !== false) ? this.#readString() : null;
     let value: T;
 
     switch (type){
@@ -220,7 +220,7 @@ export class NBTReader {
       case TAG.COMPOUND: value = this.#readCompound() as T; break;
     }
 
-    return [name,value];
+    return [rootName,value];
   }
 
   #readTag(type: TAG): Tag {
