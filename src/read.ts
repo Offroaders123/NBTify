@@ -14,22 +14,8 @@ export interface ReadOptions {
   strict?: boolean;
 }
 
-/**
- * Converts an NBT buffer into an NBTData object. Accepts an endian type, compression format, and file headers to read the data with.
- * 
- * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
-*/
-export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options: ReadOptions = {}): Promise<NBTData<T>> {
-  if (!("byteOffset" in data)){
-    data = new Uint8Array(data);
-  }
-
-  if (!(data instanceof Uint8Array)){
-    data satisfies never;
-    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
-  }
-
-  let { name, endian, compression, bedrockLevel, strict } = options;
+function isReadOptions(options: ReadOptions): asserts options is ReadOptions {
+  const { name, endian, compression, bedrockLevel, strict } = options;
 
   if (name !== undefined && typeof name !== "boolean" && typeof name !== "string" && name !== null){
     name satisfies never;
@@ -51,6 +37,26 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     strict satisfies never;
     throw new TypeError("Strict option must be a boolean");
   }
+}
+
+/**
+ * Converts an NBT buffer into an NBTData object. Accepts an endian type, compression format, and file headers to read the data with.
+ * 
+ * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
+*/
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options: ReadOptions = {}): Promise<NBTData<T>> {
+  if (!("byteOffset" in data)){
+    data = new Uint8Array(data);
+  }
+
+  if (!(data instanceof Uint8Array)){
+    data satisfies never;
+    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
+  }
+
+  isReadOptions(options);
+
+  let { name, endian, compression, bedrockLevel, strict } = options;
 
   compression: if (compression === undefined){
     switch (true){
@@ -146,6 +152,23 @@ export interface NBTReaderOptions {
   strict?: boolean;
 }
 
+function isNBTReaderOptions(options: NBTReaderOptions): asserts options is NBTReaderOptions {
+  const { name, endian, strict } = options;
+
+  if (name !== undefined && typeof name !== "boolean" && typeof name !== "string" && name !== null){
+    name satisfies never;
+    throw new TypeError("Name option must be a boolean, string, or null");
+  }
+  if (endian !== undefined && endian !== "big" && endian !== "little"){
+    endian satisfies never;
+    throw new TypeError("Endian option must be a valid endian type");
+  }
+  if (strict !== undefined && typeof strict !== "boolean"){
+    strict satisfies never;
+    throw new TypeError("Strict option must be a boolean");
+  }
+}
+
 /**
  * The base implementation to convert an NBT buffer into an NBTData object.
 */
@@ -169,20 +192,9 @@ export class NBTReader {
       throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
     }
 
-    let { name = true, endian = "big", strict = true } = options;
+    isNBTReaderOptions(options);
 
-    if (typeof name !== "boolean" && typeof name !== "string" && name !== null){
-      name satisfies never;
-      throw new TypeError("Name option must be a boolean, string, or null");
-    }
-    if (endian !== "big" && endian !== "little"){
-      endian satisfies never;
-      throw new TypeError("Endian option must be a valid endian type");
-    }
-    if (typeof strict !== "boolean"){
-      strict satisfies never;
-      throw new TypeError("Strict option must be a boolean");
-    }
+    let { name = true, endian = "big", strict = true } = options;
 
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
