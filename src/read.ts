@@ -150,6 +150,8 @@ export interface NBTReaderOptions {
  * The base implementation to convert an NBT buffer into an NBTData object.
 */
 export class NBTReader {
+  #rootName!: boolean | RootName;
+  #value!: RootTag;
   #byteOffset!: number;
   #littleEndian!: boolean;
   #data!: Uint8Array;
@@ -184,13 +186,16 @@ export class NBTReader {
       throw new TypeError("Strict option must be a boolean");
     }
 
+    this.#rootName = rootName;
     this.#byteOffset = 0;
     this.#littleEndian = (endian === "little");
     this.#data = data;
     this.#view = new DataView(data.buffer,data.byteOffset,data.byteLength);
 
-    let value: T;
-    [rootName,value] = this.#readRoot(rootName) as [RootName,T];
+    this.#readRoot();
+
+    rootName = this.#rootName as RootName;
+    const value = this.#value as T;
 
     if (strict && data.byteLength > this.#byteOffset){
       const remaining = data.byteLength - this.#byteOffset;
@@ -206,21 +211,22 @@ export class NBTReader {
     }
   }
 
-  #readRoot<T extends RootTag>(rootName: boolean | RootName): [RootName,T] {
+  #readRoot(): void {
     const type = this.#readTagType();
     if (type !== TAG.LIST && type !== TAG.COMPOUND){
       throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
     }
 
-    rootName = (rootName !== false) ? this.#readString() : null;
-    let value: T;
+    this.#readRootName();
 
     switch (type){
-      case TAG.LIST: value = this.#readList() as T; break;
-      case TAG.COMPOUND: value = this.#readCompound() as T; break;
+      case TAG.LIST: this.#value = this.#readList(); break;
+      case TAG.COMPOUND: this.#value = this.#readCompound(); break;
     }
+  }
 
-    return [rootName,value];
+  #readRootName(): void {
+    this.#rootName = (this.#rootName !== false) ? this.#readString() : null;
   }
 
   #readTag(type: TAG): Tag {
