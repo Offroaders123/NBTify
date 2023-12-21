@@ -19,8 +19,7 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options?: ReadOptions): Promise<NBTData<T>>;
-export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, { name, endian, compression, bedrockLevel, strict }: ReadOptions = {}): Promise<NBTData<T>> {
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options: ReadOptions = {}): Promise<NBTData<T>> {
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
@@ -29,6 +28,9 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     data satisfies never;
     throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
   }
+
+  let { name, endian, compression, bedrockLevel, strict } = options;
+
   if (name !== undefined && typeof name !== "boolean" && typeof name !== "string" && name !== null){
     name satisfies never;
     throw new TypeError("Name option must be a boolean, string, or null");
@@ -56,10 +58,10 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
       case hasZlibHeader(data): compression = "deflate"; break compression;
     }
     try {
-      return await read<T>(data,{ name, endian, compression: null, bedrockLevel, strict });
+      return await read<T>(data,{ ...options, compression: null });
     } catch (error){
       try {
-        return await read<T>(data,{ name, endian, compression: "deflate-raw", bedrockLevel, strict });
+        return await read<T>(data,{ ...options, compression: "deflate-raw" });
       } catch {
         throw error;
       }
@@ -68,10 +70,10 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
   if (endian === undefined){
     try {
-      return await read<T>(data,{ name, endian: "big", compression, bedrockLevel, strict });
+      return await read<T>(data,{ ...options, endian: "big" });
     } catch (error){
       try {
-        return await read<T>(data,{ name, endian: "little", compression, bedrockLevel, strict });
+        return await read<T>(data,{ ...options, endian: "little" });
       } catch {
         throw error;
       }
@@ -80,10 +82,10 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
   if (name === undefined){
     try {
-      return await read<T>(data,{ name: true, endian, compression, bedrockLevel, strict });
+      return await read<T>(data,{ ...options, name: true });
     } catch (error){
       try {
-        return await read<T>(data,{ name: false, endian, compression, bedrockLevel, strict });
+        return await read<T>(data,{ ...options, name: false });
       } catch {
         throw error;
       }
@@ -149,8 +151,7 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options?: NBTReaderOptions): NBTData<T>;
-  read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, { name = true, endian = "big", strict = true }: NBTReaderOptions = {}): NBTData<T> {
+  read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options: NBTReaderOptions = {}): NBTData<T> {
     if (!("byteOffset" in data)){
       data = new Uint8Array(data);
     }
@@ -159,6 +160,9 @@ export class NBTReader {
       data satisfies never;
       throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
     }
+
+    let { name = true, endian = "big", strict = true } = options;
+
     if (typeof name !== "boolean" && typeof name !== "string" && name !== null){
       name satisfies never;
       throw new TypeError("Name option must be a boolean, string, or null");
