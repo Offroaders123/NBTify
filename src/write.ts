@@ -1,3 +1,4 @@
+import { MUtf8Encoder } from "mutf-8";
 import { NBTData } from "./format.js";
 import { TAG, isTag, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
@@ -84,7 +85,7 @@ export class NBTWriter {
   #littleEndian!: boolean;
   #data!: Uint8Array;
   #view!: DataView;
-  #encoder = new TextEncoder();
+  #encoder = new MUtf8Encoder();
 
   /**
    * Initiates the writer over an NBTData object.

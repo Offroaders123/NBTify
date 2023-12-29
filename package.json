@@ -35,6 +35,9 @@
     "url": "https://github.com/Offroaders123/NBTify/issues"
   },
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
+  "dependencies": {
+    "mutf-8": "github:Offroaders123/mutf-8"
+  },
   "devDependencies": {
     "@types/node": "^20.10.0",
     "tsx": "^4.5.0",
