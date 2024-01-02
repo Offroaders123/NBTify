@@ -337,7 +337,6 @@ export class NBTReader {
 
   #readList(): ListTag<Tag> {
     const type = this.#readTagType();
-    console.log("read-type:",type);
     const length = this.#readInt(true);
     const value: ListTag<Tag> = [];
     Object.defineProperty(value,TAG_TYPE,{
@@ -350,7 +349,6 @@ export class NBTReader {
       const entry = this.#readTag(type);
       value.push(entry);
     }
-    console.log(value);
     return value;
   }
 

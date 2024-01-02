@@ -13,7 +13,6 @@ const files = await Promise.all(paths.map(async name => {
 
 describe("Read, Stringify, Parse and Write",() => {
   for (const { name, buffer } of files){
-    if (!name.includes("empty")) continue;
     if (name.includes("varint")) continue;
     it(name,async () => {
       /** Determines if the file is SNBT */
