@@ -1,5 +1,5 @@
 import { NBTData } from "./format.js";
-import { TAG, isTag, getTagType } from "./tag.js";
+import { TAG, TAG_TYPE, isTag, getTagType } from "./tag.js";
 import { compress } from "./compression.js";
 
 import type { RootName, Endian, NBTDataOptions } from "./format.js";
@@ -256,8 +256,10 @@ export class NBTWriter {
   }
 
   #writeList(value: ListTag<Tag>): void {
+    let type: TAG | undefined = value[TAG_TYPE];
     value = value.filter(isTag);
-    const type: TAG = (value[0] !== undefined) ? getTagType(value[0]) : TAG.END;
+    type = type ?? (value[0] !== undefined ? getTagType(value[0]) : TAG.END);
+    console.log("write-type:",type);
     const { length } = value;
     this.#writeTagType(type);
     this.#writeInt(length);

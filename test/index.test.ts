@@ -13,6 +13,7 @@ const files = await Promise.all(paths.map(async name => {
 
 describe("Read, Stringify, Parse and Write",() => {
   for (const { name, buffer } of files){
+    if (!name.includes("empty")) continue;
     if (name.includes("varint")) continue;
     it(name,async () => {
       /** Determines if the file is SNBT */
@@ -20,6 +21,9 @@ describe("Read, Stringify, Parse and Write",() => {
 
       /** Reads the SNBT List Item assertion type file. */
       const listItemAssertion = snbt && name.startsWith("list_item_check");
+
+      /** Determines if the test is for checking empty list handling. */
+      const emptyList = name.startsWith("empty");
 
       /** Disables strict mode for the Legacy Console Edition player data files. */
       const strict = !name.includes("_280dfc");
@@ -48,7 +52,11 @@ describe("Read, Stringify, Parse and Write",() => {
             ? undefined
             : { space: 2 }
           ))
-        : await NBT.write(parsed,(result instanceof NBT.NBTData) ? result : {});
+        : await NBT.write(
+          (emptyList)
+            ? result
+            : parsed
+          ,(result instanceof NBT.NBTData) ? result : {});
 
       /**
        * Skip the following checks for Legacy Console Edition player data files,

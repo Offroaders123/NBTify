@@ -1,6 +1,6 @@
 import { NBTData } from "./format.js";
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
-import { TAG } from "./tag.js";
+import { TAG, TAG_TYPE } from "./tag.js";
 import { decompress } from "./compression.js";
 
 import type { RootName, Endian, Compression, BedrockLevel } from "./format.js";
@@ -337,12 +337,15 @@ export class NBTReader {
 
   #readList(): ListTag<Tag> {
     const type = this.#readTagType();
+    console.log("read-type:",type);
     const length = this.#readInt(true);
     const value: ListTag<Tag> = [];
+    value[TAG_TYPE] = type;
     for (let i = 0; i < length; i++){
       const entry = this.#readTag(type);
       value.push(entry);
     }
+    console.log(value);
     return value;
   }
 

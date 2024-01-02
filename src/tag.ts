@@ -28,7 +28,9 @@ export type ByteArrayTag = Int8Array;
 
 export type StringTag = string;
 
-export interface ListTag<T extends Tag | undefined> extends Array<T> {}
+export interface ListTag<T extends Tag | undefined> extends Array<T> {
+  [TAG_TYPE]?: TAG;
+}
 
 export type ListTagLike = any[];
 
@@ -59,6 +61,8 @@ export enum TAG {
 }
 
 Object.freeze(TAG);
+
+export const TAG_TYPE = Symbol("nbtify.tag.type");
 
 export function isTag<T extends Tag>(value: any): value is T {
   return getTagType(value) !== null;
