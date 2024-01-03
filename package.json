@@ -6,7 +6,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "nbtify": "./dist/bin/index.js"
+    "nbtify": "dist/bin/index.js"
   },
   "scripts": {
     "build": "tsc --project ./tsconfig.build.json",
