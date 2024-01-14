@@ -7,6 +7,8 @@ import { file, snbt, pipe, rootName, endian, compression, bedrockLevel } from ".
 
 import type { RootTag } from "../index.js";
 
+(async () => {
+
 if (file === undefined){
   file satisfies never;
   throw new TypeError("Missing argument 'input'");
@@ -22,3 +24,5 @@ if (!pipe){
   const output: string | Uint8Array = snbt ? stringify(nbt,{ space: 2 }) : await write(nbt);
   await new Promise<Error | undefined>(resolve => process.stdout.write(output,resolve));
 }
+
+})();

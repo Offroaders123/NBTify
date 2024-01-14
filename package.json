@@ -11,7 +11,8 @@
   "scripts": {
     "build": "tsc --project ./tsconfig.build.json",
     "dev": "tsc --watch",
-    "test": "tsx --test --watch ./test/index.test.ts"
+    "test": "tsx --test --watch ./test/index.test.ts",
+    "pkg": "pkg --target node18-win-x64,node18-mac-arm64 ./dist/bin/index.js --output ./pkg-dist/nbtify"
   },
   "repository": {
     "type": "git",
@@ -37,6 +38,7 @@
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "devDependencies": {
     "@types/node": "^20.10.6",
+    "pkg": "^5.8.1",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   },
