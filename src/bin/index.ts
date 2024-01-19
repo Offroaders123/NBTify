@@ -2,10 +2,11 @@
 
 import { extname } from "node:path";
 import { readFile } from "node:fs/promises";
+import { inspect, promisify } from "node:util";
 import { read, write, parse, stringify, NBTData } from "../index.js";
-import { file, snbt, nbt } from "./args.js";
+import { file, nbt, snbt, format, space } from "./args.js";
 
-import type { Format, RootTag } from "../index.js";
+import type { RootTag } from "../index.js";
 
 (async () => {
 
@@ -14,21 +15,25 @@ if (file === undefined){
   throw new TypeError("Missing argument 'input'");
 }
 
-const format: Format = {
-  rootName: "",
-  endian: "little",
-  compression: null,
-  bedrockLevel: null
-};
+const buffer: Buffer = await readFile(file);
 
-const input = await readFile(file);
-const data: RootTag | NBTData = extname(file) === ".snbt" ? parse(input.toString()) : await read(input,format);
+const input: RootTag | NBTData = extname(file) === ".snbt"
+  ? parse(buffer.toString())
+  : await read(buffer);
 
-if (!nbt){
-  console.log(snbt ? stringify(data,{ space: 2 }) : data);
-} else {
-  const output: string | Uint8Array = snbt ? stringify(data,{ space: 2 }) : await write(data,format);
-  await new Promise<Error | undefined>(resolve => process.stdout.write(output,resolve));
+const output: NBTData = new NBTData(input,format);
+
+if (!nbt && !snbt){
+  const result: string | NBTData = snbt
+    ? stringify(output,{ space: 2 })
+    : output;
+  console.log(inspect(result,{ colors: true, depth: Infinity }));
+  process.exit(0);
 }
+
+const result: string | Uint8Array = snbt
+  ? `${stringify(output,{ space: space ?? 2 })}\n`
+  : await write(output);
+await promisify(process.stdout.write.bind(process.stdout))(result);
 
 })();
