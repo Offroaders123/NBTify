@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { extname } from "node:path";
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { inspect, promisify } from "node:util";
 import { read, write, parse, stringify, NBTData } from "../index.js";
 import { file, nbt, snbt, format, space } from "./args.js";
@@ -13,11 +13,21 @@ if (file === undefined){
   throw new TypeError("Missing argument 'input'");
 }
 
-const buffer: Buffer = await readFile(file);
+const buffer: Buffer = readFileSync(file);
 
-const input: RootTag | NBTData = extname(file) === ".snbt"
-  ? parse(buffer.toString())
-  : await read(buffer);
+let input: RootTag | NBTData;
+
+if (file === 0){
+  try {
+    input = parse(buffer.toString());
+  } catch {
+    input = await read(buffer);
+  }
+} else {
+  input = extname(file) === ".snbt"
+    ? parse(buffer.toString())
+    : await read(buffer);
+}
 
 const output: NBTData = new NBTData(input,format);
 

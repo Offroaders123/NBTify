@@ -15,9 +15,11 @@ process.on("uncaughtException",error => {
   process.exit(1);
 });
 
-export const file: string = args.shift() ?? (() => {
-  throw new TypeError("Missing argument 'input'");
-})();
+export const file: string | typeof process.stdin.fd = !process.stdin.isTTY
+  ? process.stdin.fd
+  : args.shift() ?? (() => {
+    throw new TypeError("Missing argument 'input'");
+  })();
 
 for (const arg of args){
   switch (true){
