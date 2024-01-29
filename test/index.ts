@@ -1,15 +1,30 @@
 import { readFile } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
-const file = new URL("./nbt/bigtest.snbt",import.meta.url);
+const path = new URL("./nbt/hello_world.nbt",import.meta.url);
 
-const snbt = await readFile(file,{ encoding: "utf-8" });
-console.log(snbt);
+const buffer: Buffer = await readFile(path);
+const arrayBuffer: ArrayBufferLike = buffer.buffer;
+const uint8Array: Uint8Array = new Uint8Array(buffer.buffer);
+const blob: Blob = new Blob([buffer]);
+const file: File = new File([buffer],path.pathname.split("/").pop()!);
+const response: Response = new Response(blob);
 
-const nbt = NBT.parse(snbt);
+const inputs = [arrayBuffer,uint8Array,buffer,blob,file,response];
+for (const input of inputs){
+  console.log(input,"\n");
+}
+
+const nbt: (string | NBT.NBTData)[] = await Promise.all(
+  inputs
+    .map(blob =>
+      NBT.read(blob)
+        // .then(() => true)
+        .catch((error: unknown) => `${error}`)
+      )
+    );
 console.log(nbt);
 
-const restring = NBT.stringify(nbt,{ space: 2 });
-console.log(restring);
-
-console.log(snbt === restring);
+// const haha = await fetch("https://wiki.bedrock.dev/assets/nbt/nbt_example_file.nbt")
+//   .then(response => NBT.read(response));
+// console.log(haha);

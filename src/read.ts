@@ -19,14 +19,18 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options: ReadOptions = {}): Promise<NBTData<T>> {
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike | Blob | Response, options: ReadOptions = {}): Promise<NBTData<T>> {
+  if (data instanceof Blob || data instanceof Response){
+    data = await data.arrayBuffer();
+  }
+
   if (!("byteOffset" in data)){
     data = new Uint8Array(data);
   }
 
   if (!(data instanceof Uint8Array)){
     data satisfies never;
-    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
+    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, Blob, File, or Response");
   }
 
   let { rootName, endian, compression, bedrockLevel, strict } = options;
@@ -161,14 +165,10 @@ export class NBTReader {
   /**
    * Initiates the reader over an NBT buffer.
   */
-  read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike, options: NBTReaderOptions = {}): NBTData<T> {
-    if (!("byteOffset" in data)){
-      data = new Uint8Array(data);
-    }
-
+  read<T extends RootTagLike = RootTag>(data: Uint8Array, options: NBTReaderOptions = {}): NBTData<T> {
     if (!(data instanceof Uint8Array)){
       data satisfies never;
-      throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, or SharedArrayBuffer");
+      throw new TypeError("First parameter must be a Uint8Array");
     }
 
     let { rootName = true, endian = "big", strict = true } = options;
