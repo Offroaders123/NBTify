@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import * as NBT from "../src/index.js";
+import { inspect } from "node:util";
 
 const path = new URL("./nbt/hello_world.nbt",import.meta.url);
 
@@ -23,7 +24,7 @@ const nbt: (string | NBT.NBTData)[] = await Promise.all(
         .catch((error: unknown) => `${error}`)
       )
     );
-console.log(nbt);
+console.log(inspect(nbt,{ colors: true, getters: true }));
 
 // const haha = await fetch("https://wiki.bedrock.dev/assets/nbt/nbt_example_file.nbt")
 //   .then(response => NBT.read(response));
