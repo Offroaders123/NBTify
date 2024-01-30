@@ -19,8 +19,8 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike | Blob | Response, options: ReadOptions = {}): Promise<NBTData<T>> {
-  if (data instanceof Blob || data instanceof Response){
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike | Blob, options: ReadOptions = {}): Promise<NBTData<T>> {
+  if (data instanceof Blob){
     data = await data.arrayBuffer();
   }
 
@@ -30,7 +30,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
   if (!(data instanceof Uint8Array)){
     data satisfies never;
-    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, Blob, File, or Response");
+    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, or Blob");
   }
 
   let { rootName, endian, compression, bedrockLevel, strict } = options;

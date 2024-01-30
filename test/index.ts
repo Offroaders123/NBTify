@@ -8,9 +8,8 @@ const arrayBuffer: ArrayBufferLike = buffer.buffer;
 const uint8Array: Uint8Array = new Uint8Array(buffer.buffer);
 const blob: Blob = new Blob([buffer]);
 const file: File = new File([buffer],path.pathname.split("/").pop()!);
-const response: Response = new Response(blob);
 
-const inputs = [arrayBuffer,uint8Array,buffer,blob,file,response];
+const inputs = [arrayBuffer,uint8Array,buffer,blob,file];
 for (const input of inputs){
   console.log(input,"\n");
 }
