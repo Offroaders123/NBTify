@@ -5,4 +5,5 @@ export * from "./stringify.js";
 export * from "./format.js";
 export * from "./tag.js";
 export * from "./primitive.js";
+export * from "./error.js";
 export * from "./compression.js";
