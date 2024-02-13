@@ -1,5 +1,6 @@
 import { NBTData } from "./format.js";
 import { TAG, TAG_TYPE, isTag, getTagType } from "./tag.js";
+import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
 import type { RootName, Endian, NBTDataOptions } from "./format.js";
@@ -45,22 +46,25 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
     compression satisfies never;
     throw new TypeError("Compression option must be a valid compression type");
   }
-  if (bedrockLevel !== undefined && typeof bedrockLevel !== "number" && bedrockLevel !== null){
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean"){
     bedrockLevel satisfies never;
-    throw new TypeError("Bedrock Level option must be a number or null");
+    throw new TypeError("Bedrock Level option must be a boolean");
   }
 
   let result = new NBTWriter().write(data,{ rootName, endian });
 
-  if (bedrockLevel !== undefined && bedrockLevel !== null){
+  if (bedrockLevel){
+    if (!("StorageVersion" in data) || !(data.StorageVersion instanceof Int32)){
+      throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
+    }
     const { byteLength } = result;
-    const data = new Uint8Array(byteLength + 8);
-    const view = new DataView(data.buffer);
-    const version = bedrockLevel.valueOf();
+    const data1 = new Uint8Array(byteLength + 8);
+    const view = new DataView(data1.buffer);
+    const version: number = data.StorageVersion.valueOf();
     view.setUint32(0,version,true);
     view.setUint32(4,byteLength,true);
-    data.set(result,8);
-    result = data;
+    data1.set(result,8);
+    result = data1;
   }
 
   if (compression !== undefined && compression !== null){

@@ -25,4 +25,4 @@ export default new NBTData({
       Door: "handle"
     }
   ]
-},{ rootName: "", endian: "big", compression: null, bedrockLevel: null });
+},{ rootName: "", endian: "big", compression: null, bedrockLevel: false });

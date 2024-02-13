@@ -3,7 +3,7 @@ import type { RootTag, RootTagLike } from "./tag.js";
 export type RootName = string | null;
 export type Endian = "big" | "little";
 export type Compression = CompressionFormat | null;
-export type BedrockLevel = number | null;
+export type BedrockLevel = boolean;
 
 export interface Format {
   rootName: RootName;
@@ -41,7 +41,7 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
       data = data.data;
     }
 
-    const { rootName = "", endian = "big", compression = null, bedrockLevel = null } = options;
+    const { rootName = "", endian = "big", compression = null, bedrockLevel = false } = options;
 
     isRootTagLike(data);
     isRootName(rootName);
@@ -59,8 +59,8 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
       let enumerable: boolean = true;
 
       switch (property){
-        case "compression": enumerable = compression !== null;
-        case "bedrockLevel": enumerable = bedrockLevel !== null;
+        case "compression": enumerable = compression !== null; break;
+        case "bedrockLevel": enumerable = bedrockLevel; break;
       }
 
       Object.defineProperty(this,property,{
@@ -105,8 +105,8 @@ export function isCompression(compression: unknown): asserts compression is Comp
 }
 
 export function isBedrockLevel(bedrockLevel: unknown): asserts bedrockLevel is BedrockLevel {
-  if (typeof bedrockLevel !== "number" && bedrockLevel !== null){
-    throw new TypeError("Bedrock Level must be a number or null");
+  if (typeof bedrockLevel !== "boolean"){
+    throw new TypeError("Bedrock Level must be a boolean");
   }
   bedrockLevel satisfies BedrockLevel;
 }

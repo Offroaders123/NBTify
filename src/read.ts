@@ -108,21 +108,22 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   }
 
   if (bedrockLevel === undefined){
-    bedrockLevel = (endian === "little" && hasBedrockLevelHeader(data));
+    bedrockLevel = hasBedrockLevelHeader(data,endian);
   }
 
-  bedrockLevel satisfies boolean | BedrockLevel;
+  bedrockLevel satisfies BedrockLevel;
+  let bedrockLevelValue: number | null;
 
-  if (bedrockLevel !== false && bedrockLevel !== null){
+  if (bedrockLevel){
     const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
     const version = view.getUint32(0,true);
-    bedrockLevel = version;
+    bedrockLevelValue = version;
     data = data.subarray(8);
   } else {
-    bedrockLevel = null;
+    bedrockLevelValue = null;
   }
 
-  const result = new NBTReader().read<T>(data,{ rootName, endian, strict });
+  const result = new NBTReader().read<T>(data,{ rootName, endian, bedrockLevelValue, strict });
 
   return new NBTData<T>(result,{ compression, bedrockLevel });
 }
@@ -139,15 +140,16 @@ function hasZlibHeader(data: Uint8Array): boolean {
   return header === 0x78;
 }
 
-function hasBedrockLevelHeader(data: Uint8Array): boolean {
+function hasBedrockLevelHeader(data: Uint8Array, endian: Endian): boolean {
   const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
   const byteLength = view.getUint32(4,true);
-  return byteLength === data.byteLength - 8;
+  return byteLength === data.byteLength - 8 && endian === "little";
 }
 
 export interface NBTReaderOptions {
   rootName?: boolean | RootName;
   endian?: Endian;
+  bedrockLevelValue?: number | null;
   strict?: boolean;
 }
 
@@ -172,7 +174,7 @@ export class NBTReader {
       throw new TypeError("First parameter must be a Uint8Array");
     }
 
-    let { rootName = true, endian = "big", strict = true } = options;
+    let { rootName = true, endian = "big", bedrockLevelValue = null, strict = true } = options;
 
     if (typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null){
       rootName satisfies never;
@@ -181,6 +183,10 @@ export class NBTReader {
     if (endian !== "big" && endian !== "little"){
       endian satisfies never;
       throw new TypeError("Endian option must be a valid endian type");
+    }
+    if (typeof bedrockLevelValue !== "number" && bedrockLevelValue !== null){
+      bedrockLevelValue satisfies never;
+      throw new TypeError("Bedrock Level must be a number or null");
     }
     if (typeof strict !== "boolean"){
       strict satisfies never;
@@ -194,6 +200,7 @@ export class NBTReader {
     this.#view = new DataView(data.buffer,data.byteOffset,data.byteLength);
 
     this.#readRoot();
+    this.#checkIsValidBedrockLevel(bedrockLevelValue);
 
     rootName = this.#rootName as RootName;
     const value = this.#value as T;
@@ -204,6 +211,18 @@ export class NBTReader {
     }
 
     return new NBTData<T>(value,{ rootName, endian });
+  }
+
+  #checkIsValidBedrockLevel(bedrockLevelValue: number | null): void {
+    if (bedrockLevelValue === null) return;
+    if (!("StorageVersion" in this.#value) || !(this.#value["StorageVersion"] instanceof Int32)){
+      throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
+    }
+
+    const storageVersion: number = this.#value["StorageVersion"].valueOf();
+    if (bedrockLevelValue !== storageVersion){
+      throw new Error("Bedrock Level header does not match the 'StorageVersion' value");
+    }
   }
 
   #allocate(byteLength: number): void {
