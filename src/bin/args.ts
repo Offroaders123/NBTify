@@ -5,7 +5,7 @@ const SNBT_PATTERN = /^--snbt$/;
 const ROOT_NAME_PATTERN = /^--root-name=/;
 const ENDIAN_PATTERN = /^--endian=/;
 const COMPRESSION_PATTERN = /^--compression=/;
-const BEDROCK_LEVEL_PATTERN = /^--bedrock-level=/;
+const BEDROCK_LEVEL_PATTERN = /^(?:--bedrock-level$|--bedrock-level=)/;
 const SPACE_PATTERN = /^--space=/;
 
 const args: string[] = process.argv.slice(2);
@@ -45,7 +45,7 @@ export const snbt: boolean = args
 type NonPartial<T> = { [K in keyof Required<T>]: T[K] };
 
 type NonPartialFormat = NonPartial<NBTDataOptions>;
-  
+
 const rootName: NonPartialFormat["rootName"] = args
   .find(arg => ROOT_NAME_PATTERN.test(arg))
   ?.replace(ROOT_NAME_PATTERN,"");
@@ -58,9 +58,13 @@ const compression: NonPartialFormat["compression"] = args
   .find(arg => COMPRESSION_PATTERN.test(arg))
   ?.replace(COMPRESSION_PATTERN,"") as NonPartialFormat["compression"];
 
-const bedrockLevel: NonPartialFormat["bedrockLevel"] = args
-  .find(arg => BEDROCK_LEVEL_PATTERN.test(arg))
-  ?.replace(BEDROCK_LEVEL_PATTERN,"") as NonPartialFormat["bedrockLevel"];
+const bedrockLevel: NonPartialFormat["bedrockLevel"] = (() => {
+  const value: string = args
+    .find(arg => BEDROCK_LEVEL_PATTERN.test(arg))
+    ?.replace(BEDROCK_LEVEL_PATTERN,"")
+    ?? "false";
+  return value === "true" || value === "";
+})();
 
 export const format: NonPartialFormat = { rootName, endian, compression, bedrockLevel };
 
