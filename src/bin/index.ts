@@ -3,7 +3,7 @@
 import { extname } from "node:path";
 import { readFileSync } from "node:fs";
 import { inspect, promisify } from "node:util";
-import { read, write, parse, stringify, NBTData } from "../index.js";
+import { read, write, parse, stringify, NBTData, Int32 } from "../index.js";
 import { file, nbt, snbt, format, space } from "./args.js";
 
 import type { RootTag } from "../index.js";
@@ -30,6 +30,12 @@ if (file === 0){
 }
 
 const output: NBTData = new NBTData(input,format);
+
+if (format.bedrockLevel){
+  if (!("StorageVersion" in output.data) || !(output.data["StorageVersion"] instanceof Int32)){
+    throw new TypeError("Expected a 'StorageVersion' Int tag in file, when Bedrock Level flag is enabled");
+  }
+}
 
 if (!nbt && !snbt){
   const result: string | NBTData = snbt
