@@ -62,11 +62,16 @@ const compression: NonPartialFormat["compression"] = (() => {
 })();
 
 const bedrockLevel: NonPartialFormat["bedrockLevel"] = (() => {
-  const value: string = args
+  const value: string | undefined = args
     .find(arg => BEDROCK_LEVEL_PATTERN.test(arg))
-    ?.replace(BEDROCK_LEVEL_PATTERN,"")
-    ?? "false";
-  return value === "true" || value === "";
+    ?.replace(BEDROCK_LEVEL_PATTERN,"");
+  switch (value){
+    case undefined: return value;
+    case "true":
+    case "": return true;
+    case "false": return false;
+    default: throw new TypeError("Bedrock Level must be a boolean");
+  }
 })();
 
 export const format: NonPartialFormat = { rootName, endian, compression, bedrockLevel };

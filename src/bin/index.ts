@@ -35,7 +35,7 @@ if (!nbt && !snbt){
   const result: string | NBTData = snbt
     ? stringify(output,{ space: 2 })
     : output;
-  console.log(inspect(result,{ colors: true, depth: Infinity }));
+  console.log(inspect(result,{ colors: true, depth: null }));
   process.exit(0);
 }
 
