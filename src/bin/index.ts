@@ -32,7 +32,10 @@ if (file === 0){
 const output: NBTData = new NBTData(input,format);
 
 if (format.bedrockLevel){
-  if (!("StorageVersion" in output.data) || !(output.data["StorageVersion"] instanceof Int32)){
+  if (format.endian !== "little"){
+    throw new TypeError("Endian option must be 'little' when the Bedrock Level flag is enabled");
+  }
+if (!("StorageVersion" in output.data) || !(output.data["StorageVersion"] instanceof Int32)){
     throw new TypeError("Expected a 'StorageVersion' Int tag in file, when Bedrock Level flag is enabled");
   }
 }

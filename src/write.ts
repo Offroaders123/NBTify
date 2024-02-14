@@ -54,6 +54,9 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
   let result = new NBTWriter().write(data,{ rootName, endian });
 
   if (bedrockLevel){
+    if (endian !== "little"){
+      throw new TypeError("Endian option must be 'little' when the Bedrock Level flag is enabled");
+    }
     if (!("StorageVersion" in data) || !(data.StorageVersion instanceof Int32)){
       throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
     }
