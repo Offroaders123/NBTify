@@ -54,9 +54,12 @@ const endian: NonPartialFormat["endian"] = args
   .find(arg => ENDIAN_PATTERN.test(arg))
   ?.replace(ENDIAN_PATTERN,"") as NonPartialFormat["endian"];
 
-const compression: NonPartialFormat["compression"] = args
-  .find(arg => COMPRESSION_PATTERN.test(arg))
-  ?.replace(COMPRESSION_PATTERN,"") as NonPartialFormat["compression"];
+const compression: NonPartialFormat["compression"] = (() => {
+  const value: string | undefined = args
+    .find(arg => COMPRESSION_PATTERN.test(arg))
+    ?.replace(COMPRESSION_PATTERN,"");
+  return value === "null" ? null : value as NonPartialFormat["compression"];
+})();
 
 const bedrockLevel: NonPartialFormat["bedrockLevel"] = (() => {
   const value: string = args
