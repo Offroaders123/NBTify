@@ -3,10 +3,17 @@
   "version": "1.85.0",
   "description": "A library to read and write NBT files on the web!",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "bin": {
-    "nbtify": "dist/bin/index.js"
+    "nbtify": "dist/bin/index.cjs"
   },
   "scripts": {
     "build": "pkgroll",

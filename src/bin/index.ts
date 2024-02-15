@@ -8,6 +8,8 @@ import { file, nbt, snbt, format, space } from "./args.js";
 
 import type { RootTag } from "../index.js";
 
+(async () => {
+
 if (file === undefined){
   file satisfies never;
   throw new TypeError("Missing argument 'input'");
@@ -52,3 +54,5 @@ const result: string | Uint8Array = snbt
   ? `${stringify(output,{ space: space ?? 2 })}\n`
   : await write(output);
 await promisify(process.stdout.write.bind(process.stdout))(result);
+
+})();
