@@ -3,20 +3,13 @@
   "version": "1.85.0",
   "description": "A library to read and write NBT files on the web!",
   "type": "module",
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
-    }
-  },
   "bin": {
-    "nbtify": "dist/bin/index.cjs"
+    "nbtify": "dist/bin/index.js"
   },
   "scripts": {
-    "build": "pkgroll",
+    "build": "esbuild ./src/**/* --outdir=./dist/ --target=esnext --format=esm; tsc --project ./tsconfig.build.json",
     "dev": "tsc --watch",
     "test": "tsx --test --watch ./test/index.test.ts"
   },
@@ -44,7 +37,7 @@
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "devDependencies": {
     "@types/node": "^20.11.17",
-    "pkgroll": "^2.0.1",
+    "esbuild": "^0.20.0",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   },
