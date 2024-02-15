@@ -36,8 +36,8 @@
   },
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "devDependencies": {
-    "@types/node": "^20.10.6",
-    "tsx": "^4.7.0",
+    "@types/node": "^20.11.17",
+    "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   },
   "sideEffects": false
