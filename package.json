@@ -9,7 +9,7 @@
     "nbtify": "dist/bin/index.js"
   },
   "scripts": {
-    "build": "esbuild ./src/**/* --outdir=./dist/ --target=esnext --format=esm; tsc --project ./tsconfig.build.json",
+    "build": "tsc --project ./tsconfig.build.json",
     "dev": "tsc --watch",
     "test": "tsx --test --watch ./test/index.test.ts"
   },
@@ -37,7 +37,6 @@
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "devDependencies": {
     "@types/node": "^20.11.17",
-    "esbuild": "^0.20.0",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   },

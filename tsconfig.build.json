@@ -5,13 +5,12 @@
     "outDir": "./dist",
     "noEmit": false,
     "declaration": true,
-    "emitDeclarationOnly": true
+    "sourceMap": true
   },
   "include": [
     "./src/**/*"
   ],
   "exclude": [
-    "./test",
-    "./src/bin"
+    "./test"
   ]
 }
