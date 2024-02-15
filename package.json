@@ -9,7 +9,7 @@
     "nbtify": "dist/bin/index.js"
   },
   "scripts": {
-    "build": "tsc --project ./tsconfig.build.json",
+    "build": "pkgroll",
     "dev": "tsc --watch",
     "test": "tsx --test --watch ./test/index.test.ts"
   },
@@ -37,6 +37,7 @@
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "devDependencies": {
     "@types/node": "^20.11.17",
+    "pkgroll": "^2.0.1",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   },
