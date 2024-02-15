@@ -1,3 +1,5 @@
+import { Int32 } from "./primitive.js";
+
 import type { RootTag, RootTagLike } from "./tag.js";
 
 export type RootName = string | null;
@@ -54,6 +56,15 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
     this.endian = endian;
     this.compression = compression;
     this.bedrockLevel = bedrockLevel;
+
+    if (this.bedrockLevel){
+      if (this.endian !== "little"){
+        throw new TypeError("Endian option must be 'little' when the Bedrock Level flag is enabled");
+      }
+      if (!("StorageVersion" in data) || !(data.StorageVersion instanceof Int32)){
+        throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
+      }
+    }
 
     for (const property of ["data","rootName","endian","compression","bedrockLevel"] as (keyof NBTData)[]){
       let enumerable: boolean = true;
