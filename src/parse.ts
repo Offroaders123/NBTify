@@ -117,20 +117,24 @@ export class SNBTReader {
         if (value != null && (this.#index == this.#data.length || !UNQUOTED_STRING_PATTERN.test(this.#peek()))){
           return value;
         }
+        console.log(value);
         return (this.#data.slice(this.#i,this.#index) + this.#readUnquotedString()) as StringTag;
       }
     }
   }
 
   #readNumber(): ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null {
-    if (!"-0123456789".includes(this.#peek())) return null;
+    const peek = this.#peek();
+    console.log(peek);
+    if (!"-0123456789".includes(peek)) return null;
 
     this.#i = this.#index++;
     let hasFloatingPoint = false;
 
     while (this.#index < this.#data.length){
       this.#char = this.#peek(this.#index++);
-      if ("0123456789".includes(this.#char)) continue;
+      console.log(this.#char);
+      if ("0123456789e-".includes(this.#char)) continue;
 
       switch (this.#char.toLowerCase()){
         case ".": {
@@ -315,6 +319,7 @@ export class SNBTReader {
       if (type === undefined){
         type = getTagType(entry);
       }
+      if (key === "Motion") console.log(entry);
       if (getTagType(entry) !== type){
         throw new TypeError(`Encountered unexpected item type '${getTagType(entry)}' in List '${key}' at index ${array.length}, expected item type '${type}'. All tags in a List tag must be of the same type`);
       }
