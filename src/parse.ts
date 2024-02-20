@@ -134,7 +134,7 @@ export class SNBTReader {
     while (this.#index < this.#data.length){
       this.#char = this.#peek(this.#index++);
       console.log(this.#char);
-      if ("0123456789e-".includes(this.#char)) continue;
+      if ("0123456789e-+".includes(this.#char)) continue;
 
       switch (this.#char.toLowerCase()){
         case ".": {
@@ -319,7 +319,7 @@ export class SNBTReader {
       if (type === undefined){
         type = getTagType(entry);
       }
-      if (key === "Motion") console.log(entry);
+      if (key === "Motion" || key === "BigFloat") console.log(entry);
       if (getTagType(entry) !== type){
         throw new TypeError(`Encountered unexpected item type '${getTagType(entry)}' in List '${key}' at index ${array.length}, expected item type '${type}'. All tags in a List tag must be of the same type`);
       }

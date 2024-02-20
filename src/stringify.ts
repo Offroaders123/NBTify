@@ -116,7 +116,7 @@ export class SNBTWriter {
   }
 
   #writeDouble(value: DoubleTag): string {
-    return `${value}${Number.isInteger(value) ? ".0" : ""}d`;
+    return `${value}${!Number.isInteger(value) || value.toExponential() === value.toString() ? "" : ".0"}d`;
   }
 
   #writeByteArray(value: ByteArrayTag): string {
