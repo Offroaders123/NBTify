@@ -2,6 +2,7 @@ import type { NBTDataOptions, StringifyOptions } from "../index.js";
 
 const NBT_PATTERN = /^--nbt$/;
 const SNBT_PATTERN = /^--snbt$/;
+const JSON_PATTERN = /^--json$/;
 const ROOT_NAME_PATTERN = /^--root-name=/;
 const ENDIAN_PATTERN = /^--endian=/;
 const COMPRESSION_PATTERN = /^--compression=/;
@@ -25,6 +26,7 @@ for (const arg of args){
   switch (true){
     case NBT_PATTERN.test(arg):
     case SNBT_PATTERN.test(arg):
+    case JSON_PATTERN.test(arg):
     case ROOT_NAME_PATTERN.test(arg):
     case ENDIAN_PATTERN.test(arg):
     case COMPRESSION_PATTERN.test(arg):
@@ -41,6 +43,9 @@ export const nbt: boolean = args
 
 export const snbt: boolean = args
   .some(arg => SNBT_PATTERN.test(arg));
+
+export const json: boolean = args
+  .some(arg => JSON_PATTERN.test(arg));
 
 type NonPartial<T> = { [K in keyof Required<T>]: T[K] };
 

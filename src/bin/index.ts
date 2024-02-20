@@ -4,7 +4,7 @@ import { extname } from "node:path";
 import { readFileSync } from "node:fs";
 import { inspect, promisify } from "node:util";
 import { read, write, parse, stringify, NBTData } from "../index.js";
-import { file, nbt, snbt, format, space } from "./args.js";
+import { file, nbt, snbt, json, format, space } from "./args.js";
 
 import type { RootTag } from "../index.js";
 
@@ -19,26 +19,37 @@ let input: RootTag | NBTData;
 
 if (file === 0){
   try {
-    input = parse(buffer.toString());
+    input = parse(buffer.toString("utf-8"));
   } catch {
     input = await read(buffer);
   }
 } else {
-  input = extname(file) === ".snbt"
-    ? parse(buffer.toString())
-    : await read(buffer);
+  const extension: string = extname(file);
+  switch (extension){
+    case ".snbt":
+    case ".json": {
+      input = parse(buffer.toString("utf-8"));
+      break;
+    }
+    default: {
+      input = await read(buffer);
+      break;
+    }
+  }
 }
 
 const output: NBTData = new NBTData(input,format);
 
-if (!nbt && !snbt){
+if (!nbt && !snbt && !json){
   console.log(inspect(output,{ colors: true, depth: null }));
   process.exit(0);
 }
 
 const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
 
-const result: string | Uint8Array = snbt
+const result: string | Uint8Array = json
+  ? `${JSON.stringify(output.data,null,space ?? 2)}\n`
+  : snbt
   ? `${stringify(output,{ space: space ?? 2 })}\n`
   : await write(output);
 await stdoutWriteAsync(result);
