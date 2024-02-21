@@ -123,8 +123,7 @@ export class SNBTReader {
   }
 
   #readNumber(): ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null {
-    const peek = this.#peek();
-    if (!"-0123456789".includes(peek)) return null;
+    if (!"-0123456789".includes(this.#peek())) return null;
 
     this.#i = this.#index++;
     let hasFloatingPoint = false;

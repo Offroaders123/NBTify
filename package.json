@@ -1,6 +1,6 @@
 {
   "name": "nbtify",
-  "version": "1.85.0",
+  "version": "1.90.0",
   "description": "A library to read and write NBT files on the web!",
   "type": "module",
   "main": "./dist/index.js",
@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "devDependencies": {
-    "@types/node": "^20.11.17",
+    "@types/node": "^20.11.19",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3"
   },
