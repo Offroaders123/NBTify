@@ -19,15 +19,22 @@ let input: RootTag | NBTData;
 
 if (file === 0){
   try {
-    input = parse(buffer.toString("utf-8"));
+    input = JSON.parse(buffer.toString("utf-8")) as RootTag;
   } catch {
-    input = await read(buffer);
+    try {
+      input = parse(buffer.toString("utf-8"));
+    } catch {
+      input = await read(buffer);
+    }
   }
 } else {
   const extension: string = extname(file);
   switch (extension){
-    case ".snbt":
     case ".json": {
+      input = JSON.parse(buffer.toString("utf-8")) as RootTag;
+      break;
+    }
+    case ".snbt": {
       input = parse(buffer.toString("utf-8"));
       break;
     }
