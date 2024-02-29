@@ -246,7 +246,7 @@ export class NBTReader {
   }
 
   #readRootName(): void {
-    this.#rootName = (this.#rootName !== false) ? this.#readString() : null;
+    this.#rootName = typeof this.#rootName === "string" || this.#rootName ? this.#readString() : null;
   }
 
   #readTag(type: TAG): Tag {
