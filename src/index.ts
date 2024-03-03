@@ -8,6 +8,81 @@
 // elxport * from "./error.js";
 // elxport * from "./compression.js";
 
+import { readFile } from "node:fs/promises";
+
+(async () => {
+
+const fileDemo = await readFile(process.argv[2]!);
+console.log(fileDemo);
+
+console.log(readValue(fileDemo,TAG.COMPOUND,0));
+
+})();
+
+// read
+
+type ReadStage = [data: Uint8Array, byteLength: number];
+
+// trying to look into how you can build a file parser, but using functional programming techniques
+// I'm getting sleepy at this coffee shop! Maybe a little hungry too hehe
+// This demo is currently being run with `./test/nbt/hello_world.nbt`
+
+function readValue(data: Uint8Array, type: TAG, byteOffset: number): Tag {
+  switch (type){
+    case TAG.END: {
+      const remaining = data.byteLength - byteOffset;
+      throw new Error(`Encountered unexpected End tag at byte offset ${byteOffset}, ${remaining} unread bytes remaining`);
+    }
+    case TAG.BYTE: return readByte(data, byteOffset);
+    case TAG.SHORT: return readShort(data, byteOffset);
+    case TAG.INT: return readInt(data, byteOffset);
+    case TAG.LONG: return readLong(data, byteOffset);
+    case TAG.FLOAT: return readFloat(data, byteOffset);
+    case TAG.DOUBLE: return readDouble(data, byteOffset);
+    case TAG.BYTE_ARRAY: return readByteArray(data, byteOffset);
+    case TAG.STRING: return readString(data, byteOffset);
+    case TAG.LIST: return readList(data, byteOffset);
+    case TAG.COMPOUND: return readCompound(data, byteOffset);
+    case TAG.INT_ARRAY: return readIntArray(data, byteOffset);
+    case TAG.LONG_ARRAY: return readLongArray(data, byteOffset);
+    default: throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${byteOffset}`);
+  }
+}
+
+function readByte(data: Uint8Array, byteOffset: number): ByteTag | BooleanTag {
+  readAllocate(data,1,byteOffset);
+}
+
+function readShort(data: Uint8Array, byteOffset: number): ShortTag {}
+
+function readInt(data: Uint8Array, byteOffset: number): IntTag {}
+
+function readLong(data: Uint8Array, byteOffset: number): LongTag {}
+
+function readFloat(data: Uint8Array, byteOffset: number): FloatTag {}
+
+function readDouble(data: Uint8Array, byteOffset: number): DoubleTag {}
+
+function readByteArray(data: Uint8Array, byteOffset: number): ByteArrayTag {}
+
+function readString(data: Uint8Array, byteOffset: number): StringTag {}
+
+function readList(data: Uint8Array, byteOffset: number): ListTag<Tag> {}
+
+function readCompound(data: Uint8Array, byteOffset: number): CompoundTag {}
+
+function readIntArray(data: Uint8Array, byteOffset: number): IntArrayTag {}
+
+function readLongArray(data: Uint8Array, byteOffset: number): LongArrayTag {}
+
+function readAllocate(data: Uint8Array, byteOffset: number, byteLength: number): void {
+  if (byteOffset + byteLength > data.byteLength){
+    throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
+  }
+}
+
+// write
+
 declare function writeValue(value: Tag): Uint8Array;
 
 function allocate(data: Uint8Array, byteOffset: number, byteLength: number): Uint8Array {
