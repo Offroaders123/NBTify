@@ -10,6 +10,26 @@
 
 declare function writeValue(value: Tag): Uint8Array;
 
+function allocate(data: Uint8Array, byteOffset: number, byteLength: number): Uint8Array {
+  const required = byteOffset + byteLength;
+  if (data.byteLength >= required) return data;
+
+  let length = data.byteLength;
+
+  while (length < required){
+    length *= 2;
+  }
+
+  const newData = new Uint8Array(length);
+  newData.set(data,0);
+
+  if (byteOffset > data.byteLength){
+    newData.fill(0,byteLength,byteOffset);
+  }
+
+  return newData;
+}
+
 declare function writeByte(value: ByteTag | BooleanTag): Uint8Array;
 declare function writeShort(value: ShortTag): Uint8Array;
 declare function writeInt(value: IntTag): Uint8Array;
