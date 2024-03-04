@@ -15,108 +15,30 @@ import { readFile } from "node:fs/promises";
 const fileDemo = await readFile(process.argv[2]!);
 console.log(fileDemo);
 
-console.log(readValue(fileDemo,TAG.COMPOUND,0));
+console.log(read(fileDemo));
 
 })();
 
 // read
 
-type ReadStage = [data: Uint8Array, byteLength: number];
-
-// trying to look into how you can build a file parser, but using functional programming techniques
-// I'm getting sleepy at this coffee shop! Maybe a little hungry too hehe
-// This demo is currently being run with `./test/nbt/hello_world.nbt`
-
-function readValue(data: Uint8Array, type: TAG, byteOffset: number): Tag {
-  switch (type){
-    case TAG.END: {
-      const remaining = data.byteLength - byteOffset;
-      throw new Error(`Encountered unexpected End tag at byte offset ${byteOffset}, ${remaining} unread bytes remaining`);
-    }
-    case TAG.BYTE: return readByte(data, byteOffset);
-    case TAG.SHORT: return readShort(data, byteOffset);
-    case TAG.INT: return readInt(data, byteOffset);
-    case TAG.LONG: return readLong(data, byteOffset);
-    case TAG.FLOAT: return readFloat(data, byteOffset);
-    case TAG.DOUBLE: return readDouble(data, byteOffset);
-    case TAG.BYTE_ARRAY: return readByteArray(data, byteOffset);
-    case TAG.STRING: return readString(data, byteOffset);
-    case TAG.LIST: return readList(data, byteOffset);
-    case TAG.COMPOUND: return readCompound(data, byteOffset);
-    case TAG.INT_ARRAY: return readIntArray(data, byteOffset);
-    case TAG.LONG_ARRAY: return readLongArray(data, byteOffset);
-    default: throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${byteOffset}`);
-  }
+function read(data: Uint8Array){
+  return new NBTReader().readRoot(data);
 }
 
-function readByte(data: Uint8Array, byteOffset: number): ByteTag | BooleanTag {
-  readAllocate(data,1,byteOffset);
-}
+class NBTReader {
+  private data!: Uint8Array;
 
-function readShort(data: Uint8Array, byteOffset: number): ShortTag {}
-
-function readInt(data: Uint8Array, byteOffset: number): IntTag {}
-
-function readLong(data: Uint8Array, byteOffset: number): LongTag {}
-
-function readFloat(data: Uint8Array, byteOffset: number): FloatTag {}
-
-function readDouble(data: Uint8Array, byteOffset: number): DoubleTag {}
-
-function readByteArray(data: Uint8Array, byteOffset: number): ByteArrayTag {}
-
-function readString(data: Uint8Array, byteOffset: number): StringTag {}
-
-function readList(data: Uint8Array, byteOffset: number): ListTag<Tag> {}
-
-function readCompound(data: Uint8Array, byteOffset: number): CompoundTag {}
-
-function readIntArray(data: Uint8Array, byteOffset: number): IntArrayTag {}
-
-function readLongArray(data: Uint8Array, byteOffset: number): LongArrayTag {}
-
-function readAllocate(data: Uint8Array, byteOffset: number, byteLength: number): void {
-  if (byteOffset + byteLength > data.byteLength){
-    throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
-  }
-}
-
-// write
-
-declare function writeValue(value: Tag): Uint8Array;
-
-function allocate(data: Uint8Array, byteOffset: number, byteLength: number): Uint8Array {
-  const required = byteOffset + byteLength;
-  if (data.byteLength >= required) return data;
-
-  let length = data.byteLength;
-
-  while (length < required){
-    length *= 2;
+  readRoot(data: Uint8Array): RootTag {
+    this.data = data;
+    return this.readTag();
   }
 
-  const newData = new Uint8Array(length);
-  newData.set(data,0);
-
-  if (byteOffset > data.byteLength){
-    newData.fill(0,byteLength,byteOffset);
+  readTag(): Tag {
+    const type = this.readType();
   }
 
-  return newData;
+  readType(): TAG {}
 }
-
-declare function writeByte(value: ByteTag | BooleanTag): Uint8Array;
-declare function writeShort(value: ShortTag): Uint8Array;
-declare function writeInt(value: IntTag): Uint8Array;
-declare function writeLong(value: LongTag): Uint8Array;
-declare function writeFloat(value: FloatTag): Uint8Array;
-declare function writeDouble(value: DoubleTag): Uint8Array;
-declare function writeByteArray(value: ByteArrayTag): Uint8Array;
-declare function writeString(value: StringTag): Uint8Array;
-declare function writeList(value: ListTag<Tag>): Uint8Array;
-declare function writeCompound(value: CompoundTag): Uint8Array;
-declare function writeIntArray(value: IntArrayTag): Uint8Array;
-declare function writeLongArray(value: LongArrayTag): Uint8Array;
 
 // tag
 
