@@ -60,12 +60,55 @@ function readTag(reader: DataReader, type: TAG): Tag {
   }
 }
 
+function readByte(reader: DataReader): ByteTag {
+  return new Int8(reader.readInt8());
+}
+
+function readShort(reader: DataReader): ShortTag {
+  return new Int16(reader.readInt16(false));
+}
+
+function readInt(reader: DataReader): IntTag {
+  return new Int32(reader.readInt32(false));
+}
+
+function readLong(reader: DataReader): LongTag {
+  return reader.readBigInt64(false);
+}
+
+function readFloat(reader: DataReader): FloatTag {
+  return new Float32(reader.readFloat32(false));
+}
+
+function readDouble(reader: DataReader): DoubleTag {
+  return reader.readFloat64(false);
+}
+
+function readByteArray(reader: DataReader): ByteArrayTag {
+  return reader.readInt8Array(reader.readInt32(false));
+}
+
 function readString(reader: DataReader): StringTag {
   const length = reader.readUint16(false);
   return reader.readString(length);
 }
 
-function readList(reader: DataReader): ListTag<Tag> {}
+function readList(reader: DataReader): ListTag<Tag> {
+  const type = reader.readUint8();
+  const length = reader.readInt32(false);
+  const value: ListTag<Tag> = [];
+  Object.defineProperty(value,TAG_TYPE,{
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: type
+  });
+  for (let i = 0; i < length; i++){
+    const entry = readTag(reader, type);
+    value.push(entry);
+  }
+  return value;
+}
 
 function readCompound(reader: DataReader): CompoundTag {
   const value: CompoundTag = {};
@@ -78,6 +121,14 @@ function readCompound(reader: DataReader): CompoundTag {
     value[name] = entry;
   }
   return value;
+}
+
+function readIntArray(reader: DataReader): IntArrayTag {
+  return reader.readInt32Array(reader.readInt32(false));
+}
+
+function readLongArray(reader: DataReader): LongArrayTag {
+  return reader.readBigInt64Array(reader.readInt32(false));
 }
 
 type ReaderMethod = {
@@ -143,9 +194,32 @@ class DataReader {
     return this.view[`get${type}`]((this.byteOffset += byteLength) - byteLength, littleEndian);
   }
 
+  readInt8Array(length: number): Int8Array {
+    this.allocate(length);
+    return new Int8Array(this.data.subarray(this.byteOffset,this.byteOffset += length));
+  }
+
   readString(length: number): string {
     this.allocate(length);
     return this.decoder.decode(this.data.subarray(this.byteOffset, this.byteOffset += length));
+  }
+
+  readInt32Array(length: number): Int32Array {
+    const value = new Int32Array(length);
+    for (const i in value){
+      const entry = this.readInt32(false);
+      value[i] = entry;
+    }
+    return value;
+  }
+
+  readBigInt64Array(length: number): BigInt64Array {
+    const value = new BigInt64Array(length);
+    for (const i in value){
+      const entry = this.readBigInt64(false);
+      value[i] = entry;
+    }
+    return value;
   }
 
   private allocate(byteLength: number): void {
