@@ -21,21 +21,80 @@ console.log(read(fileDemo));
 
 // read
 
-function read(data: Uint8Array) {}
+function read(data: Uint8Array) {
+  const reader = new DataReader(data);
+  return readRoot(reader);
+}
+
+function readRoot(reader: DataReader): [string, RootTag] {
+  const type = reader.readUint8();
+  if (type !== TAG.LIST && type !== TAG.COMPOUND){
+    throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
+  }
+
+  const rootName = readString(reader);
+  const root: RootTag = readTag(reader, type) as RootTag; // maybe make this generic as well?
+
+  return [rootName, root];
+}
+
+function readTag(reader: DataReader, type: TAG): Tag {
+  switch (type){
+    case TAG.END: {
+      const remaining = reader.data.byteLength - reader.byteOffset;
+      throw new Error(`Encountered unexpected End tag at byte offset ${reader.byteOffset}, ${remaining} unread bytes remaining`);
+    }
+    case TAG.BYTE: return readByte(reader);
+    case TAG.SHORT: return readShort(reader);
+    case TAG.INT: return readInt(reader);
+    case TAG.LONG: return readLong(reader);
+    case TAG.FLOAT: return readFloat(reader);
+    case TAG.DOUBLE: return readDouble(reader);
+    case TAG.BYTE_ARRAY: return readByteArray(reader);
+    case TAG.STRING: return readString(reader);
+    case TAG.LIST: return readList(reader);
+    case TAG.COMPOUND: return readCompound(reader);
+    case TAG.INT_ARRAY: return readIntArray(reader);
+    case TAG.LONG_ARRAY: return readLongArray(reader);
+    default: throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${reader.byteOffset}`);
+  }
+}
+
+function readString(reader: DataReader): StringTag {
+  const length = reader.readUint16(false);
+  return reader.readString(length);
+}
+
+function readList(reader: DataReader): ListTag<Tag> {}
+
+function readCompound(reader: DataReader): CompoundTag {
+  const value: CompoundTag = {};
+  while (true){
+    const type = reader.readUint8();
+    if (type === TAG.END) break;
+    const nameLength = reader.readUint16(false);
+    const name = reader.readString(nameLength);
+    const entry = readTag(reader, type);
+    value[name] = entry;
+  }
+  return value;
+}
 
 type ReaderMethod = {
   [K in keyof DataView]: K extends `get${infer T}` ? T : never;
 }[keyof DataView];
 
 class DataReader {
-  private byteOffset: number;
-  private data: Uint8Array;
+  byteOffset: number;
+  data: Uint8Array;
   private view: DataView;
+  private decoder: TextDecoder;
 
   constructor(data: Uint8Array) {
     this.byteOffset = 0;
     this.data = data;
     this.view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    this.decoder = new TextDecoder();
   }
 
   readUint8(): number {
@@ -81,7 +140,12 @@ class DataReader {
   private read<T extends ReaderMethod>(type: T, byteLength: number, littleEndian: boolean): ReturnType<DataView[`get${T}`]>;
   private read(type: ReaderMethod, byteLength: number, littleEndian: boolean): number | bigint {
     this.allocate(byteLength);
-    return this.view[`get${type}`]((this.byteOffset += byteLength) - 1, littleEndian);
+    return this.view[`get${type}`]((this.byteOffset += byteLength) - byteLength, littleEndian);
+  }
+
+  readString(length: number): string {
+    this.allocate(length);
+    return this.decoder.decode(this.data.subarray(this.byteOffset, this.byteOffset += length));
   }
 
   private allocate(byteLength: number): void {
