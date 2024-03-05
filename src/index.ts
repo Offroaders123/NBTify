@@ -15,10 +15,10 @@ import { readFile, writeFile } from "node:fs/promises";
 const fileDemo = await readFile(process.argv[2]!);
 console.log(fileDemo);
 
-const readDemo = read(fileDemo,false,false,false);
+const readDemo = await read(fileDemo,false,false,false);
 console.log(readDemo);
 
-const writeDemo = Buffer.from(write(readDemo,false).buffer);
+const writeDemo = Buffer.from((await write(readDemo,false)).buffer);
 console.log(writeDemo);
 console.log(Buffer.compare(fileDemo, writeDemo)); //, fileDemo[0x37], writeDemo[0x37]);
 
@@ -32,12 +32,12 @@ type NBTData = [string | null, RootTag, boolean];
 
 // read
 
-function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, bedrockLevel: boolean = false): NBTData {
+async function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, bedrockLevel: boolean = false): Promise<NBTData> {
   const reader = new DataReader(data);
   return readRoot(reader, rootName, littleEndian, bedrockLevel);
 }
 
-function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, bedrockLevel: boolean): NBTData {
+async function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, bedrockLevel: boolean): Promise<NBTData> {
   if (bedrockLevel){
     // const version =
       reader.readUint32(littleEndian);
@@ -249,12 +249,12 @@ class DataReader {
 
 // write
 
-function write(data: NBTData, littleEndian: boolean = false): Uint8Array {
+async function write(data: NBTData, littleEndian: boolean = false): Promise<Uint8Array> {
   const writer = new DataWriter();
   return writeRoot(data, writer, littleEndian);
 }
 
-function writeRoot(data: NBTData, writer: DataWriter, littleEndian: boolean): Uint8Array {
+async function writeRoot(data: NBTData, writer: DataWriter, littleEndian: boolean): Promise<Uint8Array> {
   const [rootName, root, bedrockLevel] = data;
   const type = getTagType(root);
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
