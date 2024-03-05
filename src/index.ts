@@ -15,10 +15,10 @@ import { readFile, writeFile } from "node:fs/promises";
 const fileDemo = await readFile(process.argv[2]!);
 console.log(fileDemo);
 
-const readDemo = await read(fileDemo, { rootName: true, littleEndian: false, compression: "deflate", bedrockLevel: false });
+const readDemo = await read(fileDemo, { rootName: true, endian: "big", compression: "deflate", bedrockLevel: false });
 console.log(readDemo);
 
-const writeDemo = Buffer.from((await write(readDemo,false)).buffer);
+const writeDemo = Buffer.from((await write(readDemo)).buffer);
 console.log(writeDemo);
 console.log(Buffer.compare(fileDemo, writeDemo)); //, fileDemo[0x37], writeDemo[0x37]);
 
@@ -36,6 +36,7 @@ type BedrockLevel = boolean;
 interface NBTData {
   rootName: RootName;
   root: RootTag;
+  endian: Endian;
   compression: Compression;
   bedrockLevel: BedrockLevel;
 }
@@ -44,17 +45,19 @@ interface NBTData {
 
 interface ReadOptions {
   rootName: boolean;
-  littleEndian: boolean;
+  endian: Endian;
   compression: Compression;
   bedrockLevel: BedrockLevel;
 }
 
-async function read(data: Uint8Array, { rootName = true, littleEndian = false, compression = null, bedrockLevel = false }: Partial<ReadOptions> = {}): Promise<NBTData> {
+async function read(data: Uint8Array, { rootName = true, endian = "big", compression = null, bedrockLevel = false }: Partial<ReadOptions> = {}): Promise<NBTData> {
   const reader = new DataReader(data);
-  return readRoot(reader, { rootName, littleEndian, compression, bedrockLevel });
+  return readRoot(reader, { rootName, endian, compression, bedrockLevel });
 }
 
-async function readRoot(reader: DataReader, { rootName, littleEndian, compression, bedrockLevel }: ReadOptions): Promise<NBTData> {
+async function readRoot(reader: DataReader, { rootName, endian, compression, bedrockLevel }: ReadOptions): Promise<NBTData> {
+  let littleEndian: boolean = endian === "little";
+
   if (compression !== null){
     reader.data = await decompress(reader.data,compression);
     reader.view = new DataView(reader.data.buffer);
@@ -75,7 +78,7 @@ async function readRoot(reader: DataReader, { rootName, littleEndian, compressio
   const rootNameV = rootName ? readString(reader, littleEndian) : null;
   const root: RootTag = readTag(reader, type, littleEndian) as RootTag; // maybe make this generic as well?
 
-  return { rootName: rootNameV, root, compression, bedrockLevel };
+  return { rootName: rootNameV, root, endian, compression, bedrockLevel };
 }
 
 function readTag(reader: DataReader, type: TAG, littleEndian: boolean): Tag {
@@ -271,13 +274,14 @@ class DataReader {
 
 // write
 
-async function write(data: NBTData, littleEndian: boolean = false): Promise<Uint8Array> {
+async function write(data: NBTData): Promise<Uint8Array> {
   const writer = new DataWriter();
-  return writeRoot(data, writer, littleEndian);
+  return writeRoot(data, writer);
 }
 
-async function writeRoot(data: NBTData, writer: DataWriter, littleEndian: boolean): Promise<Uint8Array> {
-  const { rootName, root, compression, bedrockLevel } = data;
+async function writeRoot(data: NBTData, writer: DataWriter): Promise<Uint8Array> {
+  const { rootName, root, endian, compression, bedrockLevel } = data;
+  const littleEndian: boolean = endian === "little";
   const type = getTagType(root);
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
     throw new TypeError(`Encountered unexpected Root tag type '${type}', must be either a List or Compound tag`);
