@@ -33,8 +33,8 @@ type Endian = "big" | "little";
 type Compression = CompressionFormat | null;
 type BedrockLevel = boolean;
 
-interface NBTData {
-  data: RootTag;
+interface NBTData<T extends RootTagLike = RootTag> {
+  data: T;
   rootName: RootName;
   endian: Endian;
   compression: Compression;
@@ -50,12 +50,12 @@ interface ReadOptions {
   bedrockLevel: BedrockLevel;
 }
 
-async function read(data: Uint8Array, { rootName = true, endian = "big", compression = null, bedrockLevel = false }: Partial<ReadOptions> = {}): Promise<NBTData> {
+async function read<T extends RootTagLike = RootTag>(data: Uint8Array, { rootName = true, endian = "big", compression = null, bedrockLevel = false }: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
   const reader = new DataReader(data);
-  return readRoot(reader, { rootName, endian, compression, bedrockLevel });
+  return readRoot<T>(reader, { rootName, endian, compression, bedrockLevel });
 }
 
-async function readRoot(reader: DataReader, { rootName, endian, compression, bedrockLevel }: ReadOptions): Promise<NBTData> {
+async function readRoot<T extends RootTagLike = RootTag>(reader: DataReader, { rootName, endian, compression, bedrockLevel }: ReadOptions): Promise<NBTData<T>> {
   let littleEndian: boolean = endian === "little";
 
   if (compression !== null){
@@ -69,17 +69,19 @@ async function readRoot(reader: DataReader, { rootName, endian, compression, bed
     console.log(reader.readUint32(littleEndian));
   }
 
-  const type = reader.readUint8();
+  const type = readTagType(reader);
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
     throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
   }
 
-  const rootNameV = typeof rootName === "string" || rootName ? readString(reader, littleEndian) : null;
-  const root: RootTag = readTag(reader, type, littleEndian) as RootTag; // maybe make this generic as well?
+  const rootNameV: RootName = typeof rootName === "string" || rootName ? readString(reader, littleEndian) : null;
+  const root: T = readTag<T>(reader, type, littleEndian);
 
   return { data: root, rootName: rootNameV, endian, compression, bedrockLevel };
 }
 
+function readTag<T extends Tag>(reader: DataReader, type: TAG, littleEndian: boolean): T;
+function readTag<T extends RootTagLike>(reader: DataReader, type: TAG, littleEndian: boolean): T;
 function readTag(reader: DataReader, type: TAG, littleEndian: boolean): Tag {
   switch (type){
     case TAG.END: {
@@ -100,6 +102,10 @@ function readTag(reader: DataReader, type: TAG, littleEndian: boolean): Tag {
     case TAG.LONG_ARRAY: return readLongArray(reader, littleEndian);
     default: throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${reader.byteOffset}`);
   }
+}
+
+function readTagType(reader: DataReader): TAG {
+  return reader.readUint8() as TAG;
 }
 
 function readByte(reader: DataReader): ByteTag {
@@ -136,7 +142,7 @@ function readString(reader: DataReader, littleEndian: boolean): StringTag {
 }
 
 function readList(reader: DataReader, littleEndian: boolean): ListTag<Tag> {
-  const type = reader.readUint8();
+  const type = readTagType(reader);
   const length = reader.readInt32(littleEndian);
   const value: ListTag<Tag> = [];
   Object.defineProperty(value,TAG_TYPE,{
@@ -155,7 +161,7 @@ function readList(reader: DataReader, littleEndian: boolean): ListTag<Tag> {
 function readCompound(reader: DataReader, littleEndian: boolean): CompoundTag {
   const value: CompoundTag = {};
   while (true){
-    const type = reader.readUint8();
+    const type = readTagType(reader);
     if (type === TAG.END) break;
     const nameLength = reader.readUint16(littleEndian);
     const name = reader.readString(nameLength);
@@ -317,7 +323,7 @@ async function writeRoot(data: NBTData, writer: DataWriter): Promise<Uint8Array>
   return result;
 }
 
-function writeTag(writer: DataWriter, value: Tag, littleEndian: boolean): Uint8Array {
+function writeTag(writer: DataWriter, value: Tag, littleEndian: boolean): void {
   const type = getTagType(value);
   switch (type){
     case TAG.BYTE: return writeByte(writer, value as ByteTag | BooleanTag);
@@ -335,42 +341,42 @@ function writeTag(writer: DataWriter, value: Tag, littleEndian: boolean): Uint8A
   }
 }
 
-function writeByte(writer: DataWriter, value: ByteTag | BooleanTag): Uint8Array {
+function writeByte(writer: DataWriter, value: ByteTag | BooleanTag): void {
   writer.writeInt8(Number(value.valueOf()));
 }
 
-function writeShort(writer: DataWriter, value: ShortTag, littleEndian: boolean): Uint8Array {
+function writeShort(writer: DataWriter, value: ShortTag, littleEndian: boolean): void {
   writer.writeInt16(value.valueOf(), littleEndian);
 }
 
-function writeInt(writer: DataWriter, value: IntTag, littleEndian: boolean): Uint8Array {
+function writeInt(writer: DataWriter, value: IntTag, littleEndian: boolean): void {
   writer.writeInt32(value.valueOf(), littleEndian);
 }
 
-function writeLong(writer: DataWriter, value: LongTag, littleEndian: boolean): Uint8Array {
+function writeLong(writer: DataWriter, value: LongTag, littleEndian: boolean): void {
   writer.writeBigInt64(value, littleEndian);
 }
 
-function writeFloat(writer: DataWriter, value: FloatTag, littleEndian: boolean): Uint8Array {
+function writeFloat(writer: DataWriter, value: FloatTag, littleEndian: boolean): void {
   writer.writeFloat32(value.valueOf(), littleEndian);
 }
 
-function writeDouble(writer: DataWriter, value: DoubleTag, littleEndian: boolean): Uint8Array {
+function writeDouble(writer: DataWriter, value: DoubleTag, littleEndian: boolean): void {
   writer.writeFloat64(value, littleEndian);
 }
 
-function writeByteArray(writer: DataWriter, value: ByteArrayTag, littleEndian: boolean): Uint8Array {
+function writeByteArray(writer: DataWriter, value: ByteArrayTag, littleEndian: boolean): void {
   const { length } = value;
   writer.writeInt32(length, littleEndian);
   writer.writeInt8Array(value);
 }
 
-function writeString(writer: DataWriter, value: StringTag, littleEndian: boolean): Uint8Array {
+function writeString(writer: DataWriter, value: StringTag, littleEndian: boolean): void {
   writer.writeUint16(Buffer.from(value).byteLength, littleEndian);
   writer.writeString(value);
 }
 
-function writeList(writer: DataWriter, value: ListTag<Tag>, littleEndian: boolean): Uint8Array {
+function writeList(writer: DataWriter, value: ListTag<Tag>, littleEndian: boolean): void {
   let type: TAG | undefined = value[TAG_TYPE];
   value = value.filter(isTag);
   type = type ?? (value[0] !== undefined ? getTagType(value[0]) : TAG.END);
@@ -385,7 +391,7 @@ function writeList(writer: DataWriter, value: ListTag<Tag>, littleEndian: boolea
   }
 }
 
-function writeCompound(writer: DataWriter, value: CompoundTag, littleEndian: boolean): Uint8Array {
+function writeCompound(writer: DataWriter, value: CompoundTag, littleEndian: boolean): void {
   for (const [name,entry] of Object.entries(value)){
     if (entry === undefined) continue;
     const type = getTagType(entry as unknown);
@@ -397,13 +403,13 @@ function writeCompound(writer: DataWriter, value: CompoundTag, littleEndian: boo
   writer.writeUint8(TAG.END);
 }
 
-function writeIntArray(writer: DataWriter, value: IntArrayTag, littleEndian: boolean): Uint8Array {
+function writeIntArray(writer: DataWriter, value: IntArrayTag, littleEndian: boolean): void {
   const { length } = value;
   writer.writeInt32(length, littleEndian);
   writer.writeInt32Array(value, littleEndian);
 }
 
-function writeLongArray(writer: DataWriter, value: LongArrayTag, littleEndian: boolean): Uint8Array {
+function writeLongArray(writer: DataWriter, value: LongArrayTag, littleEndian: boolean): void {
   const { length } = value;
   writer.writeInt32(length, littleEndian);
   writer.writeBigInt64Array(value, littleEndian);
