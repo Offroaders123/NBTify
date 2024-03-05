@@ -28,17 +28,21 @@ await writeFile(`${process.argv[2]!}2.nbt`,writeDemo);
 
 // format
 
+type RootName = string | null;
+type Endian = "big" | "little";
 type Compression = CompressionFormat | null;
-type NBTData = [string | null, RootTag, Compression, boolean];
+type BedrockLevel = boolean;
+
+type NBTData = [RootName, RootTag, Compression, BedrockLevel];
 
 // read
 
-async function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, compression: Compression = null, bedrockLevel: boolean = false): Promise<NBTData> {
+async function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, compression: Compression = null, bedrockLevel: BedrockLevel = false): Promise<NBTData> {
   const reader = new DataReader(data);
   return readRoot(reader, rootName, littleEndian, compression, bedrockLevel);
 }
 
-async function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, compression: Compression, bedrockLevel: boolean): Promise<NBTData> {
+async function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, compression: Compression, bedrockLevel: BedrockLevel): Promise<NBTData> {
   if (compression !== null){
     reader.data = await decompress(reader.data,compression);
     reader.view = new DataView(reader.data.buffer);
