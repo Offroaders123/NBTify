@@ -15,25 +15,31 @@ import { readFile, writeFile } from "node:fs/promises";
 const fileDemo = await readFile(process.argv[2]!);
 console.log(fileDemo);
 
-const readDemo = read(fileDemo);
+const readDemo = read(fileDemo,true,true);
 console.log(readDemo);
 
-const writeDemo = Buffer.from(write(readDemo).buffer);
+const writeDemo = Buffer.from(write(readDemo,true).buffer);
 console.log(writeDemo);
 console.log(Buffer.compare(fileDemo, writeDemo)); //, fileDemo[0x37], writeDemo[0x37]);
 
-await writeFile(`${process.argv[2]!}2.nbt`,writeDemo);
+await writeFile(`${process.argv[2]!}2.dat`,writeDemo);
 
 })();
 
 // read
 
-function read(data: Uint8Array, littleEndian: boolean = false): [string, RootTag] {
+function read(data: Uint8Array, littleEndian: boolean = false, bedrockLevel: boolean = false): [string, RootTag, boolean] {
   const reader = new DataReader(data);
-  return readRoot(reader, littleEndian);
+  return readRoot(reader, littleEndian, bedrockLevel);
 }
 
-function readRoot(reader: DataReader, littleEndian: boolean): [string, RootTag] {
+function readRoot(reader: DataReader, littleEndian: boolean, bedrockLevel: boolean): [string, RootTag, boolean] {
+  if (bedrockLevel){
+    // const version =
+      reader.readUint32(littleEndian);
+    console.log(reader.readUint32(littleEndian));
+  }
+
   const type = reader.readUint8();
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
     throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
@@ -42,7 +48,7 @@ function readRoot(reader: DataReader, littleEndian: boolean): [string, RootTag] 
   const rootName = readString(reader, littleEndian);
   const root: RootTag = readTag(reader, type, littleEndian) as RootTag; // maybe make this generic as well?
 
-  return [rootName, root];
+  return [rootName, root, bedrockLevel];
 }
 
 function readTag(reader: DataReader, type: TAG, littleEndian: boolean): Tag {
@@ -238,21 +244,39 @@ class DataReader {
 
 // write
 
-function write(data: [string, RootTag], littleEndian: boolean = false): Uint8Array {
+function write(data: [string, RootTag, boolean], littleEndian: boolean = false): Uint8Array {
   const writer = new DataWriter();
   return writeRoot(data, writer, littleEndian);
 }
 
-function writeRoot(data: [string, RootTag], writer: DataWriter, littleEndian: boolean): Uint8Array {
-  const [rootName, root] = data;
+function writeRoot(data: [string, RootTag, boolean], writer: DataWriter, littleEndian: boolean): Uint8Array {
+  const [rootName, root, bedrockLevel] = data;
   const type = getTagType(root);
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
     throw new TypeError(`Encountered unexpected Root tag type '${type}', must be either a List or Compound tag`);
   }
 
+  if (bedrockLevel){
+    writer.writeFloat64(0, littleEndian);
+  }
+
   writer.writeUint8(type);
   writeString(writer, rootName, littleEndian);
   writeTag(writer, root, littleEndian);
+
+  if (bedrockLevel){
+    if (littleEndian !== true){
+      throw new TypeError("Endian option must be 'little' when the Bedrock Level flag is enabled");
+    }
+    if (!("StorageVersion" in root) || !(root["StorageVersion"] instanceof Int32)){
+      throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
+    }
+    const version: number = root["StorageVersion"].valueOf();
+    const byteLength = writer.byteOffset - 8;
+    console.log(byteLength);
+    writer.view.setUint32(0, version, littleEndian);
+    writer.view.setUint32(4, byteLength, littleEndian);
+  }
 
   return writer.trimmedEnd();
 }
