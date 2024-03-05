@@ -15,7 +15,7 @@ import { readFile, writeFile } from "node:fs/promises";
 const fileDemo = await readFile(process.argv[2]!);
 console.log(fileDemo);
 
-const readDemo = await read(fileDemo,false,false,false);
+const readDemo = await read(fileDemo,true,false,"deflate",false);
 console.log(readDemo);
 
 const writeDemo = Buffer.from((await write(readDemo,false)).buffer);
@@ -28,16 +28,22 @@ await writeFile(`${process.argv[2]!}2.nbt`,writeDemo);
 
 // format
 
-type NBTData = [string | null, RootTag, boolean];
+type Compression = CompressionFormat | null;
+type NBTData = [string | null, RootTag, Compression, boolean];
 
 // read
 
-async function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, bedrockLevel: boolean = false): Promise<NBTData> {
+async function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, compression: Compression = null, bedrockLevel: boolean = false): Promise<NBTData> {
   const reader = new DataReader(data);
-  return readRoot(reader, rootName, littleEndian, bedrockLevel);
+  return readRoot(reader, rootName, littleEndian, compression, bedrockLevel);
 }
 
-async function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, bedrockLevel: boolean): Promise<NBTData> {
+async function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, compression: Compression, bedrockLevel: boolean): Promise<NBTData> {
+  if (compression !== null){
+    reader.data = await decompress(reader.data,compression);
+    reader.view = new DataView(reader.data.buffer);
+  }
+
   if (bedrockLevel){
     // const version =
       reader.readUint32(littleEndian);
@@ -53,7 +59,7 @@ async function readRoot(reader: DataReader, rootName: boolean, littleEndian: boo
   const rootNameV = rootName ? readString(reader, littleEndian) : null;
   const root: RootTag = readTag(reader, type, littleEndian) as RootTag; // maybe make this generic as well?
 
-  return [rootNameV, root, bedrockLevel];
+  return [rootNameV, root, compression, bedrockLevel];
 }
 
 function readTag(reader: DataReader, type: TAG, littleEndian: boolean): Tag {
@@ -156,7 +162,7 @@ type ReaderMethod = {
 class DataReader {
   byteOffset: number;
   data: Uint8Array;
-  private view: DataView;
+  view: DataView;
   private decoder: TextDecoder;
 
   constructor(data: Uint8Array) {
@@ -255,7 +261,7 @@ async function write(data: NBTData, littleEndian: boolean = false): Promise<Uint
 }
 
 async function writeRoot(data: NBTData, writer: DataWriter, littleEndian: boolean): Promise<Uint8Array> {
-  const [rootName, root, bedrockLevel] = data;
+  const [rootName, root, compression, bedrockLevel] = data;
   const type = getTagType(root);
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
     throw new TypeError(`Encountered unexpected Root tag type '${type}', must be either a List or Compound tag`);
@@ -283,7 +289,13 @@ async function writeRoot(data: NBTData, writer: DataWriter, littleEndian: boolea
     writer.view.setUint32(4, byteLength, littleEndian);
   }
 
-  return writer.trimmedEnd();
+  let result = writer.trimmedEnd();
+
+  if (compression !== null){
+    result = await compress(result,compression);
+  }
+
+  return result;
 }
 
 function writeTag(writer: DataWriter, value: Tag, littleEndian: boolean): Uint8Array {
@@ -493,6 +505,58 @@ class DataWriter {
 
     this.data = data;
     this.view = new DataView(data.buffer);
+  }
+}
+
+// compression
+
+async function compress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
+  const compressionStream = new CompressionStream(format);
+  return pipeThroughCompressionStream(data,compressionStream);
+}
+
+async function decompress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
+  const decompressionStream = new DecompressionStream(format);
+  return pipeThroughCompressionStream(data,decompressionStream);
+}
+
+async function pipeThroughCompressionStream(data: Uint8Array, { readable, writable }: CompressionStream | DecompressionStream): Promise<Uint8Array> {
+  const writer = writable.getWriter();
+
+  writer.write(data).catch(() => {});
+  writer.close().catch(() => {});
+
+  const chunks: Uint8Array[] = [];
+  let byteLength = 0;
+
+  const generator = (Symbol.asyncIterator in readable) ? readable : readableStreamToAsyncGenerator(readable as ReadableStream<Uint8Array>);
+
+  for await (const chunk of generator){
+    chunks.push(chunk);
+    byteLength += chunk.byteLength;
+  }
+
+  const result = new Uint8Array(byteLength);
+  let byteOffset = 0;
+
+  for (const chunk of chunks){
+    result.set(chunk,byteOffset);
+    byteOffset += chunk.byteLength;
+  }
+
+  return result;
+}
+
+async function* readableStreamToAsyncGenerator<T>(readable: ReadableStream<T>): AsyncGenerator<T,void,void> {
+  const reader = readable.getReader();
+  try {
+    while (true){
+      const { done, value } = await reader.read();
+      if (done) return;
+      yield value;
+    }
+  } finally {
+    reader.releaseLock();
   }
 }
 
