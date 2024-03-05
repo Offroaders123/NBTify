@@ -15,7 +15,7 @@ import { readFile, writeFile } from "node:fs/promises";
 const fileDemo = await readFile(process.argv[2]!);
 console.log(fileDemo);
 
-const readDemo = await read(fileDemo,true,false,"deflate",false);
+const readDemo = await read(fileDemo, { rootName: true, littleEndian: false, compression: "deflate", bedrockLevel: false });
 console.log(readDemo);
 
 const writeDemo = Buffer.from((await write(readDemo,false)).buffer);
@@ -42,12 +42,19 @@ interface NBTData {
 
 // read
 
-async function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, compression: Compression = null, bedrockLevel: BedrockLevel = false): Promise<NBTData> {
-  const reader = new DataReader(data);
-  return readRoot(reader, rootName, littleEndian, compression, bedrockLevel);
+interface ReadOptions {
+  rootName: boolean;
+  littleEndian: boolean;
+  compression: Compression;
+  bedrockLevel: BedrockLevel;
 }
 
-async function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, compression: Compression, bedrockLevel: BedrockLevel): Promise<NBTData> {
+async function read(data: Uint8Array, { rootName = true, littleEndian = false, compression = null, bedrockLevel = false }: Partial<ReadOptions> = {}): Promise<NBTData> {
+  const reader = new DataReader(data);
+  return readRoot(reader, { rootName, littleEndian, compression, bedrockLevel });
+}
+
+async function readRoot(reader: DataReader, { rootName, littleEndian, compression, bedrockLevel }: ReadOptions): Promise<NBTData> {
   if (compression !== null){
     reader.data = await decompress(reader.data,compression);
     reader.view = new DataView(reader.data.buffer);
