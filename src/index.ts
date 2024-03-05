@@ -34,8 +34,8 @@ type Compression = CompressionFormat | null;
 type BedrockLevel = boolean;
 
 interface NBTData {
+  data: RootTag;
   rootName: RootName;
-  root: RootTag;
   endian: Endian;
   compression: Compression;
   bedrockLevel: BedrockLevel;
@@ -44,7 +44,7 @@ interface NBTData {
 // read
 
 interface ReadOptions {
-  rootName: boolean;
+  rootName: boolean | RootName;
   endian: Endian;
   compression: Compression;
   bedrockLevel: BedrockLevel;
@@ -74,11 +74,10 @@ async function readRoot(reader: DataReader, { rootName, endian, compression, bed
     throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
   }
 
-  // typeof this.#rootName === "string" || this.#rootName ? this.#readString() : null
-  const rootNameV = rootName ? readString(reader, littleEndian) : null;
+  const rootNameV = typeof rootName === "string" || rootName ? readString(reader, littleEndian) : null;
   const root: RootTag = readTag(reader, type, littleEndian) as RootTag; // maybe make this generic as well?
 
-  return { rootName: rootNameV, root, endian, compression, bedrockLevel };
+  return { data: root, rootName: rootNameV, endian, compression, bedrockLevel };
 }
 
 function readTag(reader: DataReader, type: TAG, littleEndian: boolean): Tag {
@@ -280,7 +279,7 @@ async function write(data: NBTData): Promise<Uint8Array> {
 }
 
 async function writeRoot(data: NBTData, writer: DataWriter): Promise<Uint8Array> {
-  const { rootName, root, endian, compression, bedrockLevel } = data;
+  const { data: root, rootName, endian, compression, bedrockLevel } = data;
   const littleEndian: boolean = endian === "little";
   const type = getTagType(root);
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
