@@ -15,25 +15,25 @@ import { readFile, writeFile } from "node:fs/promises";
 const fileDemo = await readFile(process.argv[2]!);
 console.log(fileDemo);
 
-const readDemo = read(fileDemo,true,true);
+const readDemo = read(fileDemo,false,false,false);
 console.log(readDemo);
 
-const writeDemo = Buffer.from(write(readDemo,true).buffer);
+const writeDemo = Buffer.from(write(readDemo,false).buffer);
 console.log(writeDemo);
 console.log(Buffer.compare(fileDemo, writeDemo)); //, fileDemo[0x37], writeDemo[0x37]);
 
-await writeFile(`${process.argv[2]!}2.dat`,writeDemo);
+await writeFile(`${process.argv[2]!}2.nbt`,writeDemo);
 
 })();
 
 // read
 
-function read(data: Uint8Array, littleEndian: boolean = false, bedrockLevel: boolean = false): [string, RootTag, boolean] {
+function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, bedrockLevel: boolean = false): [string | null, RootTag, boolean] {
   const reader = new DataReader(data);
-  return readRoot(reader, littleEndian, bedrockLevel);
+  return readRoot(reader, rootName, littleEndian, bedrockLevel);
 }
 
-function readRoot(reader: DataReader, littleEndian: boolean, bedrockLevel: boolean): [string, RootTag, boolean] {
+function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, bedrockLevel: boolean): [string | null, RootTag, boolean] {
   if (bedrockLevel){
     // const version =
       reader.readUint32(littleEndian);
@@ -45,10 +45,11 @@ function readRoot(reader: DataReader, littleEndian: boolean, bedrockLevel: boole
     throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
   }
 
-  const rootName = readString(reader, littleEndian);
+  // typeof this.#rootName === "string" || this.#rootName ? this.#readString() : null
+  const rootNameV = rootName ? readString(reader, littleEndian) : null;
   const root: RootTag = readTag(reader, type, littleEndian) as RootTag; // maybe make this generic as well?
 
-  return [rootName, root, bedrockLevel];
+  return [rootNameV, root, bedrockLevel];
 }
 
 function readTag(reader: DataReader, type: TAG, littleEndian: boolean): Tag {
@@ -244,12 +245,12 @@ class DataReader {
 
 // write
 
-function write(data: [string, RootTag, boolean], littleEndian: boolean = false): Uint8Array {
+function write(data: [string | null, RootTag, boolean], littleEndian: boolean = false): Uint8Array {
   const writer = new DataWriter();
   return writeRoot(data, writer, littleEndian);
 }
 
-function writeRoot(data: [string, RootTag, boolean], writer: DataWriter, littleEndian: boolean): Uint8Array {
+function writeRoot(data: [string | null, RootTag, boolean], writer: DataWriter, littleEndian: boolean): Uint8Array {
   const [rootName, root, bedrockLevel] = data;
   const type = getTagType(root);
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
@@ -261,7 +262,7 @@ function writeRoot(data: [string, RootTag, boolean], writer: DataWriter, littleE
   }
 
   writer.writeUint8(type);
-  writeString(writer, rootName, littleEndian);
+  if (rootName !== null) writeString(writer, rootName, littleEndian);
   writeTag(writer, root, littleEndian);
 
   if (bedrockLevel){
