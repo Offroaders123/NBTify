@@ -8,7 +8,7 @@
 // elxport * from "./error.js";
 // elxport * from "./compression.js";
 
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 
 (async () => {
 
@@ -20,7 +20,9 @@ console.log(readDemo);
 
 const writeDemo = Buffer.from(write(readDemo).buffer);
 console.log(writeDemo);
-console.log(Buffer.compare(fileDemo, writeDemo));
+console.log(Buffer.compare(fileDemo, writeDemo)); //, fileDemo[0x37], writeDemo[0x37]);
+
+await writeFile(`${process.argv[2]!}2.nbt`,writeDemo);
 
 })();
 
@@ -251,15 +253,14 @@ function writeRoot(data: [string, RootTag], writer: DataWriter, littleEndian: bo
   writer.writeUint8(type);
   writeString(writer, rootName, littleEndian);
   writeTag(writer, root, littleEndian);
-  writer.trimEnd();
 
-  return writer.data;
+  return writer.trimmedEnd();
 }
 
 function writeTag(writer: DataWriter, value: Tag, littleEndian: boolean): Uint8Array {
   const type = getTagType(value);
   switch (type){
-    case TAG.BYTE: return writeByte(writer, value as ByteTag | BooleanTag, littleEndian);
+    case TAG.BYTE: return writeByte(writer, value as ByteTag | BooleanTag);
     case TAG.SHORT: return writeShort(writer, value as ShortTag, littleEndian);
     case TAG.INT: return writeInt(writer, value as IntTag, littleEndian);
     case TAG.LONG: return writeLong(writer, value as LongTag, littleEndian);
@@ -305,7 +306,7 @@ function writeByteArray(writer: DataWriter, value: ByteArrayTag, littleEndian: b
 }
 
 function writeString(writer: DataWriter, value: StringTag, littleEndian: boolean): Uint8Array {
-  writer.writeUint16(value.length, littleEndian);
+  writer.writeUint16(Buffer.from(value).byteLength, littleEndian);
   writer.writeString(value);
 }
 
@@ -394,7 +395,7 @@ class DataWriter {
   }
 
   writeFloat64(value: number, littleEndian: boolean): void {
-    this.write("Int16", 8, littleEndian, value);
+    this.write("Float64", 8, littleEndian, value);
   }
 
   writeBigUint64(value: bigint, littleEndian: boolean): void {
@@ -438,8 +439,9 @@ class DataWriter {
     }
   }
 
-  trimEnd(): void {
+  trimmedEnd(): Uint8Array {
     this.allocate(0);
+    return this.data.slice(0,this.byteOffset);
   }
 
   private allocate(byteLength: number): void {
@@ -456,7 +458,7 @@ class DataWriter {
     data.set(this.data, 0);
 
     // not sure this is really needed, keeping it just in case; freezer burn
-    if (this.byteOffset > this.data.byteOffset){
+    if (this.byteOffset > this.data.byteLength){
       data.fill(0, byteLength, this.byteOffset);
     }
 
