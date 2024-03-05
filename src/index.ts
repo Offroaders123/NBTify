@@ -26,14 +26,18 @@ await writeFile(`${process.argv[2]!}2.nbt`,writeDemo);
 
 })();
 
+// format
+
+type NBTData = [string | null, RootTag, boolean];
+
 // read
 
-function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, bedrockLevel: boolean = false): [string | null, RootTag, boolean] {
+function read(data: Uint8Array, rootName: boolean = true, littleEndian: boolean = false, bedrockLevel: boolean = false): NBTData {
   const reader = new DataReader(data);
   return readRoot(reader, rootName, littleEndian, bedrockLevel);
 }
 
-function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, bedrockLevel: boolean): [string | null, RootTag, boolean] {
+function readRoot(reader: DataReader, rootName: boolean, littleEndian: boolean, bedrockLevel: boolean): NBTData {
   if (bedrockLevel){
     // const version =
       reader.readUint32(littleEndian);
@@ -245,12 +249,12 @@ class DataReader {
 
 // write
 
-function write(data: [string | null, RootTag, boolean], littleEndian: boolean = false): Uint8Array {
+function write(data: NBTData, littleEndian: boolean = false): Uint8Array {
   const writer = new DataWriter();
   return writeRoot(data, writer, littleEndian);
 }
 
-function writeRoot(data: [string | null, RootTag, boolean], writer: DataWriter, littleEndian: boolean): Uint8Array {
+function writeRoot(data: NBTData, writer: DataWriter, littleEndian: boolean): Uint8Array {
   const [rootName, root, bedrockLevel] = data;
   const type = getTagType(root);
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
