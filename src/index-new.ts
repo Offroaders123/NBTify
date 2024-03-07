@@ -30,7 +30,7 @@ export class SNBTReader {
   // #data!: string;
   #index!: number;
   #i!: number;
-  #char!: string;
+  // #char!: string;
 
   read<T extends RootTagLike = RootTag>(data: string): T {
     if (typeof data !== "string"){
@@ -41,7 +41,7 @@ export class SNBTReader {
     // this.#data = data;
     this.#index = 0;
     this.#i = 0;
-    this.#char = "";
+    // this.#char = "";
 
     return this.#readRoot(data) as T;
   }
@@ -76,9 +76,8 @@ export class SNBTReader {
     this.#skipWhitespace(data);
 
     this.#i = this.#index;
-    this.#char = this.#peek(data);
 
-    switch (this.#char){
+    switch (this.#peek(data)){
       case "{": {
         this.#index++;
         return this.#readCompound(data);
@@ -99,9 +98,8 @@ export class SNBTReader {
     this.#skipWhitespace(data);
 
     this.#i = this.#index;
-    this.#char = this.#peek(data);
 
-    switch (this.#char){
+    switch (this.#peek(data)){
       case "{": {
         this.#index++;
         return this.#readCompound(data);
@@ -132,10 +130,10 @@ export class SNBTReader {
     let hasFloatingPoint = false;
 
     while (this.#index < data.length){
-      this.#char = this.#peek(data, this.#index++);
-      if ("0123456789e-+".includes(this.#char)) continue;
+      const char = this.#peek(data, this.#index++);
+      if ("0123456789e-+".includes(char)) continue;
 
-      switch (this.#char.toLowerCase()){
+      switch (char.toLowerCase()){
         case ".": {
           if (hasFloatingPoint){
             this.#index--;
@@ -199,17 +197,17 @@ export class SNBTReader {
     let string = "";
 
     while (this.#index < data.length){
-      this.#char = this.#peek(data, this.#index++);
+      let char = this.#peek(data, this.#index++);
 
-      if (this.#char === "\\"){
-        this.#char = `\\${this.#peek(data, this.#index++)}`;
+      if (char === "\\"){
+        char = `\\${this.#peek(data, this.#index++)}`;
       }
 
-      if (this.#char === quoteChar){
+      if (char === quoteChar){
         return string;
       }
 
-      string += this.#unescapeString(this.#char);
+      string += this.#unescapeString(char);
     }
 
     throw this.#unexpectedEnd();
