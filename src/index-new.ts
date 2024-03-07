@@ -35,12 +35,81 @@ export type Endian = "big" | "little";
 export type Compression = CompressionFormat | null;
 export type BedrockLevel = boolean;
 
-export interface NBTData<T extends RootTagLike = RootTag> {
-  data: T;
+export interface Format {
   rootName: RootName;
   endian: Endian;
   compression: Compression;
   bedrockLevel: BedrockLevel;
+}
+
+export interface NBTDataOptions extends Partial<Format> {}
+
+export class NBTData<T extends RootTagLike = RootTag> implements Format {
+  readonly data: T;
+  readonly rootName: RootName;
+  readonly endian: Endian;
+  readonly compression: Compression;
+  readonly bedrockLevel: BedrockLevel;
+
+  constructor(data: T | NBTData<T>, options: NBTDataOptions = {}) {
+    if (data instanceof NBTData){
+      if (options.rootName === undefined){
+        options.rootName = data.rootName;
+      }
+      if (options.endian === undefined){
+        options.endian = data.endian;
+      }
+      if (options.compression === undefined){
+        options.compression = data.compression;
+      }
+      if (options.bedrockLevel === undefined){
+        options.bedrockLevel = data.bedrockLevel;
+      }
+      data = data.data;
+    }
+
+    const { rootName = "", endian = "big", compression = null, bedrockLevel = false } = options;
+
+    this.data = data;
+    this.rootName = rootName;
+    this.endian = endian;
+    this.compression = compression;
+    this.bedrockLevel = bedrockLevel;
+
+    if (this.bedrockLevel){
+      if (this.endian !== "little"){
+        throw new TypeError("Endian option must be 'little' when the Bedrock Level flag is enabled");
+      }
+      if (!("StorageVersion" in data) || !(data.StorageVersion instanceof Int32)){
+        throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
+      }
+    }
+  }
+
+  get [Symbol.toStringTag]() {
+    return "NBTData" as const;
+  }
+}
+
+// error
+
+export interface NBTErrorOptions extends ErrorOptions {
+  byteOffset: number;
+  cause: NBTData;
+  remaining: number;
+}
+
+export class NBTError extends Error {
+  byteOffset: number;
+  override cause: NBTData;
+  remaining: number;
+
+  constructor(message: string, options: NBTErrorOptions) {
+    super(message,options);
+    this.byteOffset = options.byteOffset;
+    this.cause = options.cause;
+    this.remaining = options.remaining;
+  }
 }
 
 // read
@@ -50,14 +119,15 @@ export interface ReadOptions {
   endian: Endian;
   compression: Compression;
   bedrockLevel: BedrockLevel;
+  strict: boolean;
 }
 
-export async function read<T extends RootTagLike = RootTag>(data: Uint8Array, { rootName = true, endian = "big", compression = null, bedrockLevel = false }: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array, { rootName = true, endian = "big", compression = null, bedrockLevel = false, strict = true }: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
   const reader = new DataReader(data);
-  return readRoot<T>(reader, { rootName, endian, compression, bedrockLevel });
+  return readRoot<T>(reader, { rootName, endian, compression, bedrockLevel, strict });
 }
 
-async function readRoot<T extends RootTagLike = RootTag>(reader: DataReader, { rootName, endian, compression, bedrockLevel }: ReadOptions): Promise<NBTData<T>> {
+async function readRoot<T extends RootTagLike = RootTag>(reader: DataReader, { rootName, endian, compression, bedrockLevel, strict }: ReadOptions): Promise<NBTData<T>> {
   let littleEndian: boolean = endian === "little";
 
   if (compression !== null){
@@ -79,7 +149,12 @@ async function readRoot<T extends RootTagLike = RootTag>(reader: DataReader, { r
   const rootNameV: RootName = typeof rootName === "string" || rootName ? readString(reader, littleEndian) : null;
   const root: T = readTag<T>(reader, type, littleEndian);
 
-  return { data: root, rootName: rootNameV, endian, compression, bedrockLevel };
+  if (strict && reader.data.byteLength > reader.byteOffset){
+    const remaining = reader.data.byteLength - reader.byteOffset;
+    throw new NBTError(`Encountered unexpected End tag at byte offset ${reader.byteOffset}, ${remaining} unread bytes remaining`,{ byteOffset: reader.byteOffset, cause: new NBTData<RootTag>(root as RootTag,{ rootName: rootNameV, endian }), remaining });
+  }
+
+  return new NBTData(root, { rootName: rootNameV, endian, compression, bedrockLevel });
 }
 
 function readTag<T extends Tag>(reader: DataReader, type: TAG, littleEndian: boolean): T;
@@ -281,12 +356,20 @@ class DataReader {
 
 // write
 
-export async function write(data: NBTData): Promise<Uint8Array> {
+export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: NBTDataOptions): Promise<Uint8Array> {
   const writer = new DataWriter();
+  if (!(data instanceof NBTData)){
+    data = new NBTData(data, options);
+  }
+  // edit: yep! This does fix it, interestingly enough
+  // if (!(data instanceof NBTData)){
+  //   throw 5;
+  // }
+                // @ts-expect-error - not sure why this isn't being caught just yet, I think it might be my `typeof`/`instanceof` checks for parameter validation.
   return writeRoot(data, writer);
 }
 
-async function writeRoot(data: NBTData, writer: DataWriter): Promise<Uint8Array> {
+async function writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, writer: DataWriter): Promise<Uint8Array> {
   const { data: root, rootName, endian, compression, bedrockLevel } = data;
   const littleEndian: boolean = endian === "little";
   const type = getTagType(root);
@@ -300,7 +383,7 @@ async function writeRoot(data: NBTData, writer: DataWriter): Promise<Uint8Array>
 
   writer.writeUint8(type);
   if (rootName !== null) writeString(writer, rootName, littleEndian);
-  writeTag(writer, root, littleEndian);
+  writeTag(writer, root as RootTag, littleEndian);
 
   if (bedrockLevel){
     if (littleEndian !== true){
