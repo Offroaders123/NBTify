@@ -624,7 +624,7 @@ class DataWriter {
     this.view[`set${type}`]((this.byteOffset += byteLength) - byteLength, value as never, littleEndian);
   }
 
-  writeInt8Array(value: Int8Array): void {
+  writeInt8Array(value: Int8Array | Uint8Array): void {
     const { length } = value;
     this.allocate(length);
     this.data.set(value,this.byteOffset);
@@ -639,13 +639,13 @@ class DataWriter {
     this.byteOffset += length;
   }
 
-  writeInt32Array(value: Int32Array, littleEndian: boolean): void {
+  writeInt32Array(value: Int32Array | Uint32Array, littleEndian: boolean): void {
     for (const entry of value){
       this.writeInt32(entry, littleEndian);
     }
   }
 
-  writeBigInt64Array(value: BigInt64Array, littleEndian: boolean): void {
+  writeBigInt64Array(value: BigInt64Array | BigUint64Array, littleEndian: boolean): void {
     for (const entry of value){
       this.writeBigInt64(entry, littleEndian);
     }
@@ -757,7 +757,7 @@ export type FloatTag<T extends number = number> = Float32<T>;
 
 export type DoubleTag = number;
 
-export type ByteArrayTag = Int8Array;
+export type ByteArrayTag = Int8Array | Uint8Array;
 
 export type StringTag = string;
 
@@ -773,9 +773,9 @@ export interface CompoundTag {
 
 export type CompoundTagLike = object;
 
-export type IntArrayTag = Int32Array;
+export type IntArrayTag = Int32Array | Uint32Array;
 
-export type LongArrayTag = BigInt64Array;
+export type LongArrayTag = BigInt64Array | BigUint64Array;
 
 export enum TAG {
   END = 0,
@@ -812,11 +812,14 @@ export function getTagType(value: any): TAG | null {
     case typeof value === "bigint": return TAG.LONG;
     case value instanceof Float32: return TAG.FLOAT;
     case typeof value === "number": return TAG.DOUBLE;
-    case value instanceof Int8Array: return TAG.BYTE_ARRAY;
+    case value instanceof Int8Array:
+    case value instanceof Uint8Array: return TAG.BYTE_ARRAY;
     case typeof value === "string": return TAG.STRING;
     case value instanceof Array: return TAG.LIST;
-    case value instanceof Int32Array: return TAG.INT_ARRAY;
-    case value instanceof BigInt64Array: return TAG.LONG_ARRAY;
+    case value instanceof Int32Array:
+    case value instanceof Uint32Array: return TAG.INT_ARRAY;
+    case value instanceof BigInt64Array:
+    case value instanceof BigUint64Array: return TAG.LONG_ARRAY;
     case typeof value === "object" && value !== null: return TAG.COMPOUND;
     default: return null;
   }
