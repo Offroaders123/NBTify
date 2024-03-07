@@ -29,7 +29,7 @@ export function parse<T extends RootTagLike = RootTag>(data: string): T {
 export class SNBTReader {
   // #data!: string;
   #index!: number;
-  #i!: number;
+  // #i!: number;
   // #char!: string;
 
   read<T extends RootTagLike = RootTag>(data: string): T {
@@ -40,10 +40,10 @@ export class SNBTReader {
 
     // this.#data = data;
     this.#index = 0;
-    this.#i = 0;
+    // this.#i = 0;
     // this.#char = "";
 
-    return this.#readRoot(data) as T;
+    return this.#readRoot(data, this.#index) as T;
   }
 
   #peek(data: string, byteOffset: number = this.#index): string {
@@ -72,19 +72,19 @@ export class SNBTReader {
     }
   }
 
-  #readRoot(data: string): RootTag {
+  #readRoot(data: string, i: number): RootTag {
     this.#skipWhitespace(data);
 
-    this.#i = this.#index;
+    i = this.#index;
 
     switch (this.#peek(data)){
       case "{": {
         this.#index++;
-        return this.#readCompound(data);
+        return this.#readCompound(data, i);
       }
       case "[": {
         this.#index++;
-        const list = this.#readList(data, "[root]");
+        const list = this.#readList(data, "[root]", i);
         const type = getTagType(list);
         if (type !== TAG.LIST) break;
         return list as ListTag<Tag>;
@@ -94,39 +94,39 @@ export class SNBTReader {
     throw new Error("Encountered unexpected Root tag type, must be either a List or Compound tag");
   }
 
-  #readTag(data: string, key: string): Tag {
+  #readTag(data: string, key: string, i: number): Tag {
     this.#skipWhitespace(data);
 
-    this.#i = this.#index;
+    i = this.#index;
 
     switch (this.#peek(data)){
       case "{": {
         this.#index++;
-        return this.#readCompound(data);
+        return this.#readCompound(data, i);
       }
-      case "[": return (this.#index++,this.#readList(data, key));
+      case "[": return (this.#index++,this.#readList(data, key, i));
       case '"':
       case "'": return this.#readQuotedString(data);
       default: {
         if (
-          /^(true)$/.test(data.slice(this.#i,this.#index + 4)) ||
-          /^(false)$/.test(data.slice(this.#i,this.#index + 5))
+          /^(true)$/.test(data.slice(i,this.#index + 4)) ||
+          /^(false)$/.test(data.slice(i,this.#index + 5))
         ){
-          return (this.#readUnquotedString(data) as "true" | "false" === "true") as BooleanTag;
+          return (this.#readUnquotedString(data, i) as "true" | "false" === "true") as BooleanTag;
         }
-        const value = this.#readNumber(data);
+        const value = this.#readNumber(data, i);
         if (value != null && (this.#index == data.length || !UNQUOTED_STRING_PATTERN.test(this.#peek(data)))){
           return value;
         }
-        return (data.slice(this.#i,this.#index) + this.#readUnquotedString(data)) as StringTag;
+        return (data.slice(i,this.#index) + this.#readUnquotedString(data, i)) as StringTag;
       }
     }
   }
 
-  #readNumber(data: string): ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null {
+  #readNumber(data: string, i: number): ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null {
     if (!"-0123456789".includes(this.#peek(data))) return null;
 
-    this.#i = this.#index++;
+    i = this.#index++;
     let hasFloatingPoint = false;
 
     while (this.#index < data.length){
@@ -142,45 +142,45 @@ export class SNBTReader {
           hasFloatingPoint = true;
           break;
         }
-        case "f": return new Float32(+data.slice(this.#i,this.#index - 1)) satisfies FloatTag;
-        case "d": return +data.slice(this.#i,this.#index - 1) satisfies DoubleTag;
-        case "b": return new Int8(+data.slice(this.#i,this.#index - 1)) satisfies ByteTag;
-        case "s": return new Int16(+data.slice(this.#i,this.#index - 1)) satisfies ShortTag;
-        case "l": return BigInt(data.slice(this.#i,this.#index - 1)) satisfies LongTag;
+        case "f": return new Float32(+data.slice(i,this.#index - 1)) satisfies FloatTag;
+        case "d": return +data.slice(i,this.#index - 1) satisfies DoubleTag;
+        case "b": return new Int8(+data.slice(i,this.#index - 1)) satisfies ByteTag;
+        case "s": return new Int16(+data.slice(i,this.#index - 1)) satisfies ShortTag;
+        case "l": return BigInt(data.slice(i,this.#index - 1)) satisfies LongTag;
         default: {
           if (hasFloatingPoint){
-            return +data.slice(this.#i,--this.#index) satisfies DoubleTag;
+            return +data.slice(i,--this.#index) satisfies DoubleTag;
           } else {
-            return new Int32(+data.slice(this.#i,--this.#index)) satisfies IntTag;
+            return new Int32(+data.slice(i,--this.#index)) satisfies IntTag;
           }
         }
       }
     }
 
     if (hasFloatingPoint){
-      return +data.slice(this.#i,this.#index) satisfies DoubleTag;
+      return +data.slice(i,this.#index) satisfies DoubleTag;
     } else {
-      return new Int32(+data.slice(this.#i,this.#index)) satisfies IntTag;
+      return new Int32(+data.slice(i,this.#index)) satisfies IntTag;
     }
   }
 
-  #readString(data: string): StringTag {
+  #readString(data: string, i: number): StringTag {
     if (this.#peek(data) == '"' || this.#peek(data) == "'"){
       return this.#readQuotedString(data);
     } else {
-      return this.#readUnquotedString(data);
+      return this.#readUnquotedString(data, i);
     }
   }
 
-  #readUnquotedString(data: string): StringTag {
-    this.#i = this.#index;
+  #readUnquotedString(data: string, i: number): StringTag {
+    i = this.#index;
 
     while (this.#index < data.length){
       if (!UNQUOTED_STRING_PATTERN.test(this.#peek(data))) break;
       this.#index++;
     }
 
-    if (this.#index - this.#i == 0){
+    if (this.#index - i == 0){
       if (this.#index == data.length){
         throw this.#unexpectedEnd();
       } else {
@@ -188,12 +188,13 @@ export class SNBTReader {
       }
     }
 
-    return data.slice(this.#i, this.#index);
+    return data.slice(i, this.#index);
   }
 
   #readQuotedString(data: string): StringTag {
     const quoteChar = this.#peek(data);
-    this.#i = ++this.#index;
+    // i = 
+    ++this.#index;
     let string = "";
 
     while (this.#index < data.length){
@@ -240,7 +241,7 @@ export class SNBTReader {
     }
   }
 
-  #readArray(data: string, type: "B" | "I" | "L"): ByteArrayTag | IntArrayTag | LongArrayTag {
+  #readArray(data: string, type: "B" | "I" | "L", i: number): ByteArrayTag | IntArrayTag | LongArrayTag {
     const array: string[] = [];
 
     while (this.#index < data.length){
@@ -255,7 +256,7 @@ export class SNBTReader {
         }
       }
 
-      this.#i = this.#index;
+      i = this.#index;
       if (this.#peek(data) == "-"){
         this.#index++;
       }
@@ -271,22 +272,22 @@ export class SNBTReader {
         this.#index++;
       }
 
-      if (this.#index - this.#i == 0){
+      if (this.#index - i == 0){
         throw this.#unexpectedChar(data);
       }
       if (UNQUOTED_STRING_PATTERN.test(this.#peek(data))){
         throw this.#unexpectedChar(data);
       }
 
-      array.push(data.slice(this.#i,this.#index - ((type !== "I") ? 1 : 0)));
+      array.push(data.slice(i,this.#index - ((type !== "I") ? 1 : 0)));
     }
 
     throw this.#unexpectedEnd();
   }
 
-  #readList(data: string, key: string): ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag {
+  #readList(data: string, key: string, i: number): ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag {
     if ("BILbil".includes(this.#peek(data)) && data[this.#index + 1] == ";"){
-      return this.#readArray(data, this.#peek(data, (this.#index += 2) - 2).toUpperCase() as "B" | "I" | "L") satisfies ByteArrayTag | IntArrayTag | LongArrayTag;
+      return this.#readArray(data, this.#peek(data, (this.#index += 2) - 2).toUpperCase() as "B" | "I" | "L", i) satisfies ByteArrayTag | IntArrayTag | LongArrayTag;
     }
 
     const array: ListTag<Tag> = [];
@@ -311,7 +312,7 @@ export class SNBTReader {
         return array satisfies ListTag<Tag>;
       }
 
-      const entry = this.#readTag(data, key);
+      const entry = this.#readTag(data, key, i);
 
       if (type === undefined){
         type = getTagType(entry);
@@ -326,7 +327,7 @@ export class SNBTReader {
     throw this.#unexpectedEnd();
   }
 
-  #readCompound(data: string): CompoundTag {
+  #readCompound(data: string, i: number): CompoundTag {
     const entries: [string, Tag | undefined][] = [];
     let first = true;
 
@@ -339,14 +340,14 @@ export class SNBTReader {
         return entries.reduce<CompoundTag>((obj,[k,v]) => (obj[k] = v,obj),{});
       }
 
-      const key = this.#readString(data);
+      const key = this.#readString(data, i);
       this.#skipWhitespace(data);
 
       if (data[this.#index++] != ":"){
         throw this.#unexpectedChar(data);
       }
 
-      entries.push([key,this.#readTag(data, key)]);
+      entries.push([key,this.#readTag(data, key, i)]);
     }
   }
 }
