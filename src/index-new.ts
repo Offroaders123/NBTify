@@ -45,11 +45,11 @@ export interface Format {
 export interface NBTDataOptions extends Partial<Format> {}
 
 export class NBTData<T extends RootTagLike = RootTag> implements Format {
-  readonly data: T;
-  readonly rootName: RootName;
-  readonly endian: Endian;
-  readonly compression: Compression;
-  readonly bedrockLevel: BedrockLevel;
+  data: T;
+  rootName: RootName;
+  endian: Endian;
+  compression: Compression;
+  bedrockLevel: BedrockLevel;
 
   constructor(data: T | NBTData<T>, options: NBTDataOptions = {}) {
     if (data instanceof NBTData){
@@ -75,15 +75,6 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
     this.endian = endian;
     this.compression = compression;
     this.bedrockLevel = bedrockLevel;
-
-    if (this.bedrockLevel){
-      if (this.endian !== "little"){
-        throw new TypeError("Endian option must be 'little' when the Bedrock Level flag is enabled");
-      }
-      if (!("StorageVersion" in data) || !(data.StorageVersion instanceof Int32)){
-        throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
-      }
-    }
   }
 
   get [Symbol.toStringTag]() {
@@ -124,7 +115,6 @@ export interface ReadOptions {
 
 export async function read<T extends RootTagLike = RootTag>(data: Uint8Array, options: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
   const reader = new DataReader(data);
-  // let { rootName = true, endian = "big", compression = null, bedrockLevel = false, strict = true } = options;
   let { rootName, endian, compression, bedrockLevel, strict = true } = options;
 
   compression: if (compression === undefined){
@@ -181,18 +171,6 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array, op
     bedrockLevel = hasBedrockLevelHeader(reader,endian);
   }
 
-  bedrockLevel satisfies BedrockLevel;
-  let bedrockLevelValue: number | null;
-
-  if (bedrockLevel){
-    const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
-    const version = view.getUint32(0,true);
-    bedrockLevelValue = version;
-    data = data.subarray(8);
-  } else {
-    bedrockLevelValue = null;
-  }
-
   return readRoot<T>(reader, { rootName, endian, compression, bedrockLevel, strict });
 }
 
@@ -222,7 +200,7 @@ async function readRoot<T extends RootTagLike = RootTag>(reader: DataReader, { r
   if (bedrockLevel){
     // const version =
       reader.readUint32(littleEndian);
-    console.log(reader.readUint32(littleEndian));
+    reader.readUint32(littleEndian);
   }
 
   const type = readTagType(reader);
@@ -478,7 +456,6 @@ async function writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, writ
     }
     const version: number = root["StorageVersion"].valueOf();
     const byteLength = writer.byteOffset - 8;
-    console.log(byteLength);
     writer.view.setUint32(0, version, littleEndian);
     writer.view.setUint32(4, byteLength, littleEndian);
   }
