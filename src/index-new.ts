@@ -122,9 +122,93 @@ export interface ReadOptions {
   strict: boolean;
 }
 
-export async function read<T extends RootTagLike = RootTag>(data: Uint8Array, { rootName = true, endian = "big", compression = null, bedrockLevel = false, strict = true }: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array, options: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
   const reader = new DataReader(data);
+  // let { rootName = true, endian = "big", compression = null, bedrockLevel = false, strict = true } = options;
+  let { rootName, endian, compression, bedrockLevel, strict = true } = options;
+
+  compression: if (compression === undefined){
+    switch (true){
+      case hasGzipHeader(reader): compression = "gzip"; break compression;
+      case hasZlibHeader(reader): compression = "deflate"; break compression;
+    }
+    try {
+      return await read<T>(data,{ ...options, compression: null });
+    } catch (error){
+      try {
+        return await read<T>(data,{ ...options, compression: "deflate-raw" });
+      } catch {
+        throw error;
+      }
+    }
+  }
+
+  compression satisfies Compression;
+
+  if (endian === undefined){
+    try {
+      return await read<T>(data,{ ...options, endian: "big" });
+    } catch (error){
+      try {
+        return await read<T>(data,{ ...options, endian: "little" });
+      } catch {
+        throw error;
+      }
+    }
+  }
+
+  endian satisfies Endian;
+
+  if (rootName === undefined){
+    try {
+      return await read<T>(data,{ ...options, rootName: true });
+    } catch (error){
+      try {
+        return await read<T>(data,{ ...options, rootName: false });
+      } catch {
+        throw error;
+      }
+    }
+  }
+
+  rootName satisfies boolean | RootName;
+
+  if (compression !== null){
+    data = await decompress(data,compression);
+  }
+
+  if (bedrockLevel === undefined){
+    bedrockLevel = hasBedrockLevelHeader(reader,endian);
+  }
+
+  bedrockLevel satisfies BedrockLevel;
+  let bedrockLevelValue: number | null;
+
+  if (bedrockLevel){
+    const view = new DataView(data.buffer,data.byteOffset,data.byteLength);
+    const version = view.getUint32(0,true);
+    bedrockLevelValue = version;
+    data = data.subarray(8);
+  } else {
+    bedrockLevelValue = null;
+  }
+
   return readRoot<T>(reader, { rootName, endian, compression, bedrockLevel, strict });
+}
+
+function hasGzipHeader(reader: DataReader): boolean {
+  const header = reader.view.getUint16(0,false);
+  return header === 0x1F8B;
+}
+
+function hasZlibHeader(reader: DataReader): boolean {
+  const header = reader.view.getUint8(0);
+  return header === 0x78;
+}
+
+function hasBedrockLevelHeader(reader: DataReader, endian: Endian): boolean {
+  const byteLength = reader.view.getUint32(4,true);
+  return byteLength === reader.data.byteLength - 8 && endian === "little";
 }
 
 async function readRoot<T extends RootTagLike = RootTag>(reader: DataReader, { rootName, endian, compression, bedrockLevel, strict }: ReadOptions): Promise<NBTData<T>> {
