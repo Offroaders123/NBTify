@@ -322,53 +322,50 @@ class DataReader {
   }
 
   readUint8(): number {
-    this.allocate(1);
-    return this.view.getUint8((this.byteOffset += 1) - 1);
+    return this.read("Uint8");
   }
 
   readInt8(): number {
-    this.allocate(1);
-    return this.view.getInt8((this.byteOffset += 1) - 1);
+    return this.read("Int8");
   }
 
   readUint16(littleEndian: boolean): number {
-    this.allocate(2);
-    return this.view.getUint16((this.byteOffset += 2) - 2, littleEndian);
+    return this.read("Uint16", littleEndian);
   }
 
   readInt16(littleEndian: boolean): number {
-    this.allocate(2);
-    return this.view.getInt16((this.byteOffset += 2) - 2, littleEndian);
+    return this.read("Int16", littleEndian);
   }
 
   readUint32(littleEndian: boolean): number {
-    this.allocate(4);
-    return this.view.getUint32((this.byteOffset += 4) - 4, littleEndian);
+    return this.read("Uint32", littleEndian);
   }
 
   readInt32(littleEndian: boolean): number {
-    this.allocate(4);
-    return this.view.getInt32((this.byteOffset += 4) - 4, littleEndian);
+    return this.read("Int32", littleEndian);
   }
 
   readFloat32(littleEndian: boolean): number {
-    this.allocate(4);
-    return this.view.getFloat32((this.byteOffset += 4) - 4, littleEndian);
+    return this.read("Float32", littleEndian);
   }
 
   readFloat64(littleEndian: boolean): number {
-    this.allocate(8);
-    return this.view.getFloat64((this.byteOffset += 8) - 8, littleEndian);
+    return this.read("Float64", littleEndian);
   }
 
   readBigUint64(littleEndian: boolean): bigint {
-    this.allocate(8);
-    return this.view.getBigUint64((this.byteOffset += 8) - 8, littleEndian);
+    return this.read("BigUint64", littleEndian);
   }
 
   readBigInt64(littleEndian: boolean): bigint {
-    this.allocate(8);
-    return this.view.getBigInt64((this.byteOffset += 8) - 8, littleEndian);
+    return this.read("BigInt64", littleEndian);
+  }
+
+  private read<T extends Extract<keyof typeof ByteType, "Uint8" | "Int8">>(type: T): ReturnType<DataView[`get${T}`]>;
+  private read<T extends Exclude<keyof typeof ByteType, "Uint8" | "Int8">>(type: T, littleEndian: boolean): ReturnType<DataView[`get${T}`]>;
+  private read(type: keyof typeof ByteType, littleEndian?: boolean): number | bigint {
+    this.allocate(ByteType[type]);
+    return this.view[`get${type}`]((this.byteOffset += ByteType[type]) - ByteType[type], littleEndian);
   }
 
   readInt8Array(length: number): Int8Array {
@@ -565,53 +562,50 @@ class DataWriter {
   }
 
   writeUint8(value: number): void {
-    this.allocate(1);
-    return this.view.setUint8((this.byteOffset += 1) - 1, value);
+    this.write("Uint8", value);
   }
 
   writeInt8(value: number): void {
-    this.allocate(1);
-    return this.view.setInt8((this.byteOffset += 1) - 1, value);
+    this.write("Int8", value);
   }
 
   writeUint16(value: number, littleEndian: boolean): void {
-    this.allocate(2);
-    return this.view.setUint16((this.byteOffset += 2) - 2, value, littleEndian);
+    this.write("Uint16", value, littleEndian);
   }
 
   writeInt16(value: number, littleEndian: boolean): void {
-    this.allocate(2);
-    return this.view.setInt16((this.byteOffset += 2) - 2, value, littleEndian);
+    this.write("Int16", value, littleEndian);
   }
 
   writeUint32(value: number, littleEndian: boolean): void {
-    this.allocate(4);
-    return this.view.setUint32((this.byteOffset += 4) - 4, value, littleEndian);
+    this.write("Uint32", value, littleEndian);
   }
 
   writeInt32(value: number, littleEndian: boolean): void {
-    this.allocate(4);
-    return this.view.setInt32((this.byteOffset += 4) - 4, value, littleEndian);
+    this.write("Int32", value, littleEndian);
   }
 
   writeFloat32(value: number, littleEndian: boolean): void {
-    this.allocate(4);
-    return this.view.setFloat32((this.byteOffset += 4) - 4, value, littleEndian);
+    this.write("Float32", value, littleEndian);
   }
 
   writeFloat64(value: number, littleEndian: boolean): void {
-    this.allocate(8);
-    return this.view.setFloat64((this.byteOffset += 8) - 8, value, littleEndian);
+    this.write("Float64", value, littleEndian);
   }
 
   writeBigUint64(value: bigint, littleEndian: boolean): void {
-    this.allocate(8);
-    return this.view.setBigUint64((this.byteOffset += 8) - 8, value, littleEndian);
+    this.write("BigUint64", value, littleEndian);
   }
 
   writeBigInt64(value: bigint, littleEndian: boolean): void {
-    this.allocate(8);
-    return this.view.setBigInt64((this.byteOffset += 8) - 8, value, littleEndian);
+    this.write("BigInt64", value, littleEndian);
+  }
+
+  private write<T extends Extract<keyof typeof ByteType, "Uint8" | "Int8">>(type: T, value: ReturnType<DataView[`get${T}`]>): void;
+  private write<T extends Exclude<keyof typeof ByteType, "Uint8" | "Int8">>(type: T, value: ReturnType<DataView[`get${T}`]>, littleEndian: boolean): void;
+  private write(type: keyof typeof ByteType, value: number | bigint, littleEndian?: boolean): void {
+    this.allocate(ByteType[type]);
+    this.view[`set${type}`]((this.byteOffset += ByteType[type]) - ByteType[type], value as never, littleEndian);
   }
 
   writeInt8Array(value: Int8Array | Uint8Array): void {
@@ -667,6 +661,21 @@ class DataWriter {
     this.data = data;
     this.view = new DataView(data.buffer);
   }
+}
+
+// data-backing (I want to move the readers/writers here too)
+
+enum ByteType {
+  Uint8 = 1,
+  Int8 = 1,
+  Uint16 = 2,
+  Int16 = 2,
+  Uint32 = 4,
+  Int32 = 4,
+  Float32 = 4,
+  Float64 = 8,
+  BigUint64 = 8,
+  BigInt64 = 8,
 }
 
 // compression
