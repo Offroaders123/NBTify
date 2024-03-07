@@ -10,7 +10,7 @@
 
 import { readFile, writeFile } from "node:fs/promises";
 
-(async () => {
+const demo = async () => {
 
 const fileDemo = await readFile(process.argv[2]!);
 console.log(fileDemo);
@@ -24,16 +24,18 @@ console.log(Buffer.compare(fileDemo, writeDemo)); //, fileDemo[0x37], writeDemo[
 
 await writeFile(`${process.argv[2]!}2.nbt`,writeDemo);
 
-})();
+};
+
+if (process.argv.length > 2) demo();
 
 // format
 
-type RootName = string | null;
-type Endian = "big" | "little";
-type Compression = CompressionFormat | null;
-type BedrockLevel = boolean;
+export type RootName = string | null;
+export type Endian = "big" | "little";
+export type Compression = CompressionFormat | null;
+export type BedrockLevel = boolean;
 
-interface NBTData<T extends RootTagLike = RootTag> {
+export interface NBTData<T extends RootTagLike = RootTag> {
   data: T;
   rootName: RootName;
   endian: Endian;
@@ -43,14 +45,14 @@ interface NBTData<T extends RootTagLike = RootTag> {
 
 // read
 
-interface ReadOptions {
+export interface ReadOptions {
   rootName: boolean | RootName;
   endian: Endian;
   compression: Compression;
   bedrockLevel: BedrockLevel;
 }
 
-async function read<T extends RootTagLike = RootTag>(data: Uint8Array, { rootName = true, endian = "big", compression = null, bedrockLevel = false }: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array, { rootName = true, endian = "big", compression = null, bedrockLevel = false }: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
   const reader = new DataReader(data);
   return readRoot<T>(reader, { rootName, endian, compression, bedrockLevel });
 }
@@ -279,7 +281,7 @@ class DataReader {
 
 // write
 
-async function write(data: NBTData): Promise<Uint8Array> {
+export async function write(data: NBTData): Promise<Uint8Array> {
   const writer = new DataWriter();
   return writeRoot(data, writer);
 }
@@ -535,12 +537,12 @@ class DataWriter {
 
 // compression
 
-async function compress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
+export async function compress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
   const compressionStream = new CompressionStream(format);
   return pipeThroughCompressionStream(data,compressionStream);
 }
 
-async function decompress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
+export async function decompress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
   const decompressionStream = new DecompressionStream(format);
   return pipeThroughCompressionStream(data,decompressionStream);
 }
@@ -587,51 +589,51 @@ async function* readableStreamToAsyncGenerator<T>(readable: ReadableStream<T>): 
 
 // tag
 
-type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag<Tag> | CompoundTag | IntArrayTag | LongArrayTag;
+export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag<Tag> | CompoundTag | IntArrayTag | LongArrayTag;
 
-type RootTag = CompoundTag | ListTag<Tag>;
+export type RootTag = CompoundTag | ListTag<Tag>;
 
-type RootTagLike = CompoundTagLike | ListTagLike;
+export type RootTagLike = CompoundTagLike | ListTagLike;
 
-type ByteTag<T extends number = number> = Int8<T>;
+export type ByteTag<T extends number = number> = Int8<T>;
 
-type BooleanTag = FalseTag | TrueTag;
+export type BooleanTag = FalseTag | TrueTag;
 
-type FalseTag = false | ByteTag<0>;
+export type FalseTag = false | ByteTag<0>;
 
-type TrueTag = true | ByteTag<1>;
+export type TrueTag = true | ByteTag<1>;
 
-type ShortTag<T extends number = number> = Int16<T>;
+export type ShortTag<T extends number = number> = Int16<T>;
 
-type IntTag<T extends number = number> = Int32<T>;
+export type IntTag<T extends number = number> = Int32<T>;
 
-type LongTag = bigint;
+export type LongTag = bigint;
 
-type FloatTag<T extends number = number> = Float32<T>;
+export type FloatTag<T extends number = number> = Float32<T>;
 
-type DoubleTag = number;
+export type DoubleTag = number;
 
-type ByteArrayTag = Int8Array;
+export type ByteArrayTag = Int8Array;
 
-type StringTag = string;
+export type StringTag = string;
 
-interface ListTag<T extends Tag | undefined> extends Array<T> {
+export interface ListTag<T extends Tag | undefined> extends Array<T> {
   [TAG_TYPE]?: TAG;
 }
 
-type ListTagLike = any[];
+export type ListTagLike = any[];
 
-interface CompoundTag {
+export interface CompoundTag {
   [name: string]: Tag | undefined;
 }
 
-type CompoundTagLike = object;
+export type CompoundTagLike = object;
 
-type IntArrayTag = Int32Array;
+export type IntArrayTag = Int32Array;
 
-type LongArrayTag = BigInt64Array;
+export type LongArrayTag = BigInt64Array;
 
-enum TAG {
+export enum TAG {
   END = 0,
   BYTE,
   SHORT,
@@ -649,15 +651,15 @@ enum TAG {
 
 Object.freeze(TAG);
 
-const TAG_TYPE = Symbol("nbtify.tag.type");
+export const TAG_TYPE = Symbol("nbtify.tag.type");
 
-function isTag<T extends Tag>(value: any): value is T {
+export function isTag<T extends Tag>(value: any): value is T {
   return getTagType(value) !== null;
 }
 
-function getTagType(value: Tag): TAG;
-function getTagType(value: any): TAG | null;
-function getTagType(value: any): TAG | null {
+export function getTagType(value: Tag): TAG;
+export function getTagType(value: any): TAG | null;
+export function getTagType(value: any): TAG | null {
   switch (true){
     case value instanceof Int8:
     case typeof value === "boolean": return TAG.BYTE;
@@ -682,7 +684,7 @@ type CustomInspectFunction = import("node:util").CustomInspectFunction;
 
 const CustomInspect = Symbol.for("nodejs.util.inspect.custom");
 
-class Int8<T extends number = number> extends Number {
+export class Int8<T extends number = number> extends Number {
   constructor(value: T) {
     super(value << 24 >> 24);
   }
@@ -703,7 +705,7 @@ class Int8<T extends number = number> extends Number {
   }
 }
 
-class Int16<T extends number = number> extends Number {
+export class Int16<T extends number = number> extends Number {
   constructor(value: T) {
     super(value << 16 >> 16);
   }
@@ -724,7 +726,7 @@ class Int16<T extends number = number> extends Number {
   }
 }
 
-class Int32<T extends number = number> extends Number {
+export class Int32<T extends number = number> extends Number {
   constructor(value: T) {
     super(value | 0);
   }
@@ -745,7 +747,7 @@ class Int32<T extends number = number> extends Number {
   }
 }
 
-class Float32<T extends number = number> extends Number {
+export class Float32<T extends number = number> extends Number {
   constructor(value: T) {
     super(value);
   }
