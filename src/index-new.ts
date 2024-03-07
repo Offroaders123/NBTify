@@ -1,13 +1,3 @@
-// elxport * from "./read.js";
-// elxport * from "./write.js";
-// elxport * from "./parse.js";
-// elxport * from "./stringify.js";
-// elxport * from "./format.js";
-// elxport * from "./tag.js";
-// elxport * from "./primitive.js";
-// elxport * from "./error.js";
-// elxport * from "./compression.js";
-
 import { readFile, writeFile } from "node:fs/promises";
 
 const demo = async () => {
@@ -15,12 +5,12 @@ const demo = async () => {
 const fileDemo = await readFile(process.argv[2]!);
 console.log(fileDemo);
 
-const readDemo = await read(fileDemo, { rootName: true, endian: "big", compression: "deflate", bedrockLevel: false });
+const readDemo = await read(fileDemo);
 console.log(readDemo);
 
 const writeDemo = Buffer.from((await write(readDemo)).buffer);
 console.log(writeDemo);
-console.log(Buffer.compare(fileDemo, writeDemo)); //, fileDemo[0x37], writeDemo[0x37]);
+console.log(Buffer.compare(fileDemo, writeDemo));
 
 await writeFile(`${process.argv[2]!}2.nbt`,writeDemo);
 
@@ -751,15 +741,15 @@ export type ShortTag<T extends number = number> = Int16<T>;
 
 export type IntTag<T extends number = number> = Int32<T>;
 
-export type LongTag = bigint;
+export type LongTag<T extends bigint = bigint> = T;
 
 export type FloatTag<T extends number = number> = Float32<T>;
 
-export type DoubleTag = number;
+export type DoubleTag<T extends number = number> = T;
 
 export type ByteArrayTag = Int8Array | Uint8Array;
 
-export type StringTag = string;
+export type StringTag<T extends string = string> = T;
 
 export interface ListTag<T extends Tag | undefined> extends Array<T> {
   [TAG_TYPE]?: TAG;
