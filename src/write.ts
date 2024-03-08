@@ -80,7 +80,7 @@ async function writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, writ
   return result;
 }
 
-function writeTag(writer: DataWriter, value: Tag, littleEndian: boolean): void {
+function writeTag(writer: DataWriter, value: Tag, littleEndian: boolean): DataWriter {
   const type = getTagType(value);
   switch (type){
     case TAG.BYTE: return writeByte(writer, value as ByteTag | BooleanTag);
@@ -95,45 +95,46 @@ function writeTag(writer: DataWriter, value: Tag, littleEndian: boolean): void {
     case TAG.COMPOUND: return writeCompound(writer, value as CompoundTag, littleEndian);
     case TAG.INT_ARRAY: return writeIntArray(writer, value as IntArrayTag, littleEndian);
     case TAG.LONG_ARRAY: return writeLongArray(writer, value as LongArrayTag, littleEndian);
+    default: throw new Error(`Encountered unsupported tag type '${type}'`);
   }
 }
 
-function writeByte(writer: DataWriter, value: ByteTag | BooleanTag): void {
-  writer.writeInt8(Number(value.valueOf()));
+function writeByte(writer: DataWriter, value: ByteTag | BooleanTag): DataWriter {
+  return writer.writeInt8(Number(value.valueOf()));
 }
 
-function writeShort(writer: DataWriter, value: ShortTag, littleEndian: boolean): void {
-  writer.writeInt16(value.valueOf(), littleEndian);
+function writeShort(writer: DataWriter, value: ShortTag, littleEndian: boolean): DataWriter {
+  return writer.writeInt16(value.valueOf(), littleEndian);
 }
 
-function writeInt(writer: DataWriter, value: IntTag, littleEndian: boolean): void {
-  writer.writeInt32(value.valueOf(), littleEndian);
+function writeInt(writer: DataWriter, value: IntTag, littleEndian: boolean): DataWriter {
+  return writer.writeInt32(value.valueOf(), littleEndian);
 }
 
-function writeLong(writer: DataWriter, value: LongTag, littleEndian: boolean): void {
-  writer.writeBigInt64(value, littleEndian);
+function writeLong(writer: DataWriter, value: LongTag, littleEndian: boolean): DataWriter {
+  return writer.writeBigInt64(value, littleEndian);
 }
 
-function writeFloat(writer: DataWriter, value: FloatTag, littleEndian: boolean): void {
-  writer.writeFloat32(value.valueOf(), littleEndian);
+function writeFloat(writer: DataWriter, value: FloatTag, littleEndian: boolean): DataWriter {
+  return writer.writeFloat32(value.valueOf(), littleEndian);
 }
 
-function writeDouble(writer: DataWriter, value: DoubleTag, littleEndian: boolean): void {
-  writer.writeFloat64(value, littleEndian);
+function writeDouble(writer: DataWriter, value: DoubleTag, littleEndian: boolean): DataWriter {
+  return writer.writeFloat64(value, littleEndian);
 }
 
-function writeByteArray(writer: DataWriter, value: ByteArrayTag, littleEndian: boolean): void {
+function writeByteArray(writer: DataWriter, value: ByteArrayTag, littleEndian: boolean): DataWriter {
   const { length } = value;
   writer.writeInt32(length, littleEndian);
-  writer.writeInt8Array(value);
+  return writer.writeInt8Array(value);
 }
 
-function writeString(writer: DataWriter, value: StringTag, littleEndian: boolean): void {
+function writeString(writer: DataWriter, value: StringTag, littleEndian: boolean): DataWriter {
   writer.writeUint16(Buffer.from(value).byteLength, littleEndian);
-  writer.writeString(value);
+  return writer.writeString(value);
 }
 
-function writeList(writer: DataWriter, value: ListTag<Tag>, littleEndian: boolean): void {
+function writeList(writer: DataWriter, value: ListTag<Tag>, littleEndian: boolean): DataWriter {
   let type: TAG | undefined = value[TAG_TYPE];
   value = value.filter(isTag);
   type = type ?? (value[0] !== undefined ? getTagType(value[0]) : TAG.END);
@@ -146,9 +147,10 @@ function writeList(writer: DataWriter, value: ListTag<Tag>, littleEndian: boolea
     }
     writeTag(writer, entry, littleEndian);
   }
+  return writer;
 }
 
-function writeCompound(writer: DataWriter, value: CompoundTag, littleEndian: boolean): void {
+function writeCompound(writer: DataWriter, value: CompoundTag, littleEndian: boolean): DataWriter {
   for (const [name,entry] of Object.entries(value)){
     if (entry === undefined) continue;
     const type = getTagType(entry as unknown);
@@ -157,19 +159,19 @@ function writeCompound(writer: DataWriter, value: CompoundTag, littleEndian: boo
     writeString(writer, name, littleEndian);
     writeTag(writer, entry, littleEndian);
   }
-  writer.writeUint8(TAG.END);
+  return writer.writeUint8(TAG.END);
 }
 
-function writeIntArray(writer: DataWriter, value: IntArrayTag, littleEndian: boolean): void {
+function writeIntArray(writer: DataWriter, value: IntArrayTag, littleEndian: boolean): DataWriter {
   const { length } = value;
   writer.writeInt32(length, littleEndian);
-  writer.writeInt32Array(value, littleEndian);
+  return writer.writeInt32Array(value, littleEndian);
 }
 
-function writeLongArray(writer: DataWriter, value: LongArrayTag, littleEndian: boolean): void {
+function writeLongArray(writer: DataWriter, value: LongArrayTag, littleEndian: boolean): DataWriter {
   const { length } = value;
   writer.writeInt32(length, littleEndian);
-  writer.writeBigInt64Array(value, littleEndian);
+  return writer.writeBigInt64Array(value, littleEndian);
 }
 
 class DataWriter {
@@ -185,78 +187,83 @@ class DataWriter {
     this.encoder = new TextEncoder();
   }
 
-  writeUint8(value: number): void {
-    this.write("Uint8", value);
+  writeUint8(value: number): this {
+    return this.write("Uint8", value);
   }
 
-  writeInt8(value: number): void {
-    this.write("Int8", value);
+  writeInt8(value: number): this {
+    return this.write("Int8", value);
   }
 
-  writeUint16(value: number, littleEndian: boolean): void {
-    this.write("Uint16", value, littleEndian);
+  writeUint16(value: number, littleEndian: boolean): this {
+    return this.write("Uint16", value, littleEndian);
   }
 
-  writeInt16(value: number, littleEndian: boolean): void {
-    this.write("Int16", value, littleEndian);
+  writeInt16(value: number, littleEndian: boolean): this {
+    return this.write("Int16", value, littleEndian);
   }
 
-  writeUint32(value: number, littleEndian: boolean): void {
-    this.write("Uint32", value, littleEndian);
+  writeUint32(value: number, littleEndian: boolean): this {
+    return this.write("Uint32", value, littleEndian);
   }
 
-  writeInt32(value: number, littleEndian: boolean): void {
-    this.write("Int32", value, littleEndian);
+  writeInt32(value: number, littleEndian: boolean): this {
+    return this.write("Int32", value, littleEndian);
   }
 
-  writeFloat32(value: number, littleEndian: boolean): void {
-    this.write("Float32", value, littleEndian);
+  writeFloat32(value: number, littleEndian: boolean): this {
+    return this.write("Float32", value, littleEndian);
   }
 
-  writeFloat64(value: number, littleEndian: boolean): void {
-    this.write("Float64", value, littleEndian);
+  writeFloat64(value: number, littleEndian: boolean): this {
+    return this.write("Float64", value, littleEndian);
   }
 
-  writeBigUint64(value: bigint, littleEndian: boolean): void {
-    this.write("BigUint64", value, littleEndian);
+  writeBigUint64(value: bigint, littleEndian: boolean): this {
+    return this.write("BigUint64", value, littleEndian);
   }
 
-  writeBigInt64(value: bigint, littleEndian: boolean): void {
-    this.write("BigInt64", value, littleEndian);
+  writeBigInt64(value: bigint, littleEndian: boolean): this {
+    return this.write("BigInt64", value, littleEndian);
   }
 
-  private write<T extends Extract<keyof typeof ByteType, "Uint8" | "Int8">>(type: T, value: ReturnType<DataView[`get${T}`]>): void;
-  private write<T extends Exclude<keyof typeof ByteType, "Uint8" | "Int8">>(type: T, value: ReturnType<DataView[`get${T}`]>, littleEndian: boolean): void;
-  private write(type: keyof typeof ByteType, value: number | bigint, littleEndian?: boolean): void {
+  private write<T extends Extract<keyof typeof ByteType, "Uint8" | "Int8">>(type: T, value: ReturnType<DataView[`get${T}`]>): this;
+  private write<T extends Exclude<keyof typeof ByteType, "Uint8" | "Int8">>(type: T, value: ReturnType<DataView[`get${T}`]>, littleEndian: boolean): this;
+  private write(type: keyof typeof ByteType, value: number | bigint, littleEndian?: boolean): this {
     this.allocate(ByteType[type]);
     this.view[`set${type}`]((this.byteOffset += ByteType[type]) - ByteType[type], value as never, littleEndian);
+    return this;
   }
 
-  writeInt8Array(value: Int8Array | Uint8Array): void {
+  writeInt8Array(value: Int8Array | Uint8Array): this {
     const { length } = value;
     this.allocate(length);
     this.data.set(value,this.byteOffset);
     this.byteOffset += length;
+    return this;
   }
 
-  writeString(value: StringTag): void {
+  writeString(value: StringTag): this {
     const entry = this.encoder.encode(value);
     const { length } = entry;
     this.allocate(length);
     this.data.set(entry,this.byteOffset);
     this.byteOffset += length;
+    return this;
   }
 
-  writeInt32Array(value: Int32Array | Uint32Array, littleEndian: boolean): void {
+  writeInt32Array(value: Int32Array | Uint32Array, littleEndian: boolean): this {
     for (const entry of value){
       this.writeInt32(entry, littleEndian);
     }
+    return this;
   }
 
-  writeBigInt64Array(value: BigInt64Array | BigUint64Array, littleEndian: boolean): void {
+  writeBigInt64Array(value: BigInt64Array | BigUint64Array, littleEndian: boolean): this {
     for (const entry of value){
       this.writeBigInt64(entry, littleEndian);
     }
+    return this;
   }
 
   trimmedEnd(): Uint8Array {
