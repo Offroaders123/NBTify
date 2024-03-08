@@ -1,8 +1,8 @@
-import { read, write } from "../src/index.js";
+import { NBTData, read, write } from "../src/index.js";
 
-const demo = {};
-console.log(await write(demo));
-console.log(await read(await write(demo)));
+const demo = { hi: 5 };
+console.log(await read(await write(new NBTData(demo, { endian: "big" }), { endian: "little" })));
+console.log(await read(await write(demo, { endian: "little" })));
 
 // const path = new URL("./nbt/hello_world.nbt",import.meta.url);
 // const buffer: Buffer = await readFile(path);

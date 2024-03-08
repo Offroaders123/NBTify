@@ -13,16 +13,33 @@ import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
 export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options: NBTDataOptions = {}): Promise<Uint8Array> {
-  const writer = new DataWriter();
-  if (!(data instanceof NBTData)){
-    data = new NBTData(data, options);
+  data = new NBTData(data, options);
+
+  const { rootName, endian, compression, bedrockLevel } = data as NBTData<T>;
+
+  if (typeof data !== "object" || data === null){
+    data satisfies never;
+    throw new TypeError("First parameter must be an object or array");
   }
-  // edit: yep! This does fix it, interestingly enough
-  // if (!(data instanceof NBTData)){
-  //   throw 5;
-  // }
-                // @ts-expect-error - not sure why this isn't being caught just yet, I think it might be my `typeof`/`instanceof` checks for parameter validation.
-  return writeRoot(data, writer);
+  if (rootName !== undefined && typeof rootName !== "string" && rootName !== null){
+    rootName satisfies never;
+    throw new TypeError("Root Name option must be a string or null");
+  }
+  if (endian !== undefined && endian !== "big" && endian !== "little"){
+    endian satisfies never;
+    throw new TypeError("Endian option must be a valid endian type");
+  }
+  if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
+    compression satisfies never;
+    throw new TypeError("Compression option must be a valid compression type");
+  }
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean"){
+    bedrockLevel satisfies never;
+    throw new TypeError("Bedrock Level option must be a boolean");
+  }
+
+  const writer = new DataWriter();
+  return writeRoot(data as NBTData<T>, writer);
 }
 
 async function writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, writer: DataWriter): Promise<Uint8Array> {
