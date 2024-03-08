@@ -8,9 +8,22 @@ export interface StringifyOptions {
   space?: string | number;
 }
 
+/**
+ * Converts an NBT object into an SNBT string.
+*/
+export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: StringifyOptions): string;
 export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
   if (data instanceof NBTData){
     data = data.data;
+  }
+
+  if (typeof data !== "object" || data === null){
+    data satisfies never;
+    throw new TypeError("First parameter must be an object or array");
+  }
+  if (typeof space !== "string" && typeof space !== "number"){
+    space satisfies never;
+    throw new TypeError("Space option must be a string or number");
   }
 
   space = typeof space === "number" ? " ".repeat(space) : space;

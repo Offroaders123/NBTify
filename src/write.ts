@@ -7,7 +7,12 @@ import { compress } from "./compression.js";
 import type { NBTDataOptions } from "./format.js";
 import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
-export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: NBTDataOptions): Promise<Uint8Array> {
+/**
+ * Converts an NBT object into an NBT buffer. Accepts an endian type, compression format, and file headers to write the data with.
+ * 
+ * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
+*/
+export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options: NBTDataOptions = {}): Promise<Uint8Array> {
   const writer = new DataWriter();
   if (!(data instanceof NBTData)){
     data = new NBTData(data, options);

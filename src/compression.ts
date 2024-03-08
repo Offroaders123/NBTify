@@ -1,8 +1,14 @@
+/**
+ * Compresses a Uint8Array using a specific compression format.
+*/
 export async function compress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
   const compressionStream = new CompressionStream(format);
   return pipeThroughCompressionStream(data,compressionStream);
 }
 
+/**
+ * Decompresses a Uint8Array using a specific decompression format.
+*/
 export async function decompress(data: Uint8Array, format: CompressionFormat): Promise<Uint8Array> {
   const decompressionStream = new DecompressionStream(format);
   return pipeThroughCompressionStream(data,decompressionStream);

@@ -16,9 +16,48 @@ export interface ReadOptions {
   strict: boolean;
 }
 
-export async function read<T extends RootTagLike = RootTag>(data: Uint8Array, options: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
+/**
+ * Converts an NBT buffer into an NBT object. Accepts an endian type, compression format, and file headers to read the data with.
+ * 
+ * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
+*/
+export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike | Blob, options: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
+  if (data instanceof Blob){
+    data = await data.arrayBuffer();
+  }
+
+  if (!("byteOffset" in data)){
+    data = new Uint8Array(data);
+  }
+
+  if (!(data instanceof Uint8Array)){
+    data satisfies never;
+    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, or Blob");
+  }
+
   const reader = new DataReader(data);
   let { rootName, endian, compression, bedrockLevel, strict = true } = options;
+
+  if (rootName !== undefined && typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null){
+    rootName satisfies never;
+    throw new TypeError("Root Name option must be a boolean, string, or null");
+  }
+  if (endian !== undefined && endian !== "big" && endian !== "little"){
+    endian satisfies never;
+    throw new TypeError("Endian option must be a valid endian type");
+  }
+  if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
+    compression satisfies never;
+    throw new TypeError("Compression option must be a valid compression type");
+  }
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && typeof bedrockLevel !== "number" && bedrockLevel !== null){
+    bedrockLevel satisfies never;
+    throw new TypeError("Bedrock Level option must be a boolean, number, or null");
+  }
+  if (typeof strict !== "boolean"){
+    strict satisfies never;
+    throw new TypeError("Strict option must be a boolean");
+  }
 
   compression: if (compression === undefined){
     switch (true){
@@ -88,8 +127,9 @@ function hasZlibHeader(reader: DataReader): boolean {
 }
 
 function hasBedrockLevelHeader(reader: DataReader, endian: Endian): boolean {
+  if (endian !== "little" || reader.data.byteLength < 8) return false;
   const byteLength = reader.view.getUint32(4,true);
-  return byteLength === reader.data.byteLength - 8 && endian === "little";
+  return byteLength === reader.data.byteLength - 8;
 }
 
 async function readRoot<T extends RootTagLike = RootTag>(reader: DataReader, { rootName, endian, compression, bedrockLevel, strict }: ReadOptions): Promise<NBTData<T>> {

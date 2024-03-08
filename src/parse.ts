@@ -5,7 +5,15 @@ import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, 
 
 const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 
+/**
+ * Converts an SNBT string into an NBT object.
+*/
 export function parse<T extends RootTagLike = RootTag>(data: string): T {
+  if (typeof data !== "string"){
+    data satisfies never;
+    throw new TypeError("First parameter must be a string");
+  }
+
     return parseRoot(data, 0, { index: 0 }) as T;
 }
 
