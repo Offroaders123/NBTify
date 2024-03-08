@@ -6,7 +6,7 @@ export type RootTag = CompoundTag | ListTag<Tag>;
 
 export type RootTagLike = CompoundTagLike | ListTagLike;
 
-export type ByteTag<T extends number = number> = Int8<T>;
+export type ByteTag<T extends number = number> = Int8<NumberLike<T>>;
 
 export type BooleanTag = FalseTag | TrueTag;
 
@@ -14,19 +14,19 @@ export type FalseTag = false | ByteTag<0>;
 
 export type TrueTag = true | ByteTag<1>;
 
-export type ShortTag<T extends number = number> = Int16<T>;
+export type ShortTag<T extends number = number> = Int16<NumberLike<T>>;
 
-export type IntTag<T extends number = number> = Int32<T>;
+export type IntTag<T extends number = number> = Int32<NumberLike<T>>;
 
-export type LongTag = bigint;
+export type LongTag<T extends bigint = bigint> = T;
 
-export type FloatTag<T extends number = number> = Float32<T>;
+export type FloatTag<T extends number = number> = Float32<NumberLike<T>>;
 
-export type DoubleTag = number;
+export type DoubleTag<T extends number = number> = NumberLike<T>;
 
-export type ByteArrayTag = Int8Array;
+export type ByteArrayTag = Int8Array | Uint8Array;
 
-export type StringTag = string;
+export type StringTag<T extends string = string> = StringLike<T>;
 
 export interface ListTag<T extends Tag | undefined> extends Array<T> {
   [TAG_TYPE]?: TAG;
@@ -40,9 +40,13 @@ export interface CompoundTag {
 
 export type CompoundTagLike = object;
 
-export type IntArrayTag = Int32Array;
+export type IntArrayTag = Int32Array | Uint32Array;
 
-export type LongArrayTag = BigInt64Array;
+export type LongArrayTag = BigInt64Array | BigUint64Array;
+
+export type NumberLike<T extends number> = `${T}` extends `${infer N extends number}` ? N : never;
+
+export type StringLike<T extends string> = `${T}`;
 
 export enum TAG {
   END = 0,
@@ -79,11 +83,14 @@ export function getTagType(value: any): TAG | null {
     case typeof value === "bigint": return TAG.LONG;
     case value instanceof Float32: return TAG.FLOAT;
     case typeof value === "number": return TAG.DOUBLE;
-    case value instanceof Int8Array: return TAG.BYTE_ARRAY;
+    case value instanceof Int8Array:
+    case value instanceof Uint8Array: return TAG.BYTE_ARRAY;
     case typeof value === "string": return TAG.STRING;
     case value instanceof Array: return TAG.LIST;
-    case value instanceof Int32Array: return TAG.INT_ARRAY;
-    case value instanceof BigInt64Array: return TAG.LONG_ARRAY;
+    case value instanceof Int32Array:
+    case value instanceof Uint32Array: return TAG.INT_ARRAY;
+    case value instanceof BigInt64Array:
+    case value instanceof BigUint64Array: return TAG.LONG_ARRAY;
     case typeof value === "object" && value !== null: return TAG.COMPOUND;
     default: return null;
   }
