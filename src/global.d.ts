@@ -14,7 +14,7 @@ declare global {
   }
 
   interface ReadableStream<R> {
-    [Symbol.asyncIterator](): AsyncGenerator<R>;
+    [Symbol.asyncIterator]?(): AsyncGenerator<R>;
   }
 }
 
