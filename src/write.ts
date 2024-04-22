@@ -52,7 +52,8 @@ async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>): Promise<Uint
   }
 
   if (bedrockLevel){
-    this.writeFloat64(0, littleEndian);
+    this.writeUint32(0, littleEndian);
+    this.writeUint32(0, littleEndian);
   }
 
   this.writeUint8(type);
@@ -217,10 +218,6 @@ private writeLongArray(value: LongArrayTag, littleEndian: boolean): DataWriter {
 
   private writeFloat64(value: number, littleEndian: boolean): this {
     return this.write("Float64", value, littleEndian);
-  }
-
-  private writeBigUint64(value: bigint, littleEndian: boolean): this {
-    return this.write("BigUint64", value, littleEndian);
   }
 
   private writeBigInt64(value: bigint, littleEndian: boolean): this {

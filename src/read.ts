@@ -306,10 +306,6 @@ private readLongArray(littleEndian: boolean): LongArrayTag {
     return this.read("Float64", littleEndian);
   }
 
-  private readBigUint64(littleEndian: boolean): bigint {
-    return this.read("BigUint64", littleEndian);
-  }
-
   private readBigInt64(littleEndian: boolean): bigint {
     return this.read("BigInt64", littleEndian);
   }
