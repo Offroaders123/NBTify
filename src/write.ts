@@ -81,7 +81,7 @@ async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>): Promise<Uint
   return result;
 }
 
-writeTag(value: Tag, littleEndian: boolean): DataWriter {
+private writeTag(value: Tag, littleEndian: boolean): DataWriter {
   const type = getTagType(value);
   switch (type){
     case TAG.BYTE: return this.writeByte(value as ByteTag | BooleanTag);
@@ -100,42 +100,42 @@ writeTag(value: Tag, littleEndian: boolean): DataWriter {
   }
 }
 
-writeByte(value: ByteTag | BooleanTag): DataWriter {
+private writeByte(value: ByteTag | BooleanTag): DataWriter {
   return this.writeInt8(Number(value.valueOf()));
 }
 
-writeShort(value: ShortTag, littleEndian: boolean): DataWriter {
+private writeShort(value: ShortTag, littleEndian: boolean): DataWriter {
   return this.writeInt16(value.valueOf(), littleEndian);
 }
 
-writeInt(value: IntTag, littleEndian: boolean): DataWriter {
+private writeInt(value: IntTag, littleEndian: boolean): DataWriter {
   return this.writeInt32(value.valueOf(), littleEndian);
 }
 
-writeLong(value: LongTag, littleEndian: boolean): DataWriter {
+private writeLong(value: LongTag, littleEndian: boolean): DataWriter {
   return this.writeBigInt64(value, littleEndian);
 }
 
-writeFloat(value: FloatTag, littleEndian: boolean): DataWriter {
+private writeFloat(value: FloatTag, littleEndian: boolean): DataWriter {
   return this.writeFloat32(value.valueOf(), littleEndian);
 }
 
-writeDouble(value: DoubleTag, littleEndian: boolean): DataWriter {
+private writeDouble(value: DoubleTag, littleEndian: boolean): DataWriter {
   return this.writeFloat64(value, littleEndian);
 }
 
-writeByteArray(value: ByteArrayTag, littleEndian: boolean): DataWriter {
+private writeByteArray(value: ByteArrayTag, littleEndian: boolean): DataWriter {
   const { length } = value;
   this.writeInt32(length, littleEndian);
   return this.writeInt8Array(value);
 }
 
-writeStringTaeg(value: StringTag, littleEndian: boolean): DataWriter {
+private writeStringTaeg(value: StringTag, littleEndian: boolean): DataWriter {
   this.writeUint16(Buffer.from(value).byteLength, littleEndian);
   return this.writeString(value);
 }
 
-writeList(value: ListTag<Tag>, littleEndian: boolean): DataWriter {
+private writeList(value: ListTag<Tag>, littleEndian: boolean): DataWriter {
   let type: TAG | undefined = value[TAG_TYPE];
   value = value.filter(isTag);
   type = type ?? (value[0] !== undefined ? getTagType(value[0]) : TAG.END);
@@ -151,7 +151,7 @@ writeList(value: ListTag<Tag>, littleEndian: boolean): DataWriter {
   return this;
 }
 
-writeCompound(value: CompoundTag, littleEndian: boolean): DataWriter {
+private writeCompound(value: CompoundTag, littleEndian: boolean): DataWriter {
   for (const [name,entry] of Object.entries(value)){
     if (entry === undefined) continue;
     const type = getTagType(entry as unknown);
@@ -163,22 +163,22 @@ writeCompound(value: CompoundTag, littleEndian: boolean): DataWriter {
   return this.writeUint8(TAG.END);
 }
 
-writeIntArray(value: IntArrayTag, littleEndian: boolean): DataWriter {
+private writeIntArray(value: IntArrayTag, littleEndian: boolean): DataWriter {
   const { length } = value;
   this.writeInt32(length, littleEndian);
   return this.writeInt32Array(value, littleEndian);
 }
 
-writeLongArray(value: LongArrayTag, littleEndian: boolean): DataWriter {
+private writeLongArray(value: LongArrayTag, littleEndian: boolean): DataWriter {
   const { length } = value;
   this.writeInt32(length, littleEndian);
   return this.writeBigInt64Array(value, littleEndian);
 }
 
-  byteOffset: number;
-  data: Uint8Array;
-  view: DataView;
-  encoder: TextEncoder;
+  private byteOffset: number;
+  private data: Uint8Array;
+  private view: DataView;
+  private encoder: TextEncoder;
 
   constructor() {
     this.byteOffset = 0;
@@ -187,43 +187,43 @@ writeLongArray(value: LongArrayTag, littleEndian: boolean): DataWriter {
     this.encoder = new TextEncoder();
   }
 
-  writeUint8(value: number): this {
+  private writeUint8(value: number): this {
     return this.write("Uint8", value);
   }
 
-  writeInt8(value: number): this {
+  private writeInt8(value: number): this {
     return this.write("Int8", value);
   }
 
-  writeUint16(value: number, littleEndian: boolean): this {
+  private writeUint16(value: number, littleEndian: boolean): this {
     return this.write("Uint16", value, littleEndian);
   }
 
-  writeInt16(value: number, littleEndian: boolean): this {
+  private writeInt16(value: number, littleEndian: boolean): this {
     return this.write("Int16", value, littleEndian);
   }
 
-  writeUint32(value: number, littleEndian: boolean): this {
+  private writeUint32(value: number, littleEndian: boolean): this {
     return this.write("Uint32", value, littleEndian);
   }
 
-  writeInt32(value: number, littleEndian: boolean): this {
+  private writeInt32(value: number, littleEndian: boolean): this {
     return this.write("Int32", value, littleEndian);
   }
 
-  writeFloat32(value: number, littleEndian: boolean): this {
+  private writeFloat32(value: number, littleEndian: boolean): this {
     return this.write("Float32", value, littleEndian);
   }
 
-  writeFloat64(value: number, littleEndian: boolean): this {
+  private writeFloat64(value: number, littleEndian: boolean): this {
     return this.write("Float64", value, littleEndian);
   }
 
-  writeBigUint64(value: bigint, littleEndian: boolean): this {
+  private writeBigUint64(value: bigint, littleEndian: boolean): this {
     return this.write("BigUint64", value, littleEndian);
   }
 
-  writeBigInt64(value: bigint, littleEndian: boolean): this {
+  private writeBigInt64(value: bigint, littleEndian: boolean): this {
     return this.write("BigInt64", value, littleEndian);
   }
 
@@ -235,7 +235,7 @@ writeLongArray(value: LongArrayTag, littleEndian: boolean): DataWriter {
     return this;
   }
 
-  writeInt8Array(value: Int8Array | Uint8Array): this {
+  private writeInt8Array(value: Int8Array | Uint8Array): this {
     const { length } = value;
     this.allocate(length);
     this.data.set(value,this.byteOffset);
@@ -243,7 +243,7 @@ writeLongArray(value: LongArrayTag, littleEndian: boolean): DataWriter {
     return this;
   }
 
-  writeString(value: StringTag): this {
+  private writeString(value: StringTag): this {
     const entry = this.encoder.encode(value);
     const { length } = entry;
     this.allocate(length);
@@ -252,21 +252,21 @@ writeLongArray(value: LongArrayTag, littleEndian: boolean): DataWriter {
     return this;
   }
 
-  writeInt32Array(value: Int32Array | Uint32Array, littleEndian: boolean): this {
+  private writeInt32Array(value: Int32Array | Uint32Array, littleEndian: boolean): this {
     for (const entry of value){
       this.writeInt32(entry, littleEndian);
     }
     return this;
   }
 
-  writeBigInt64Array(value: BigInt64Array | BigUint64Array, littleEndian: boolean): this {
+  private writeBigInt64Array(value: BigInt64Array | BigUint64Array, littleEndian: boolean): this {
     for (const entry of value){
       this.writeBigInt64(entry, littleEndian);
     }
     return this;
   }
 
-  trimmedEnd(): Uint8Array {
+  private trimmedEnd(): Uint8Array {
     this.allocate(0);
     return this.data.slice(0,this.byteOffset);
   }
