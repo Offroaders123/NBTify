@@ -39,10 +39,11 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
   }
 
   const writer = new DataWriter();
-  return writeRoot(data as NBTData<T>, writer);
+  return writer.writeRoot(data as NBTData<T>);
 }
 
-async function writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, writer: DataWriter): Promise<Uint8Array> {
+class DataWriter {
+async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>): Promise<Uint8Array> {
   const { data: root, rootName, endian, compression, bedrockLevel } = data;
   const littleEndian: boolean = endian === "little";
   const type = getTagType(root);
@@ -51,12 +52,12 @@ async function writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, writ
   }
 
   if (bedrockLevel){
-    writer.writeFloat64(0, littleEndian);
+    this.writeFloat64(0, littleEndian);
   }
 
-  writer.writeUint8(type);
-  if (rootName !== null) writeString(writer, rootName, littleEndian);
-  writeTag(writer, root as RootTag, littleEndian);
+  this.writeUint8(type);
+  if (rootName !== null) this.writeStringTaeg(rootName, littleEndian);
+  this.writeTag(root as RootTag, littleEndian);
 
   if (bedrockLevel){
     if (littleEndian !== true){
@@ -66,12 +67,12 @@ async function writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, writ
       throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
     }
     const version: number = root["StorageVersion"].valueOf();
-    const byteLength = writer.byteOffset - 8;
-    writer.view.setUint32(0, version, littleEndian);
-    writer.view.setUint32(4, byteLength, littleEndian);
+    const byteLength = this.byteOffset - 8;
+    this.view.setUint32(0, version, littleEndian);
+    this.view.setUint32(4, byteLength, littleEndian);
   }
 
-  let result = writer.trimmedEnd();
+  let result = this.trimmedEnd();
 
   if (compression !== null){
     result = await compress(result,compression);
@@ -80,101 +81,100 @@ async function writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, writ
   return result;
 }
 
-function writeTag(writer: DataWriter, value: Tag, littleEndian: boolean): DataWriter {
+writeTag(value: Tag, littleEndian: boolean): DataWriter {
   const type = getTagType(value);
   switch (type){
-    case TAG.BYTE: return writeByte(writer, value as ByteTag | BooleanTag);
-    case TAG.SHORT: return writeShort(writer, value as ShortTag, littleEndian);
-    case TAG.INT: return writeInt(writer, value as IntTag, littleEndian);
-    case TAG.LONG: return writeLong(writer, value as LongTag, littleEndian);
-    case TAG.FLOAT: return writeFloat(writer, value as FloatTag, littleEndian);
-    case TAG.DOUBLE: return writeDouble(writer, value as DoubleTag, littleEndian);
-    case TAG.BYTE_ARRAY: return writeByteArray(writer, value as ByteArrayTag, littleEndian);
-    case TAG.STRING: return writeString(writer, value as StringTag, littleEndian);
-    case TAG.LIST: return writeList(writer, value as ListTag<Tag>, littleEndian);
-    case TAG.COMPOUND: return writeCompound(writer, value as CompoundTag, littleEndian);
-    case TAG.INT_ARRAY: return writeIntArray(writer, value as IntArrayTag, littleEndian);
-    case TAG.LONG_ARRAY: return writeLongArray(writer, value as LongArrayTag, littleEndian);
+    case TAG.BYTE: return this.writeByte(value as ByteTag | BooleanTag);
+    case TAG.SHORT: return this.writeShort(value as ShortTag, littleEndian);
+    case TAG.INT: return this.writeInt(value as IntTag, littleEndian);
+    case TAG.LONG: return this.writeLong(value as LongTag, littleEndian);
+    case TAG.FLOAT: return this.writeFloat(value as FloatTag, littleEndian);
+    case TAG.DOUBLE: return this.writeDouble(value as DoubleTag, littleEndian);
+    case TAG.BYTE_ARRAY: return this.writeByteArray(value as ByteArrayTag, littleEndian);
+    case TAG.STRING: return this.writeStringTaeg(value as StringTag, littleEndian);
+    case TAG.LIST: return this.writeList(value as ListTag<Tag>, littleEndian);
+    case TAG.COMPOUND: return this.writeCompound(value as CompoundTag, littleEndian);
+    case TAG.INT_ARRAY: return this.writeIntArray(value as IntArrayTag, littleEndian);
+    case TAG.LONG_ARRAY: return this.writeLongArray(value as LongArrayTag, littleEndian);
     default: throw new Error(`Encountered unsupported tag type '${type}'`);
   }
 }
 
-function writeByte(writer: DataWriter, value: ByteTag | BooleanTag): DataWriter {
-  return writer.writeInt8(Number(value.valueOf()));
+writeByte(value: ByteTag | BooleanTag): DataWriter {
+  return this.writeInt8(Number(value.valueOf()));
 }
 
-function writeShort(writer: DataWriter, value: ShortTag, littleEndian: boolean): DataWriter {
-  return writer.writeInt16(value.valueOf(), littleEndian);
+writeShort(value: ShortTag, littleEndian: boolean): DataWriter {
+  return this.writeInt16(value.valueOf(), littleEndian);
 }
 
-function writeInt(writer: DataWriter, value: IntTag, littleEndian: boolean): DataWriter {
-  return writer.writeInt32(value.valueOf(), littleEndian);
+writeInt(value: IntTag, littleEndian: boolean): DataWriter {
+  return this.writeInt32(value.valueOf(), littleEndian);
 }
 
-function writeLong(writer: DataWriter, value: LongTag, littleEndian: boolean): DataWriter {
-  return writer.writeBigInt64(value, littleEndian);
+writeLong(value: LongTag, littleEndian: boolean): DataWriter {
+  return this.writeBigInt64(value, littleEndian);
 }
 
-function writeFloat(writer: DataWriter, value: FloatTag, littleEndian: boolean): DataWriter {
-  return writer.writeFloat32(value.valueOf(), littleEndian);
+writeFloat(value: FloatTag, littleEndian: boolean): DataWriter {
+  return this.writeFloat32(value.valueOf(), littleEndian);
 }
 
-function writeDouble(writer: DataWriter, value: DoubleTag, littleEndian: boolean): DataWriter {
-  return writer.writeFloat64(value, littleEndian);
+writeDouble(value: DoubleTag, littleEndian: boolean): DataWriter {
+  return this.writeFloat64(value, littleEndian);
 }
 
-function writeByteArray(writer: DataWriter, value: ByteArrayTag, littleEndian: boolean): DataWriter {
+writeByteArray(value: ByteArrayTag, littleEndian: boolean): DataWriter {
   const { length } = value;
-  writer.writeInt32(length, littleEndian);
-  return writer.writeInt8Array(value);
+  this.writeInt32(length, littleEndian);
+  return this.writeInt8Array(value);
 }
 
-function writeString(writer: DataWriter, value: StringTag, littleEndian: boolean): DataWriter {
-  writer.writeUint16(Buffer.from(value).byteLength, littleEndian);
-  return writer.writeString(value);
+writeStringTaeg(value: StringTag, littleEndian: boolean): DataWriter {
+  this.writeUint16(Buffer.from(value).byteLength, littleEndian);
+  return this.writeString(value);
 }
 
-function writeList(writer: DataWriter, value: ListTag<Tag>, littleEndian: boolean): DataWriter {
+writeList(value: ListTag<Tag>, littleEndian: boolean): DataWriter {
   let type: TAG | undefined = value[TAG_TYPE];
   value = value.filter(isTag);
   type = type ?? (value[0] !== undefined ? getTagType(value[0]) : TAG.END);
   const { length } = value;
-  writer.writeUint8(type);
-  writer.writeInt32(length, littleEndian);
+  this.writeUint8(type);
+  this.writeInt32(length, littleEndian);
   for (const entry of value){
     if (getTagType(entry) !== type){
       throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
     }
-    writeTag(writer, entry, littleEndian);
+    this.writeTag(entry, littleEndian);
   }
-  return writer;
+  return this;
 }
 
-function writeCompound(writer: DataWriter, value: CompoundTag, littleEndian: boolean): DataWriter {
+writeCompound(value: CompoundTag, littleEndian: boolean): DataWriter {
   for (const [name,entry] of Object.entries(value)){
     if (entry === undefined) continue;
     const type = getTagType(entry as unknown);
     if (type === null) continue;
-    writer.writeUint8(type);
-    writeString(writer, name, littleEndian);
-    writeTag(writer, entry, littleEndian);
+    this.writeUint8(type);
+    this.writeStringTaeg(name, littleEndian);
+    this.writeTag(entry, littleEndian);
   }
-  return writer.writeUint8(TAG.END);
+  return this.writeUint8(TAG.END);
 }
 
-function writeIntArray(writer: DataWriter, value: IntArrayTag, littleEndian: boolean): DataWriter {
+writeIntArray(value: IntArrayTag, littleEndian: boolean): DataWriter {
   const { length } = value;
-  writer.writeInt32(length, littleEndian);
-  return writer.writeInt32Array(value, littleEndian);
+  this.writeInt32(length, littleEndian);
+  return this.writeInt32Array(value, littleEndian);
 }
 
-function writeLongArray(writer: DataWriter, value: LongArrayTag, littleEndian: boolean): DataWriter {
+writeLongArray(value: LongArrayTag, littleEndian: boolean): DataWriter {
   const { length } = value;
-  writer.writeInt32(length, littleEndian);
-  return writer.writeBigInt64Array(value, littleEndian);
+  this.writeInt32(length, littleEndian);
+  return this.writeBigInt64Array(value, littleEndian);
 }
 
-class DataWriter {
   byteOffset: number;
   data: Uint8Array;
   view: DataView;
