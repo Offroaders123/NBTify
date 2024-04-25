@@ -35,7 +35,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, or Blob");
   }
 
-  const reader = new DataReader(data);
+  const reader = new NBTReader(data);
   let { rootName, endian, compression, bedrockLevel, strict = true } = options;
 
   if (rootName !== undefined && typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null){
@@ -116,17 +116,15 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   return reader.readRoot<T>({ rootName, endian, compression, bedrockLevel, strict });
 }
 
-class DataReader {
-  #byteOffset: number;
+class NBTReader {
+  #byteOffset: number = 0;
   #data: Uint8Array;
   #view: DataView;
-  #decoder: TextDecoder;
+  #decoder: TextDecoder = new TextDecoder();
 
   constructor(data: Uint8Array) {
-    this.#byteOffset = 0;
     this.#data = data;
     this.#view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-    this.#decoder = new TextDecoder();
   }
 
   hasGzipHeader(): boolean {

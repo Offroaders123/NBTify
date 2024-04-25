@@ -38,22 +38,15 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
     throw new TypeError("Bedrock Level option must be a boolean");
   }
 
-  const writer = new DataWriter();
+  const writer = new NBTWriter();
   return writer.writeRoot(data as NBTData<T>);
 }
 
-class DataWriter {
-  #byteOffset: number;
-  #data: Uint8Array;
-  #view: DataView;
-  #encoder: TextEncoder;
-
-  constructor() {
-    this.#byteOffset = 0;
-    this.#data = new Uint8Array(1024);
-    this.#view = new DataView(this.#data.buffer);
-    this.#encoder = new TextEncoder();
-  }
+class NBTWriter {
+  #byteOffset: number = 0;
+  #data: Uint8Array = new Uint8Array(1024);
+  #view: DataView = new DataView(this.#data.buffer);
+  #encoder: TextEncoder = new TextEncoder();
 
   #allocate(byteLength: number): void {
     const required = this.#byteOffset + byteLength;
@@ -121,7 +114,7 @@ class DataWriter {
     return result;
   }
 
-  #writeTag(value: Tag, littleEndian: boolean): DataWriter {
+  #writeTag(value: Tag, littleEndian: boolean): this {
     const type = getTagType(value);
     switch (type){
       case TAG.BYTE: return this.#writeByte(value as ByteTag | BooleanTag);
@@ -148,7 +141,7 @@ class DataWriter {
     return this.#write("Int8", value);
   }
 
-  #writeByte(value: ByteTag | BooleanTag): DataWriter {
+  #writeByte(value: ByteTag | BooleanTag): this {
     return this.#writeInt8(Number(value.valueOf()));
   }
 
@@ -160,7 +153,7 @@ class DataWriter {
     return this.#write("Int16", value, littleEndian);
   }
 
-  #writeShort(value: ShortTag, littleEndian: boolean): DataWriter {
+  #writeShort(value: ShortTag, littleEndian: boolean): this {
     return this.#writeInt16(value.valueOf(), littleEndian);
   }
 
@@ -172,7 +165,7 @@ class DataWriter {
     return this.#write("Int32", value, littleEndian);
   }
 
-  #writeInt(value: IntTag, littleEndian: boolean): DataWriter {
+  #writeInt(value: IntTag, littleEndian: boolean): this {
     return this.#writeInt32(value.valueOf(), littleEndian);
   }
 
@@ -180,7 +173,7 @@ class DataWriter {
     return this.#write("BigInt64", value, littleEndian);
   }
 
-  #writeLong(value: LongTag, littleEndian: boolean): DataWriter {
+  #writeLong(value: LongTag, littleEndian: boolean): this {
     return this.#writeBigInt64(value, littleEndian);
   }
 
@@ -188,7 +181,7 @@ class DataWriter {
     return this.#write("Float32", value, littleEndian);
   }
 
-  #writeFloat(value: FloatTag, littleEndian: boolean): DataWriter {
+  #writeFloat(value: FloatTag, littleEndian: boolean): this {
     return this.#writeFloat32(value.valueOf(), littleEndian);
   }
 
@@ -196,7 +189,7 @@ class DataWriter {
     return this.#write("Float64", value, littleEndian);
   }
 
-  #writeDouble(value: DoubleTag, littleEndian: boolean): DataWriter {
+  #writeDouble(value: DoubleTag, littleEndian: boolean): this {
     return this.#writeFloat64(value, littleEndian);
   }
 
@@ -216,7 +209,7 @@ class DataWriter {
     return this;
   }
 
-  #writeByteArray(value: ByteArrayTag, littleEndian: boolean): DataWriter {
+  #writeByteArray(value: ByteArrayTag, littleEndian: boolean): this {
     const { length } = value;
     this.#writeInt32(length, littleEndian);
     return this.#writeInt8Array(value);
@@ -231,12 +224,12 @@ class DataWriter {
     return this;
   }
 
-  #writeStringTaeg(value: StringTag, littleEndian: boolean): DataWriter {
+  #writeStringTaeg(value: StringTag, littleEndian: boolean): this {
     this.#writeUint16(Buffer.from(value).byteLength, littleEndian);
     return this.#writeString(value);
   }
 
-  #writeList(value: ListTag<Tag>, littleEndian: boolean): DataWriter {
+  #writeList(value: ListTag<Tag>, littleEndian: boolean): this {
     let type: TAG | undefined = value[TAG_TYPE];
     value = value.filter(isTag);
     type = type ?? (value[0] !== undefined ? getTagType(value[0]) : TAG.END);
@@ -252,7 +245,7 @@ class DataWriter {
     return this;
   }
 
-  #writeCompound(value: CompoundTag, littleEndian: boolean): DataWriter {
+  #writeCompound(value: CompoundTag, littleEndian: boolean): this {
     for (const [name,entry] of Object.entries(value)){
       if (entry === undefined) continue;
       const type = getTagType(entry as unknown);
@@ -271,7 +264,7 @@ class DataWriter {
     return this;
   }
 
-  #writeIntArray(value: IntArrayTag, littleEndian: boolean): DataWriter {
+  #writeIntArray(value: IntArrayTag, littleEndian: boolean): this {
     const { length } = value;
     this.#writeInt32(length, littleEndian);
     return this.#writeInt32Array(value, littleEndian);
@@ -284,7 +277,7 @@ class DataWriter {
     return this;
   }
 
-  #writeLongArray(value: LongArrayTag, littleEndian: boolean): DataWriter {
+  #writeLongArray(value: LongArrayTag, littleEndian: boolean): this {
     const { length } = value;
     this.#writeInt32(length, littleEndian);
     return this.#writeBigInt64Array(value, littleEndian);
