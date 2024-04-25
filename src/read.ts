@@ -168,7 +168,7 @@ class NBTReader {
       throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
     }
 
-    const rootNameV: RootName = typeof rootName === "string" || rootName ? this.#readStringTaeg(littleEndian) : null;
+    const rootNameV: RootName = typeof rootName === "string" || rootName ? this.#readString(littleEndian) : null;
     const root: T = this.#readTag<T>(type, littleEndian);
 
     if (strict && this.#data.byteLength > this.#byteOffset){
@@ -194,7 +194,7 @@ class NBTReader {
       case TAG.FLOAT: return this.#readFloat(littleEndian);
       case TAG.DOUBLE: return this.#readDouble(littleEndian);
       case TAG.BYTE_ARRAY: return this.#readByteArray(littleEndian);
-      case TAG.STRING: return this.#readStringTaeg(littleEndian);
+      case TAG.STRING: return this.#readString(littleEndian);
       case TAG.LIST: return this.#readList(littleEndian);
       case TAG.COMPOUND: return this.#readCompound(littleEndian);
       case TAG.INT_ARRAY: return this.#readIntArray(littleEndian);
@@ -203,32 +203,16 @@ class NBTReader {
     }
   }
 
-  #readUint8(): number {
-    return this.#read("Uint8");
-  }
-
-  #readInt8(): number {
-    return this.#read("Int8");
-  }
-
   #readTagType(): TAG {
-    return this.#readUint8() as TAG;
+    return this.#read("Uint8") as TAG;
   }
 
   #readByte(): ByteTag {
-    return new Int8(this.#readInt8());
-  }
-
-  #readUint16(littleEndian: boolean): number {
-    return this.#read("Uint16", littleEndian);
-  }
-
-  #readInt16(littleEndian: boolean): number {
-    return this.#read("Int16", littleEndian);
+    return new Int8(this.#read("Int8"));
   }
 
   #readShort(littleEndian: boolean): ShortTag {
-    return new Int16(this.#readInt16(littleEndian));
+    return new Int16(this.#read("Int16", littleEndian));
   }
 
   #readUint32(littleEndian: boolean): number {
@@ -243,20 +227,12 @@ class NBTReader {
     return new Int32(this.#readInt32(littleEndian));
   }
 
-  #readFloat32(littleEndian: boolean): number {
-    return this.#read("Float32", littleEndian);
-  }
-
   #readFloat(littleEndian: boolean): FloatTag {
-    return new Float32(this.#readFloat32(littleEndian));
-  }
-
-  #readFloat64(littleEndian: boolean): number {
-    return this.#read("Float64", littleEndian);
+    return new Float32(this.#read("Float32", littleEndian));
   }
 
   #readDouble(littleEndian: boolean): DoubleTag {
-    return this.#readFloat64(littleEndian);
+    return this.#read("Float64", littleEndian);
   }
 
   #readBigInt64(littleEndian: boolean): bigint {
@@ -274,23 +250,16 @@ class NBTReader {
     return this.#view[`get${type}`]((this.#byteOffset += ByteType[type]) - ByteType[type], littleEndian);
   }
 
-  #readInt8Array(length: number): Int8Array {
+  #readByteArray(littleEndian: boolean): ByteArrayTag {
+    const length = this.#readInt32(littleEndian);
     this.#allocate(length);
     return new Int8Array(this.#data.subarray(this.#byteOffset, this.#byteOffset += length));
   }
 
-  #readByteArray(littleEndian: boolean): ByteArrayTag {
-    return this.#readInt8Array(this.#readInt32(littleEndian));
-  }
-
-  #readString(length: number): string {
+  #readString(littleEndian: boolean): StringTag {
+    const length = this.#read("Uint16", littleEndian);
     this.#allocate(length);
     return this.#decoder.decode(this.#data.subarray(this.#byteOffset, this.#byteOffset += length));
-  }
-
-  #readStringTaeg(littleEndian: boolean): StringTag {
-    const length = this.#readUint16(littleEndian);
-    return this.#readString(length);
   }
 
   #readList(littleEndian: boolean): ListTag<Tag> {
@@ -315,15 +284,15 @@ class NBTReader {
     while (true){
       const type = this.#readTagType();
       if (type === TAG.END) break;
-      const nameLength = this.#readUint16(littleEndian);
-      const name = this.#readString(nameLength);
+      const name = this.#readString(littleEndian);
       const entry = this.#readTag(type, littleEndian);
       value[name] = entry;
     }
     return value;
   }
 
-  #readInt32Array(length: number, littleEndian: boolean): Int32Array {
+  #readIntArray(littleEndian: boolean): IntArrayTag {
+    const length = this.#readInt32(littleEndian);
     const value = new Int32Array(length);
     for (const i in value){
       const entry = this.#readInt32(littleEndian);
@@ -332,20 +301,13 @@ class NBTReader {
     return value;
   }
 
-  #readIntArray(littleEndian: boolean): IntArrayTag {
-    return this.#readInt32Array(this.#readInt32(littleEndian), littleEndian);
-  }
-
-  #readBigInt64Array(length: number, littleEndian: boolean): BigInt64Array {
+  #readLongArray(littleEndian: boolean): LongArrayTag {
+    const length = this.#readInt32(littleEndian);
     const value = new BigInt64Array(length);
     for (const i in value){
       const entry = this.#readBigInt64(littleEndian);
       value[i] = entry;
     }
     return value;
-  }
-
-  #readLongArray(littleEndian: boolean): LongArrayTag {
-    return this.#readBigInt64Array(this.#readInt32(littleEndian), littleEndian);
   }
 }

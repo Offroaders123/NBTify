@@ -89,7 +89,7 @@ class NBTWriter {
     }
 
     this.#writeUint8(type);
-    if (rootName !== null) this.#writeStringTaeg(rootName, littleEndian);
+    if (rootName !== null) this.#writeString(rootName, littleEndian);
     this.#writeTag(root as RootTag, littleEndian);
 
     if (bedrockLevel){
@@ -124,7 +124,7 @@ class NBTWriter {
       case TAG.FLOAT: return this.#writeFloat(value as FloatTag, littleEndian);
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag, littleEndian);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag, littleEndian);
-      case TAG.STRING: return this.#writeStringTaeg(value as StringTag, littleEndian);
+      case TAG.STRING: return this.#writeString(value as StringTag, littleEndian);
       case TAG.LIST: return this.#writeList(value as ListTag<Tag>, littleEndian);
       case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag, littleEndian);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag, littleEndian);
@@ -137,16 +137,8 @@ class NBTWriter {
     return this.#write("Uint8", value);
   }
 
-  #writeInt8(value: number): this {
-    return this.#write("Int8", value);
-  }
-
   #writeByte(value: ByteTag | BooleanTag): this {
-    return this.#writeInt8(Number(value.valueOf()));
-  }
-
-  #writeUint16(value: number, littleEndian: boolean): this {
-    return this.#write("Uint16", value, littleEndian);
+    return this.#write("Int8", Number(value.valueOf()));
   }
 
   #writeInt16(value: number, littleEndian: boolean): this {
@@ -215,18 +207,14 @@ class NBTWriter {
     return this.#writeInt8Array(value);
   }
 
-  #writeString(value: StringTag): this {
+  #writeString(value: StringTag, littleEndian: boolean): this {
     const entry = this.#encoder.encode(value);
     const { length } = entry;
+    this.#write("Uint16", length, littleEndian);
     this.#allocate(length);
     this.#data.set(entry,this.#byteOffset);
     this.#byteOffset += length;
     return this;
-  }
-
-  #writeStringTaeg(value: StringTag, littleEndian: boolean): this {
-    this.#writeUint16(Buffer.from(value).byteLength, littleEndian);
-    return this.#writeString(value);
   }
 
   #writeList(value: ListTag<Tag>, littleEndian: boolean): this {
@@ -251,28 +239,17 @@ class NBTWriter {
       const type = getTagType(entry as unknown);
       if (type === null) continue;
       this.#writeUint8(type);
-      this.#writeStringTaeg(name, littleEndian);
+      this.#writeString(name, littleEndian);
       this.#writeTag(entry, littleEndian);
     }
     return this.#writeUint8(TAG.END);
   }
 
-  #writeInt32Array(value: Int32Array | Uint32Array, littleEndian: boolean): this {
-    for (const entry of value){
-      this.#writeInt32(entry, littleEndian);
-    }
-    return this;
-  }
-
   #writeIntArray(value: IntArrayTag, littleEndian: boolean): this {
     const { length } = value;
     this.#writeInt32(length, littleEndian);
-    return this.#writeInt32Array(value, littleEndian);
-  }
-
-  #writeBigInt64Array(value: BigInt64Array | BigUint64Array, littleEndian: boolean): this {
     for (const entry of value){
-      this.#writeBigInt64(entry, littleEndian);
+      this.#writeInt32(entry, littleEndian);
     }
     return this;
   }
@@ -280,6 +257,9 @@ class NBTWriter {
   #writeLongArray(value: LongArrayTag, littleEndian: boolean): this {
     const { length } = value;
     this.#writeInt32(length, littleEndian);
-    return this.#writeBigInt64Array(value, littleEndian);
+    for (const entry of value){
+      this.#writeBigInt64(entry, littleEndian);
+    }
+    return this;
   }
 }
