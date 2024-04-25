@@ -118,115 +118,115 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
 class DataReader {
 hasGzipHeader(): boolean {
-  const header = this.view.getUint16(0,false);
+  const header = this.#view.getUint16(0,false);
   return header === 0x1F8B;
 }
 
 hasZlibHeader(): boolean {
-  const header = this.view.getUint8(0);
+  const header = this.#view.getUint8(0);
   return header === 0x78;
 }
 
 hasBedrockLevelHeader(endian: Endian): boolean {
-  if (endian !== "little" || this.data.byteLength < 8) return false;
-  const byteLength = this.view.getUint32(4,true);
-  return byteLength === this.data.byteLength - 8;
+  if (endian !== "little" || this.#data.byteLength < 8) return false;
+  const byteLength = this.#view.getUint32(4,true);
+  return byteLength === this.#data.byteLength - 8;
 }
 
 async readRoot<T extends RootTagLike = RootTag>({ rootName, endian, compression, bedrockLevel, strict }: ReadOptions): Promise<NBTData<T>> {
   let littleEndian: boolean = endian === "little";
 
   if (compression !== null){
-    this.data = await decompress(this.data,compression);
-    this.view = new DataView(this.data.buffer);
+    this.#data = await decompress(this.#data,compression);
+    this.#view = new DataView(this.#data.buffer);
   }
 
   if (bedrockLevel){
     // const version =
-      this.readUint32(littleEndian);
-    this.readUint32(littleEndian);
+      this.#readUint32(littleEndian);
+    this.#readUint32(littleEndian);
   }
 
-  const type = this.readTagType();
+  const type = this.#readTagType();
   if (type !== TAG.LIST && type !== TAG.COMPOUND){
     throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
   }
 
-  const rootNameV: RootName = typeof rootName === "string" || rootName ? this.readStringTaeg(littleEndian) : null;
-  const root: T = this.readTag<T>(type, littleEndian);
+  const rootNameV: RootName = typeof rootName === "string" || rootName ? this.#readStringTaeg(littleEndian) : null;
+  const root: T = this.#readTag<T>(type, littleEndian);
 
-  if (strict && this.data.byteLength > this.byteOffset){
-    const remaining = this.data.byteLength - this.byteOffset;
-    throw new NBTError(`Encountered unexpected End tag at byte offset ${this.byteOffset}, ${remaining} unread bytes remaining`,{ byteOffset: this.byteOffset, cause: new NBTData<RootTag>(root as RootTag,{ rootName: rootNameV, endian }), remaining });
+  if (strict && this.#data.byteLength > this.#byteOffset){
+    const remaining = this.#data.byteLength - this.#byteOffset;
+    throw new NBTError(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`,{ byteOffset: this.#byteOffset, cause: new NBTData<RootTag>(root as RootTag,{ rootName: rootNameV, endian }), remaining });
   }
 
   return new NBTData(root, { rootName: rootNameV, endian, compression, bedrockLevel });
 }
 
-private readTag<T extends Tag>(type: TAG, littleEndian: boolean): T;
-private readTag<T extends RootTagLike>(type: TAG, littleEndian: boolean): T;
-private readTag(type: TAG, littleEndian: boolean): Tag {
+#readTag<T extends Tag>(type: TAG, littleEndian: boolean): T;
+#readTag<T extends RootTagLike>(type: TAG, littleEndian: boolean): T;
+#readTag(type: TAG, littleEndian: boolean): Tag {
   switch (type){
     case TAG.END: {
-      const remaining = this.data.byteLength - this.byteOffset;
-      throw new Error(`Encountered unexpected End tag at byte offset ${this.byteOffset}, ${remaining} unread bytes remaining`);
+      const remaining = this.#data.byteLength - this.#byteOffset;
+      throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
-    case TAG.BYTE: return this.readByte();
-    case TAG.SHORT: return this.readShort(littleEndian);
-    case TAG.INT: return this.readInt(littleEndian);
-    case TAG.LONG: return this.readLong(littleEndian);
-    case TAG.FLOAT: return this.readFloat(littleEndian);
-    case TAG.DOUBLE: return this.readDouble(littleEndian);
-    case TAG.BYTE_ARRAY: return this.readByteArray(littleEndian);
-    case TAG.STRING: return this.readStringTaeg(littleEndian);
-    case TAG.LIST: return this.readList(littleEndian);
-    case TAG.COMPOUND: return this.readCompound(littleEndian);
-    case TAG.INT_ARRAY: return this.readIntArray(littleEndian);
-    case TAG.LONG_ARRAY: return this.readLongArray(littleEndian);
-    default: throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${this.byteOffset}`);
+    case TAG.BYTE: return this.#readByte();
+    case TAG.SHORT: return this.#readShort(littleEndian);
+    case TAG.INT: return this.#readInt(littleEndian);
+    case TAG.LONG: return this.#readLong(littleEndian);
+    case TAG.FLOAT: return this.#readFloat(littleEndian);
+    case TAG.DOUBLE: return this.#readDouble(littleEndian);
+    case TAG.BYTE_ARRAY: return this.#readByteArray(littleEndian);
+    case TAG.STRING: return this.#readStringTaeg(littleEndian);
+    case TAG.LIST: return this.#readList(littleEndian);
+    case TAG.COMPOUND: return this.#readCompound(littleEndian);
+    case TAG.INT_ARRAY: return this.#readIntArray(littleEndian);
+    case TAG.LONG_ARRAY: return this.#readLongArray(littleEndian);
+    default: throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${this.#byteOffset}`);
   }
 }
 
-private readTagType(): TAG {
-  return this.readUint8() as TAG;
+#readTagType(): TAG {
+  return this.#readUint8() as TAG;
 }
 
-private readByte(): ByteTag {
-  return new Int8(this.readInt8());
+#readByte(): ByteTag {
+  return new Int8(this.#readInt8());
 }
 
-private readShort(littleEndian: boolean): ShortTag {
-  return new Int16(this.readInt16(littleEndian));
+#readShort(littleEndian: boolean): ShortTag {
+  return new Int16(this.#readInt16(littleEndian));
 }
 
-private readInt(littleEndian: boolean): IntTag {
-  return new Int32(this.readInt32(littleEndian));
+#readInt(littleEndian: boolean): IntTag {
+  return new Int32(this.#readInt32(littleEndian));
 }
 
-private readLong(littleEndian: boolean): LongTag {
-  return this.readBigInt64(littleEndian);
+#readLong(littleEndian: boolean): LongTag {
+  return this.#readBigInt64(littleEndian);
 }
 
-private readFloat(littleEndian: boolean): FloatTag {
-  return new Float32(this.readFloat32(littleEndian));
+#readFloat(littleEndian: boolean): FloatTag {
+  return new Float32(this.#readFloat32(littleEndian));
 }
 
-private readDouble(littleEndian: boolean): DoubleTag {
-  return this.readFloat64(littleEndian);
+#readDouble(littleEndian: boolean): DoubleTag {
+  return this.#readFloat64(littleEndian);
 }
 
-private readByteArray(littleEndian: boolean): ByteArrayTag {
-  return this.readInt8Array(this.readInt32(littleEndian));
+#readByteArray(littleEndian: boolean): ByteArrayTag {
+  return this.#readInt8Array(this.#readInt32(littleEndian));
 }
 
-private readStringTaeg(littleEndian: boolean): StringTag {
-  const length = this.readUint16(littleEndian);
-  return this.readString(length);
+#readStringTaeg(littleEndian: boolean): StringTag {
+  const length = this.#readUint16(littleEndian);
+  return this.#readString(length);
 }
 
-private readList(littleEndian: boolean): ListTag<Tag> {
-  const type = this.readTagType();
-  const length = this.readInt32(littleEndian);
+#readList(littleEndian: boolean): ListTag<Tag> {
+  const type = this.#readTagType();
+  const length = this.#readInt32(littleEndian);
   const value: ListTag<Tag> = [];
   Object.defineProperty(value,TAG_TYPE,{
     configurable: true,
@@ -235,118 +235,118 @@ private readList(littleEndian: boolean): ListTag<Tag> {
     value: type
   });
   for (let i = 0; i < length; i++){
-    const entry = this.readTag(type, littleEndian);
+    const entry = this.#readTag(type, littleEndian);
     value.push(entry);
   }
   return value;
 }
 
-private readCompound(littleEndian: boolean): CompoundTag {
+#readCompound(littleEndian: boolean): CompoundTag {
   const value: CompoundTag = {};
   while (true){
-    const type = this.readTagType();
+    const type = this.#readTagType();
     if (type === TAG.END) break;
-    const nameLength = this.readUint16(littleEndian);
-    const name = this.readString(nameLength);
-    const entry = this.readTag(type, littleEndian);
+    const nameLength = this.#readUint16(littleEndian);
+    const name = this.#readString(nameLength);
+    const entry = this.#readTag(type, littleEndian);
     value[name] = entry;
   }
   return value;
 }
 
-private readIntArray(littleEndian: boolean): IntArrayTag {
-  return this.readInt32Array(this.readInt32(littleEndian), littleEndian);
+#readIntArray(littleEndian: boolean): IntArrayTag {
+  return this.#readInt32Array(this.#readInt32(littleEndian), littleEndian);
 }
 
-private readLongArray(littleEndian: boolean): LongArrayTag {
-  return this.readBigInt64Array(this.readInt32(littleEndian), littleEndian);
+#readLongArray(littleEndian: boolean): LongArrayTag {
+  return this.#readBigInt64Array(this.#readInt32(littleEndian), littleEndian);
 }
 
-  private byteOffset: number;
-  private data: Uint8Array;
-  private view: DataView;
-  private decoder: TextDecoder;
+  #byteOffset: number;
+  #data: Uint8Array;
+  #view: DataView;
+  #decoder: TextDecoder;
 
   constructor(data: Uint8Array) {
-    this.byteOffset = 0;
-    this.data = data;
-    this.view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-    this.decoder = new TextDecoder();
+    this.#byteOffset = 0;
+    this.#data = data;
+    this.#view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    this.#decoder = new TextDecoder();
   }
 
-  private readUint8(): number {
-    return this.read("Uint8");
+  #readUint8(): number {
+    return this.#read("Uint8");
   }
 
-  private readInt8(): number {
-    return this.read("Int8");
+  #readInt8(): number {
+    return this.#read("Int8");
   }
 
-  private readUint16(littleEndian: boolean): number {
-    return this.read("Uint16", littleEndian);
+  #readUint16(littleEndian: boolean): number {
+    return this.#read("Uint16", littleEndian);
   }
 
-  private readInt16(littleEndian: boolean): number {
-    return this.read("Int16", littleEndian);
+  #readInt16(littleEndian: boolean): number {
+    return this.#read("Int16", littleEndian);
   }
 
-  private readUint32(littleEndian: boolean): number {
-    return this.read("Uint32", littleEndian);
+  #readUint32(littleEndian: boolean): number {
+    return this.#read("Uint32", littleEndian);
   }
 
-  private readInt32(littleEndian: boolean): number {
-    return this.read("Int32", littleEndian);
+  #readInt32(littleEndian: boolean): number {
+    return this.#read("Int32", littleEndian);
   }
 
-  private readFloat32(littleEndian: boolean): number {
-    return this.read("Float32", littleEndian);
+  #readFloat32(littleEndian: boolean): number {
+    return this.#read("Float32", littleEndian);
   }
 
-  private readFloat64(littleEndian: boolean): number {
-    return this.read("Float64", littleEndian);
+  #readFloat64(littleEndian: boolean): number {
+    return this.#read("Float64", littleEndian);
   }
 
-  private readBigInt64(littleEndian: boolean): bigint {
-    return this.read("BigInt64", littleEndian);
+  #readBigInt64(littleEndian: boolean): bigint {
+    return this.#read("BigInt64", littleEndian);
   }
 
-  private read<T extends Extract<keyof typeof ByteType, "Uint8" | "Int8">>(type: T): ReturnType<DataView[`get${T}`]>;
-  private read<T extends Exclude<keyof typeof ByteType, "Uint8" | "Int8">>(type: T, littleEndian: boolean): ReturnType<DataView[`get${T}`]>;
-  private read(type: keyof typeof ByteType, littleEndian?: boolean): number | bigint {
-    this.allocate(ByteType[type]);
-    return this.view[`get${type}`]((this.byteOffset += ByteType[type]) - ByteType[type], littleEndian);
+  #read<T extends Extract<keyof typeof ByteType, "Uint8" | "Int8">>(type: T): ReturnType<DataView[`get${T}`]>;
+  #read<T extends Exclude<keyof typeof ByteType, "Uint8" | "Int8">>(type: T, littleEndian: boolean): ReturnType<DataView[`get${T}`]>;
+  #read(type: keyof typeof ByteType, littleEndian?: boolean): number | bigint {
+    this.#allocate(ByteType[type]);
+    return this.#view[`get${type}`]((this.#byteOffset += ByteType[type]) - ByteType[type], littleEndian);
   }
 
-  private readInt8Array(length: number): Int8Array {
-    this.allocate(length);
-    return new Int8Array(this.data.subarray(this.byteOffset, this.byteOffset += length));
+  #readInt8Array(length: number): Int8Array {
+    this.#allocate(length);
+    return new Int8Array(this.#data.subarray(this.#byteOffset, this.#byteOffset += length));
   }
 
-  private readString(length: number): string {
-    this.allocate(length);
-    return this.decoder.decode(this.data.subarray(this.byteOffset, this.byteOffset += length));
+  #readString(length: number): string {
+    this.#allocate(length);
+    return this.#decoder.decode(this.#data.subarray(this.#byteOffset, this.#byteOffset += length));
   }
 
-  private readInt32Array(length: number, littleEndian: boolean): Int32Array {
+  #readInt32Array(length: number, littleEndian: boolean): Int32Array {
     const value = new Int32Array(length);
     for (const i in value){
-      const entry = this.readInt32(littleEndian);
+      const entry = this.#readInt32(littleEndian);
       value[i] = entry;
     }
     return value;
   }
 
-  private readBigInt64Array(length: number, littleEndian: boolean): BigInt64Array {
+  #readBigInt64Array(length: number, littleEndian: boolean): BigInt64Array {
     const value = new BigInt64Array(length);
     for (const i in value){
-      const entry = this.readBigInt64(littleEndian);
+      const entry = this.#readBigInt64(littleEndian);
       value[i] = entry;
     }
     return value;
   }
 
-  private allocate(byteLength: number): void {
-    if (this.byteOffset + byteLength > this.data.byteLength){
+  #allocate(byteLength: number): void {
+    if (this.#byteOffset + byteLength > this.#data.byteLength){
       throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
     }
   }
