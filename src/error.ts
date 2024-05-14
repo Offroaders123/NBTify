@@ -12,7 +12,7 @@ export class NBTError extends Error {
   remaining: number;
 
   constructor(message: string, options: NBTErrorOptions) {
-    super(message,options);
+    super(message, options);
     this.byteOffset = options.byteOffset;
     this.cause = options.cause;
     this.remaining = options.remaining;

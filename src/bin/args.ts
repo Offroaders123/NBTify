@@ -11,7 +11,7 @@ const SPACE_PATTERN = /^--space=/;
 
 const args: string[] = process.argv.slice(2);
 
-process.on("uncaughtException",error => {
+process.on("uncaughtException", error => {
   console.error(`${error}`);
   process.exit(1);
 });
@@ -22,8 +22,8 @@ export const file: string | typeof process.stdin.fd = !process.stdin.isTTY
     throw new TypeError("Missing argument 'input'");
   })();
 
-for (const arg of args){
-  switch (true){
+for (const arg of args) {
+  switch (true) {
     case NBT_PATTERN.test(arg):
     case SNBT_PATTERN.test(arg):
     case JSON_PATTERN.test(arg):
@@ -53,24 +53,24 @@ type NonPartialFormat = NonPartial<NBTDataOptions>;
 
 const rootName: NonPartialFormat["rootName"] = args
   .find(arg => ROOT_NAME_PATTERN.test(arg))
-  ?.replace(ROOT_NAME_PATTERN,"");
+  ?.replace(ROOT_NAME_PATTERN, "");
 
 const endian: NonPartialFormat["endian"] = args
   .find(arg => ENDIAN_PATTERN.test(arg))
-  ?.replace(ENDIAN_PATTERN,"") as NonPartialFormat["endian"];
+  ?.replace(ENDIAN_PATTERN, "") as NonPartialFormat["endian"];
 
 const compression: NonPartialFormat["compression"] = (() => {
   const value: string | undefined = args
     .find(arg => COMPRESSION_PATTERN.test(arg))
-    ?.replace(COMPRESSION_PATTERN,"");
+    ?.replace(COMPRESSION_PATTERN, "");
   return value === "null" ? null : value as NonPartialFormat["compression"];
 })();
 
 const bedrockLevel: NonPartialFormat["bedrockLevel"] = (() => {
   const value: string | undefined = args
     .find(arg => BEDROCK_LEVEL_PATTERN.test(arg))
-    ?.replace(BEDROCK_LEVEL_PATTERN,"");
-  switch (value){
+    ?.replace(BEDROCK_LEVEL_PATTERN, "");
+  switch (value) {
     case undefined: return value;
     case "true":
     case "": return true;
@@ -84,8 +84,8 @@ export const format: NonPartialFormat = { rootName, endian, compression, bedrock
 export const space: StringifyOptions["space"] = (() => {
   const space: string | undefined = args
     .find(arg => SPACE_PATTERN.test(arg))
-    ?.replace(SPACE_PATTERN,"");
-  if (Number.isNaN(Number(space))){
+    ?.replace(SPACE_PATTERN, "");
+  if (Number.isNaN(Number(space))) {
     return space;
   } else {
     return Number(space);

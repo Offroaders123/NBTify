@@ -25,17 +25,17 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
   bedrockLevel: BedrockLevel;
 
   constructor(data: T | NBTData<T>, options: NBTDataOptions = {}) {
-    if (data instanceof NBTData){
-      if (options.rootName === undefined){
+    if (data instanceof NBTData) {
+      if (options.rootName === undefined) {
         options.rootName = data.rootName;
       }
-      if (options.endian === undefined){
+      if (options.endian === undefined) {
         options.endian = data.endian;
       }
-      if (options.compression === undefined){
+      if (options.compression === undefined) {
         options.compression = data.compression;
       }
-      if (options.bedrockLevel === undefined){
+      if (options.bedrockLevel === undefined) {
         options.bedrockLevel = data.bedrockLevel;
       }
       data = data.data;

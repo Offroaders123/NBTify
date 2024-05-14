@@ -21,15 +21,15 @@ export interface ReadOptions {
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
 export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike | Blob, options: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
-  if (data instanceof Blob){
+  if (data instanceof Blob) {
     data = await data.arrayBuffer();
   }
 
-  if (!("byteOffset" in data)){
+  if (!("byteOffset" in data)) {
     data = new Uint8Array(data);
   }
 
-  if (!(data instanceof Uint8Array)){
+  if (!(data instanceof Uint8Array)) {
     data satisfies never;
     throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, or Blob");
   }
@@ -37,37 +37,37 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   const reader = new NBTReader(data, options.endian === "little");
   let { rootName, endian, compression, bedrockLevel, strict = true } = options;
 
-  if (rootName !== undefined && typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null){
+  if (rootName !== undefined && typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null) {
     rootName satisfies never;
     throw new TypeError("Root Name option must be a boolean, string, or null");
   }
-  if (endian !== undefined && endian !== "big" && endian !== "little"){
+  if (endian !== undefined && endian !== "big" && endian !== "little") {
     endian satisfies never;
     throw new TypeError("Endian option must be a valid endian type");
   }
-  if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
+  if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null) {
     compression satisfies never;
     throw new TypeError("Compression option must be a valid compression type");
   }
-  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && typeof bedrockLevel !== "number" && bedrockLevel !== null){
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean" && typeof bedrockLevel !== "number" && bedrockLevel !== null) {
     bedrockLevel satisfies never;
     throw new TypeError("Bedrock Level option must be a boolean, number, or null");
   }
-  if (typeof strict !== "boolean"){
+  if (typeof strict !== "boolean") {
     strict satisfies never;
     throw new TypeError("Strict option must be a boolean");
   }
 
-  compression: if (compression === undefined){
-    switch (true){
+  compression: if (compression === undefined) {
+    switch (true) {
       case reader.hasGzipHeader(): compression = "gzip"; break compression;
       case reader.hasZlibHeader(): compression = "deflate"; break compression;
     }
     try {
-      return await read<T>(data,{ ...options, compression: null });
-    } catch (error){
+      return await read<T>(data, { ...options, compression: null });
+    } catch (error) {
       try {
-        return await read<T>(data,{ ...options, compression: "deflate-raw" });
+        return await read<T>(data, { ...options, compression: "deflate-raw" });
       } catch {
         throw error;
       }
@@ -76,12 +76,12 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
   compression satisfies Compression;
 
-  if (endian === undefined){
+  if (endian === undefined) {
     try {
-      return await read<T>(data,{ ...options, endian: "big" });
-    } catch (error){
+      return await read<T>(data, { ...options, endian: "big" });
+    } catch (error) {
       try {
-        return await read<T>(data,{ ...options, endian: "little" });
+        return await read<T>(data, { ...options, endian: "little" });
       } catch {
         throw error;
       }
@@ -90,12 +90,12 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
   endian satisfies Endian;
 
-  if (rootName === undefined){
+  if (rootName === undefined) {
     try {
-      return await read<T>(data,{ ...options, rootName: true });
-    } catch (error){
+      return await read<T>(data, { ...options, rootName: true });
+    } catch (error) {
       try {
-        return await read<T>(data,{ ...options, rootName: false });
+        return await read<T>(data, { ...options, rootName: false });
       } catch {
         throw error;
       }
@@ -104,11 +104,11 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
   rootName satisfies boolean | RootName;
 
-  if (compression !== null){
-    data = await decompress(data,compression);
+  if (compression !== null) {
+    data = await decompress(data, compression);
   }
 
-  if (bedrockLevel === undefined){
+  if (bedrockLevel === undefined) {
     bedrockLevel = reader.hasBedrockLevelHeader(endian);
   }
 
@@ -129,7 +129,7 @@ class NBTReader {
   }
 
   hasGzipHeader(): boolean {
-    const header = this.#view.getUint16(0,false);
+    const header = this.#view.getUint16(0, false);
     return header === 0x1F8B;
   }
 
@@ -140,39 +140,39 @@ class NBTReader {
 
   hasBedrockLevelHeader(endian: Endian): boolean {
     if (endian !== "little" || this.#data.byteLength < 8) return false;
-    const byteLength = this.#view.getUint32(4,true);
+    const byteLength = this.#view.getUint32(4, true);
     return byteLength === this.#data.byteLength - 8;
   }
 
   #allocate(byteLength: number): void {
-    if (this.#byteOffset + byteLength > this.#data.byteLength){
+    if (this.#byteOffset + byteLength > this.#data.byteLength) {
       throw new Error("Ran out of bytes to read, unexpectedly reached the end of the buffer");
     }
   }
 
   async readRoot<T extends RootTagLike = RootTag>({ rootName, endian, compression, bedrockLevel, strict }: ReadOptions): Promise<NBTData<T>> {
-    if (compression !== null){
-      this.#data = await decompress(this.#data,compression);
+    if (compression !== null) {
+      this.#data = await decompress(this.#data, compression);
       this.#view = new DataView(this.#data.buffer);
     }
 
-    if (bedrockLevel){
+    if (bedrockLevel) {
       // const version =
         this.#readUnsignedInt();
       this.#readUnsignedInt();
     }
 
     const type = this.#readTagType();
-    if (type !== TAG.LIST && type !== TAG.COMPOUND){
+    if (type !== TAG.LIST && type !== TAG.COMPOUND) {
       throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
     }
 
     const rootNameV: RootName = typeof rootName === "string" || rootName ? this.#readString() : null;
     const root: T = this.#readTag<T>(type);
 
-    if (strict && this.#data.byteLength > this.#byteOffset){
+    if (strict && this.#data.byteLength > this.#byteOffset) {
       const remaining = this.#data.byteLength - this.#byteOffset;
-      throw new NBTError(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`,{ byteOffset: this.#byteOffset, cause: new NBTData<RootTag>(root as RootTag,{ rootName: rootNameV, endian }), remaining });
+      throw new NBTError(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`, { byteOffset: this.#byteOffset, cause: new NBTData<RootTag>(root as RootTag, { rootName: rootNameV, endian }), remaining });
     }
 
     return new NBTData(root, { rootName: rootNameV, endian, compression, bedrockLevel });
@@ -181,7 +181,7 @@ class NBTReader {
   #readTag<T extends Tag>(type: TAG): T;
   #readTag<T extends RootTagLike>(type: TAG): T;
   #readTag(type: TAG): Tag {
-    switch (type){
+    switch (type) {
       case TAG.END: {
         const remaining = this.#data.byteLength - this.#byteOffset;
         throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
@@ -224,7 +224,7 @@ class NBTReader {
 
   #readUnsignedShort(): number {
     this.#allocate(2);
-    const value = this.#view.getUint16(this.#byteOffset,this.#littleEndian);
+    const value = this.#view.getUint16(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
@@ -233,14 +233,14 @@ class NBTReader {
   #readShort(valueOf: true): number;
   #readShort(valueOf: boolean = false): number | ShortTag {
     this.#allocate(2);
-    const value = this.#view.getInt16(this.#byteOffset,this.#littleEndian);
+    const value = this.#view.getInt16(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 2;
     return (valueOf) ? value : new Int16(value);
   }
 
   #readUnsignedInt(): number {
     this.#allocate(4);
-    const value = this.#view.getUint32(this.#byteOffset,this.#littleEndian);
+    const value = this.#view.getUint32(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
@@ -249,14 +249,14 @@ class NBTReader {
   #readInt(valueOf: true): number;
   #readInt(valueOf: boolean = false): number | IntTag {
     this.#allocate(4);
-    const value = this.#view.getInt32(this.#byteOffset,this.#littleEndian);
+    const value = this.#view.getInt32(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 4;
     return (valueOf) ? value : new Int32(value);
   }
 
   #readLong(): LongTag {
     this.#allocate(8);
-    const value = this.#view.getBigInt64(this.#byteOffset,this.#littleEndian);
+    const value = this.#view.getBigInt64(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
@@ -265,14 +265,14 @@ class NBTReader {
   #readFloat(valueOf: true): number;
   #readFloat(valueOf: boolean = false): number | FloatTag {
     this.#allocate(4);
-    const value = this.#view.getFloat32(this.#byteOffset,this.#littleEndian);
+    const value = this.#view.getFloat32(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 4;
     return (valueOf) ? value : new Float32(value);
   }
 
   #readDouble(): DoubleTag {
     this.#allocate(8);
-    const value = this.#view.getFloat64(this.#byteOffset,this.#littleEndian);
+    const value = this.#view.getFloat64(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
@@ -280,7 +280,7 @@ class NBTReader {
   #readByteArray(): ByteArrayTag {
     const length = this.#readInt(true);
     this.#allocate(length);
-    const value = new Int8Array(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
+    const value = new Int8Array(this.#data.subarray(this.#byteOffset, this.#byteOffset + length));
     this.#byteOffset += length;
     return value;
   }
@@ -288,7 +288,7 @@ class NBTReader {
   #readString(): StringTag {
     const length = this.#readUnsignedShort();
     this.#allocate(length);
-    const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset,this.#byteOffset + length));
+    const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset, this.#byteOffset + length));
     this.#byteOffset += length;
     return value;
   }
@@ -297,13 +297,13 @@ class NBTReader {
     const type = this.#readTagType();
     const length = this.#readInt(true);
     const value: ListTag<Tag> = [];
-    Object.defineProperty(value,TAG_TYPE,{
+    Object.defineProperty(value, TAG_TYPE, {
       configurable: true,
       enumerable: false,
       writable: true,
       value: type
     });
-    for (let i = 0; i < length; i++){
+    for (let i = 0; i < length; i++) {
       const entry = this.#readTag(type);
       value.push(entry);
     }
@@ -312,7 +312,7 @@ class NBTReader {
 
   #readCompound(): CompoundTag {
     const value: CompoundTag = {};
-    while (true){
+    while (true) {
       const type = this.#readTagType();
       if (type === TAG.END) break;
       const name = this.#readString();
@@ -325,7 +325,7 @@ class NBTReader {
   #readIntArray(): IntArrayTag {
     const length = this.#readInt(true);
     const value = new Int32Array(length);
-    for (const i in value){
+    for (const i in value) {
       const entry = this.#readInt(true);
       value[i] = entry;
     }
@@ -335,7 +335,7 @@ class NBTReader {
   #readLongArray(): LongArrayTag {
     const length = this.#readInt(true);
     const value = new BigInt64Array(length);
-    for (const i in value){
+    for (const i in value) {
       const entry = this.#readLong();
       value[i] = entry;
     }

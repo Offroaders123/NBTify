@@ -13,15 +13,15 @@ export interface StringifyOptions {
 */
 export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: StringifyOptions): string;
 export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
-  if (data instanceof NBTData){
+  if (data instanceof NBTData) {
     data = data.data;
   }
 
-  if (typeof data !== "object" || data === null){
+  if (typeof data !== "object" || data === null) {
     data satisfies never;
     throw new TypeError("First parameter must be an object or array");
   }
-  if (typeof space !== "string" && typeof space !== "number"){
+  if (typeof space !== "string" && typeof space !== "number") {
     space satisfies never;
     throw new TypeError("Space option must be a string or number");
   }
@@ -33,7 +33,7 @@ export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>,
 
 function stringifyRoot(value: RootTag, space: string, level: number): string {
   const type = getTagType(value);
-  if (type !== TAG.LIST && type !== TAG.COMPOUND){
+  if (type !== TAG.LIST && type !== TAG.COMPOUND) {
     throw new TypeError("Encountered unexpected Root tag type, must be either a List or Compound tag");
   }
 
@@ -42,7 +42,7 @@ function stringifyRoot(value: RootTag, space: string, level: number): string {
 
 function stringifyTag(value: Tag, space: string, level: number): string {
   const type = getTagType(value);
-  switch (type){
+  switch (type) {
     case TAG.BYTE: return stringifyByte(value as ByteTag | BooleanTag);
     case TAG.SHORT: return stringifyShort(value as ShortTag);
     case TAG.INT: return stringifyInt(value as IntTag);
@@ -88,27 +88,27 @@ function stringifyByteArray(value: ByteArrayTag): string {
 }
 
 function stringifyString(value: StringTag): string {
-  const singleQuoteString = escapeString(value.replace(/['\\]/g,character => `\\${character}`));
-  const doubleQuoteString = escapeString(value.replace(/["\\]/g,character => `\\${character}`));
+  const singleQuoteString = escapeString(value.replace(/['\\]/g, character => `\\${character}`));
+  const doubleQuoteString = escapeString(value.replace(/["\\]/g, character => `\\${character}`));
   return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
 }
 
 function escapeString(value: StringTag): string {
   return value
-    .replaceAll("\b","\\b")
-    .replaceAll("\f","\\f")
-    .replaceAll("\n","\\n")
-    .replaceAll("\r","\\r")
-    .replaceAll("\t","\\t");
+    .replaceAll("\b", "\\b")
+    .replaceAll("\f", "\\f")
+    .replaceAll("\n", "\\n")
+    .replaceAll("\r", "\\r")
+    .replaceAll("\t", "\\t");
 }
 
 function stringifyList(value: ListTag<Tag>, space: string, level: number): string {
   value = value.filter(isTag);
   const fancy = (space !== "");
   const type: TAG = (value[0] !== undefined) ? getTagType(value[0]) : TAG.END;
-  const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY,TAG.LIST,TAG.COMPOUND,TAG.INT_ARRAY,TAG.LONG_ARRAY]).has(type);
+  const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY, TAG.LIST, TAG.COMPOUND, TAG.INT_ARRAY, TAG.LONG_ARRAY]).has(type);
   return `[${value.map(entry => `${isIndentedList ? `\n${space.repeat(level)}` : ""}${(() => {
-    if (getTagType(entry) !== type){
+    if (getTagType(entry) !== type) {
       throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
     }
     const result = stringifyTag(entry, space, level + 1);
@@ -118,7 +118,7 @@ function stringifyList(value: ListTag<Tag>, space: string, level: number): strin
 
 function stringifyCompound(value: CompoundTag, space: string, level: number): string {
   const fancy = (space !== "");
-  return `{${Object.entries(value).filter((entry): entry is [string,Tag] => isTag(entry[1])).map(([key,value]) => `${fancy ? `\n${(space satisfies string).repeat(level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : stringifyString(key)}:${fancy ? " " : ""}${(() => {
+  return `{${Object.entries(value).filter((entry): entry is [string, Tag] => isTag(entry[1])).map(([key, value]) => `${fancy ? `\n${(space satisfies string).repeat(level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : stringifyString(key)}:${fancy ? " " : ""}${(() => {
     const result = stringifyTag(value, space, level + 1);
     return result;
   })() satisfies string}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${space.repeat(level - 1)}` : ""}}`;

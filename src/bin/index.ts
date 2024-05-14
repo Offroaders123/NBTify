@@ -8,7 +8,7 @@ import { file, nbt, snbt, json, format, space } from "./args.js";
 
 import type { RootTag } from "../index.js";
 
-if (file === undefined){
+if (file === undefined) {
   file satisfies never;
   throw new TypeError("Missing argument 'input'");
 }
@@ -17,7 +17,7 @@ const buffer: Buffer = readFileSync(file);
 
 let input: RootTag | NBTData;
 
-if (file === 0){
+if (file === 0) {
   try {
     input = JSON.parse(buffer.toString("utf-8")) as RootTag;
   } catch {
@@ -29,7 +29,7 @@ if (file === 0){
   }
 } else {
   const extension: string = extname(file);
-  switch (extension){
+  switch (extension) {
     case ".json": {
       input = JSON.parse(buffer.toString("utf-8")) as RootTag;
       break;
@@ -45,18 +45,18 @@ if (file === 0){
   }
 }
 
-const output: NBTData = new NBTData(input,format);
+const output: NBTData = new NBTData(input, format);
 
-if (!nbt && !snbt && !json){
-  console.log(inspect(output,{ colors: true, depth: null }));
+if (!nbt && !snbt && !json) {
+  console.log(inspect(output, { colors: true, depth: null }));
   process.exit(0);
 }
 
 const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
 
 const result: string | Uint8Array = json
-  ? `${JSON.stringify(output.data,null,space ?? 2)}\n`
+  ? `${JSON.stringify(output.data, null, space ?? 2)}\n`
   : snbt
-  ? `${stringify(output,{ space: space ?? 2 })}\n`
+  ? `${stringify(output, { space: space ?? 2 })}\n`
   : await write(output);
 await stdoutWriteAsync(result);

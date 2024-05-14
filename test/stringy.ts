@@ -9,12 +9,12 @@ export default new NBTData({
     myJSONKey: "It's value!",
     aBooleanProperty: true
   }),
-  ByteArray: new Int8Array([5,28,32,64]),
-  IntArray: new Int32Array([52,35,78,31]),
-  LongArray: new BigInt64Array([45n,82n,100007n,3n]),
+  ByteArray: new Int8Array([5, 28, 32, 64]),
+  IntArray: new Int32Array([52, 35, 78, 31]),
+  LongArray: new BigInt64Array([45n, 82n, 100007n, 3n]),
   "Escaped Key Name": "Tinto Brass",
   NestedObject: {
-    MyList: [45,753,123,757456],
+    MyList: [45, 753, 123, 757456],
     OpethBlackwaterPark: "yes",
     EmptyCompoundObject: {},
     EmptyArrayList: []
@@ -25,4 +25,4 @@ export default new NBTData({
       Door: "handle"
     }
   ]
-},{ rootName: "", endian: "big", compression: null, bedrockLevel: false });
+}, { rootName: "", endian: "big", compression: null, bedrockLevel: false });

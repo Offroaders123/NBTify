@@ -19,7 +19,7 @@ export class Int8<T extends number = number> extends Number {
    * @internal
   */
   get [CustomInspect](): CustomInspectFunction {
-    return (_,{ stylize }) => stylize(`${this.valueOf()}b`,"number");
+    return (_, { stylize }) => stylize(`${this.valueOf()}b`, "number");
   }
 }
 
@@ -40,7 +40,7 @@ export class Int16<T extends number = number> extends Number {
    * @internal
   */
   get [CustomInspect](): CustomInspectFunction {
-    return (_,{ stylize }) => stylize(`${this.valueOf()}s`,"number");
+    return (_, { stylize }) => stylize(`${this.valueOf()}s`, "number");
   }
 }
 
@@ -82,6 +82,6 @@ export class Float32<T extends number = number> extends Number {
    * @internal
   */
   get [CustomInspect](): CustomInspectFunction {
-    return (_,{ stylize }) => stylize(`${this.valueOf()}f`,"number");
+    return (_, { stylize }) => stylize(`${this.valueOf()}f`, "number");
   }
 }

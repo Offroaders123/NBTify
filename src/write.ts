@@ -16,23 +16,23 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
 
   const { rootName, endian, compression, bedrockLevel } = data as NBTData<T>;
 
-  if (typeof data !== "object" || data === null){
+  if (typeof data !== "object" || data === null) {
     data satisfies never;
     throw new TypeError("First parameter must be an object or array");
   }
-  if (rootName !== undefined && typeof rootName !== "string" && rootName !== null){
+  if (rootName !== undefined && typeof rootName !== "string" && rootName !== null) {
     rootName satisfies never;
     throw new TypeError("Root Name option must be a string or null");
   }
-  if (endian !== undefined && endian !== "big" && endian !== "little"){
+  if (endian !== undefined && endian !== "big" && endian !== "little") {
     endian satisfies never;
     throw new TypeError("Endian option must be a valid endian type");
   }
-  if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null){
+  if (compression !== undefined && compression !== "deflate" && compression !== "deflate-raw" && compression !== "gzip" && compression !== null) {
     compression satisfies never;
     throw new TypeError("Compression option must be a valid compression type");
   }
-  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean"){
+  if (bedrockLevel !== undefined && typeof bedrockLevel !== "boolean") {
     bedrockLevel satisfies never;
     throw new TypeError("Bedrock Level option must be a boolean");
   }
@@ -58,7 +58,7 @@ class NBTWriter {
 
     let length = this.#data.byteLength;
 
-    while (length < required){
+    while (length < required) {
       length *= 2;
     }
 
@@ -66,7 +66,7 @@ class NBTWriter {
     data.set(this.#data, 0);
 
     // not sure this is really needed, keeping it just in case; freezer burn
-    if (this.#byteOffset > this.#data.byteLength){
+    if (this.#byteOffset > this.#data.byteLength) {
       data.fill(0, byteLength, this.#byteOffset);
     }
 
@@ -76,18 +76,18 @@ class NBTWriter {
 
   #trimmedEnd(): Uint8Array {
     this.#allocate(0);
-    return this.#data.slice(0,this.#byteOffset);
+    return this.#data.slice(0, this.#byteOffset);
   }
 
   async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>): Promise<Uint8Array> {
     const { data: root, rootName, endian, compression, bedrockLevel } = data;
     const littleEndian: boolean = endian === "little";
     const type = getTagType(root);
-    if (type !== TAG.LIST && type !== TAG.COMPOUND){
+    if (type !== TAG.LIST && type !== TAG.COMPOUND) {
       throw new TypeError(`Encountered unexpected Root tag type '${type}', must be either a List or Compound tag`);
     }
 
-    if (bedrockLevel){
+    if (bedrockLevel) {
       this.#writeUnsignedInt(0);
       this.#writeUnsignedInt(0);
     }
@@ -96,11 +96,11 @@ class NBTWriter {
     if (rootName !== null) this.#writeString(rootName);
     this.#writeTag(root as RootTag);
 
-    if (bedrockLevel){
-      if (littleEndian !== true){
+    if (bedrockLevel) {
+      if (littleEndian !== true) {
         throw new TypeError("Endian option must be 'little' when the Bedrock Level flag is enabled");
       }
-      if (!("StorageVersion" in root) || !(root["StorageVersion"] instanceof Int32)){
+      if (!("StorageVersion" in root) || !(root["StorageVersion"] instanceof Int32)) {
         throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
       }
       const version: number = root["StorageVersion"].valueOf();
@@ -111,8 +111,8 @@ class NBTWriter {
 
     let result = this.#trimmedEnd();
 
-    if (compression !== null){
-      result = await compress(result,compression);
+    if (compression !== null) {
+      result = await compress(result, compression);
     }
 
     return result;
@@ -120,7 +120,7 @@ class NBTWriter {
 
   #writeTag(value: Tag): this {
     const type = getTagType(value);
-    switch (type){
+    switch (type) {
       case TAG.BYTE: return this.#writeByte(value as ByteTag | BooleanTag);
       case TAG.SHORT: return this.#writeShort(value as ShortTag);
       case TAG.INT: return this.#writeInt(value as IntTag);
@@ -144,63 +144,63 @@ class NBTWriter {
 
   #writeUnsignedByte(value: number): this {
     this.#allocate(1);
-    this.#view.setUint8(this.#byteOffset,value);
+    this.#view.setUint8(this.#byteOffset, value);
     this.#byteOffset += 1;
     return this;
   }
 
   #writeByte(value: number | ByteTag | BooleanTag): this {
     this.#allocate(1);
-    this.#view.setInt8(this.#byteOffset,Number(value.valueOf()));
+    this.#view.setInt8(this.#byteOffset, Number(value.valueOf()));
     this.#byteOffset += 1;
     return this;
   }
 
   #writeUnsignedShort(value: number): this {
     this.#allocate(2);
-    this.#view.setUint16(this.#byteOffset,value,this.#littleEndian);
+    this.#view.setUint16(this.#byteOffset, value, this.#littleEndian);
     this.#byteOffset += 2;
     return this;
   }
 
   #writeShort(value: number | ShortTag): this {
     this.#allocate(2);
-    this.#view.setInt16(this.#byteOffset,value.valueOf(),this.#littleEndian);
+    this.#view.setInt16(this.#byteOffset, value.valueOf(), this.#littleEndian);
     this.#byteOffset += 2;
     return this;
   }
 
   #writeUnsignedInt(value: number): this {
     this.#allocate(4);
-    this.#view.setUint32(this.#byteOffset,value,this.#littleEndian);
+    this.#view.setUint32(this.#byteOffset, value, this.#littleEndian);
     this.#byteOffset += 4;
     return this;
   }
 
   #writeInt(value: number | IntTag): this {
     this.#allocate(4);
-    this.#view.setInt32(this.#byteOffset,value.valueOf(),this.#littleEndian);
+    this.#view.setInt32(this.#byteOffset, value.valueOf(), this.#littleEndian);
     this.#byteOffset += 4;
     return this;
   }
 
   #writeLong(value: LongTag): this {
     this.#allocate(8);
-    this.#view.setBigInt64(this.#byteOffset,value,this.#littleEndian);
+    this.#view.setBigInt64(this.#byteOffset, value, this.#littleEndian);
     this.#byteOffset += 8;
     return this;
   }
 
   #writeFloat(value: number | FloatTag): this {
     this.#allocate(4);
-    this.#view.setFloat32(this.#byteOffset,value.valueOf(),this.#littleEndian);
+    this.#view.setFloat32(this.#byteOffset, value.valueOf(), this.#littleEndian);
     this.#byteOffset += 4;
     return this;
   }
 
   #writeDouble(value: DoubleTag): this {
     this.#allocate(8);
-    this.#view.setFloat64(this.#byteOffset,value,this.#littleEndian);
+    this.#view.setFloat64(this.#byteOffset, value, this.#littleEndian);
     this.#byteOffset += 8;
     return this;
   }
@@ -209,7 +209,7 @@ class NBTWriter {
     const { length } = value;
     this.#writeInt(length);
     this.#allocate(length);
-    this.#data.set(value,this.#byteOffset);
+    this.#data.set(value, this.#byteOffset);
     this.#byteOffset += length;
     return this;
   }
@@ -219,7 +219,7 @@ class NBTWriter {
     const { length } = entry;
     this.#writeUnsignedShort(length);
     this.#allocate(length);
-    this.#data.set(entry,this.#byteOffset);
+    this.#data.set(entry, this.#byteOffset);
     this.#byteOffset += length;
     return this;
   }
@@ -231,8 +231,8 @@ class NBTWriter {
     const { length } = value;
     this.#writeTagType(type);
     this.#writeInt(length);
-    for (const entry of value){
-      if (getTagType(entry) !== type){
+    for (const entry of value) {
+      if (getTagType(entry) !== type) {
         throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
       }
       this.#writeTag(entry);
@@ -241,7 +241,7 @@ class NBTWriter {
   }
 
   #writeCompound(value: CompoundTag): this {
-    for (const [name,entry] of Object.entries(value)){
+    for (const [name, entry] of Object.entries(value)) {
       if (entry === undefined) continue;
       const type = getTagType(entry as unknown);
       if (type === null) continue;
@@ -256,7 +256,7 @@ class NBTWriter {
   #writeIntArray(value: IntArrayTag): this {
     const { length } = value;
     this.#writeInt(length);
-    for (const entry of value){
+    for (const entry of value) {
       this.#writeInt(entry);
     }
     return this;
@@ -265,7 +265,7 @@ class NBTWriter {
   #writeLongArray(value: LongArrayTag): this {
     const { length } = value;
     this.#writeInt(length);
-    for (const entry of value){
+    for (const entry of value) {
       this.#writeLong(entry);
     }
     return this;

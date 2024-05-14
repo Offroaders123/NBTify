@@ -75,7 +75,7 @@ export function isTag<T extends Tag>(value: any): value is T {
 export function getTagType(value: Tag): TAG;
 export function getTagType(value: any): TAG | null;
 export function getTagType(value: any): TAG | null {
-  switch (true){
+  switch (true) {
     case value instanceof Int8:
     case typeof value === "boolean": return TAG.BYTE;
     case value instanceof Int16: return TAG.SHORT;
