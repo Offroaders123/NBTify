@@ -1,7 +1,7 @@
-import { Int8, Int16, Int32, Float32 } from "./index.js";
-import { TAG, getTagType } from "./index.js";
+import { Int8, Int16, Int32, Float32 } from "./primitive.js";
+import { TAG, getTagType } from "./tag.js";
 
-import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./index.js";
+import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 
