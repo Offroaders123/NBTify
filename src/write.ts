@@ -1,3 +1,4 @@
+import { MUtf8Encoder } from "mutf-8";
 import { NBTData } from "./format.js";
 import { TAG, TAG_TYPE, isTag, getTagType } from "./tag.js";
 import { Int32 } from "./primitive.js";
@@ -46,7 +47,7 @@ class NBTWriter {
   #data: Uint8Array = new Uint8Array(1024);
   #view: DataView = new DataView(this.#data.buffer);
   #littleEndian: boolean;
-  #encoder: TextEncoder = new TextEncoder();
+  #encoder: MUtf8Encoder = new MUtf8Encoder();
 
   constructor(littleEndian: boolean) {
     this.#littleEndian = littleEndian;

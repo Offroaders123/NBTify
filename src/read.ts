@@ -1,3 +1,4 @@
+import { MUtf8Decoder } from "mutf-8";
 import { NBTData } from "./format.js";
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG, TAG_TYPE } from "./tag.js";
@@ -120,7 +121,7 @@ class NBTReader {
   #data: Uint8Array;
   #view: DataView;
   #littleEndian: boolean;
-  #decoder: TextDecoder = new TextDecoder();
+  #decoder: MUtf8Decoder = new MUtf8Decoder();
 
   constructor(data: Uint8Array, littleEndian: boolean) {
     this.#data = data;
