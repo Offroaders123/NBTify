@@ -1,6 +1,5 @@
 import { NBTData } from "./format.js";
 import { TAG, isTag, getTagType } from "./tag.js";
-import { Int8, Int32 } from "./primitive.js";
 
 import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
@@ -59,15 +58,15 @@ function stringifyTag(value: Tag, space: string, level: number): string {
   }
 }
 
-function stringifyByte(value: ByteTag | BooleanTag): string {
+function stringifyByte(value: number | ByteTag | BooleanTag): string {
   return (typeof value === "boolean") ? `${value}` : `${value.valueOf()}b`;
 }
 
-function stringifyShort(value: ShortTag): string {
+function stringifyShort(value: number | ShortTag): string {
   return `${value.valueOf()}s`;
 }
 
-function stringifyInt(value: IntTag): string {
+function stringifyInt(value: number | IntTag): string {
   return `${value.valueOf()}`;
 }
 
@@ -75,7 +74,7 @@ function stringifyLong(value: LongTag): string {
   return `${value}l`;
 }
 
-function stringifyFloat(value: FloatTag): string {
+function stringifyFloat(value: number | FloatTag): string {
   return `${value.valueOf()}${Number.isInteger(value.valueOf()) ? ".0" : ""}f`;
 }
 
@@ -84,7 +83,7 @@ function stringifyDouble(value: DoubleTag): string {
 }
 
 function stringifyByteArray(value: ByteArrayTag): string {
-  return `[B;${[...value].map(entry => stringifyByte(new Int8(entry))).join() satisfies string}]`;
+  return `[B;${[...value].map(entry => stringifyByte(entry)).join() satisfies string}]`;
 }
 
 function stringifyString(value: StringTag): string {
@@ -125,7 +124,7 @@ function stringifyCompound(value: CompoundTag, space: string, level: number): st
 }
 
 function stringifyIntArray(value: IntArrayTag): string {
-  return `[I;${[...value].map(entry => stringifyInt(new Int32(entry))).join() satisfies string}]`;
+  return `[I;${[...value].map(entry => stringifyInt(entry)).join() satisfies string}]`;
 }
 
 function stringifyLongArray(value: LongArrayTag): string {
