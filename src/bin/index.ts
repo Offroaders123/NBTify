@@ -18,29 +18,28 @@ const buffer: Buffer = readFileSync(file);
 let input: RootTag | NBTData;
 
 if (file === 0) {
-  try {
-    input = JSON.parse(buffer.toString("utf-8")) as RootTag;
-  } catch {
-    try {
-      input = parse(buffer.toString("utf-8"));
-    } catch {
-      input = await read(buffer);
-    }
-  }
+  input = await readBuffer();
 } else {
+  input = await readExtension(file);
+}
+
+async function readExtension(file: string): Promise<RootTag | NBTData> {
   const extension: string = extname(file);
   switch (extension) {
-    case ".json": {
-      input = JSON.parse(buffer.toString("utf-8")) as RootTag;
-      break;
-    }
-    case ".snbt": {
-      input = parse(buffer.toString("utf-8"));
-      break;
-    }
-    default: {
-      input = await read(buffer);
-      break;
+    case ".json": return JSON.parse(buffer.toString("utf-8")) as RootTag;
+    case ".snbt": return parse(buffer.toString("utf-8"));
+    default: return read(buffer);
+  }
+}
+
+async function readBuffer(): Promise<RootTag | NBTData> {
+  try {
+    return JSON.parse(buffer.toString("utf-8")) as RootTag;
+  } catch {
+    try {
+      return parse(buffer.toString("utf-8"));
+    } catch {
+      return read(buffer);
     }
   }
 }
