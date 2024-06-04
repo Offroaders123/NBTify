@@ -1,4 +1,4 @@
-import type { NBTDataOptions, StringifyOptions } from "../index.js";
+import type { Format, StringifyOptions } from "../index.js";
 
 const NBT_PATTERN = /^--nbt$/;
 const SNBT_PATTERN = /^--snbt$/;
@@ -47,26 +47,22 @@ export const snbt: boolean = args
 export const json: boolean = args
   .some(arg => JSON_PATTERN.test(arg));
 
-type NonPartial<T> = { [K in keyof Required<T>]: T[K] };
-
-type NonPartialFormat = NonPartial<NBTDataOptions>;
-
-const rootName: NonPartialFormat["rootName"] = args
+const rootName: Format["rootName"] = args
   .find(arg => ROOT_NAME_PATTERN.test(arg))
   ?.replace(ROOT_NAME_PATTERN, "");
 
-const endian: NonPartialFormat["endian"] = args
+const endian: Format["endian"] = args
   .find(arg => ENDIAN_PATTERN.test(arg))
-  ?.replace(ENDIAN_PATTERN, "") as NonPartialFormat["endian"];
+  ?.replace(ENDIAN_PATTERN, "");
 
-const compression: NonPartialFormat["compression"] = (() => {
+const compression: Format["compression"] = (() => {
   const value: string | undefined = args
     .find(arg => COMPRESSION_PATTERN.test(arg))
     ?.replace(COMPRESSION_PATTERN, "");
-  return value === "null" ? null : value as NonPartialFormat["compression"];
+  return value === "null" ? null : value;
 })();
 
-const bedrockLevel: NonPartialFormat["bedrockLevel"] = (() => {
+const bedrockLevel: Format["bedrockLevel"] = (() => {
   const value: string | undefined = args
     .find(arg => BEDROCK_LEVEL_PATTERN.test(arg))
     ?.replace(BEDROCK_LEVEL_PATTERN, "");
@@ -79,7 +75,7 @@ const bedrockLevel: NonPartialFormat["bedrockLevel"] = (() => {
   }
 })();
 
-export const format: NonPartialFormat = { rootName, endian, compression, bedrockLevel };
+export const format: Format = { rootName, endian, compression, bedrockLevel };
 
 export const space: StringifyOptions["space"] = (() => {
   const space: string | undefined = args

@@ -15,7 +15,7 @@ export interface Format {
 export interface NBTDataOptions extends Partial<Format> {}
 
 /**
- * A container which maintains how a given NBT object should be serialized.
+ * A container which maintains how a given NBT object is formatted.
 */
 export class NBTData<T extends RootTagLike = RootTag> implements Format {
   data: T;
