@@ -36,7 +36,8 @@
   },
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "dependencies": {
-    "mutf-8": "^1.1.3"
+    "mutf-8": "^1.1.3",
+    "prismarine-nbt": "^2.5.0"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

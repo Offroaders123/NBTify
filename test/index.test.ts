@@ -81,6 +81,18 @@ describe("Read, Stringify, Parse and Write", () => {
       */
       const compare = Buffer.compare(control, experiment);
       strictEqual(compare, 0, `'${name}' does not symmetrically recompile`);
+
+      // console.log(result);
+      const pnbt = await NBT.toPNBT(result);
+      // console.log(pnbt);
+      const nbt = await NBT.fromPNBT(pnbt);
+      // console.log(nbt);
+
+      const pnbtControl = await NBT.write(result instanceof NBT.NBTData ? result.data : result);
+      const pnbtExperiment = await NBT.write(nbt);
+
+      const pnbtCompare = Buffer.compare(pnbtControl, pnbtExperiment);
+      strictEqual(pnbtCompare, 0, `'${name}' does not symmetrically convert back and forth between Prismarine-NBT`);
     });
   }
 });

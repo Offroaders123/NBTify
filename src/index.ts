@@ -7,3 +7,4 @@ export * from "./tag.js";
 export * from "./primitive.js";
 export * from "./error.js";
 export * from "./compression.js";
+export * from "./convert.js";
