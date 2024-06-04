@@ -1,4 +1,4 @@
-import type { Format, StringifyOptions } from "../index.js";
+import type { Format, NBTDataOptions, StringifyOptions } from "../index.js";
 
 const NBT_PATTERN = /^--nbt$/;
 const SNBT_PATTERN = /^--snbt$/;
@@ -47,22 +47,22 @@ export const snbt: boolean = args
 export const json: boolean = args
   .some(arg => JSON_PATTERN.test(arg));
 
-const rootName: Format["rootName"] = args
+const rootName: NBTDataOptions["rootName"] = args
   .find(arg => ROOT_NAME_PATTERN.test(arg))
   ?.replace(ROOT_NAME_PATTERN, "");
 
-const endian: Format["endian"] = args
+const endian: NBTDataOptions["endian"] = args
   .find(arg => ENDIAN_PATTERN.test(arg))
   ?.replace(ENDIAN_PATTERN, "");
 
-const compression: Format["compression"] = (() => {
+const compression: NBTDataOptions["compression"] = (() => {
   const value: string | undefined = args
     .find(arg => COMPRESSION_PATTERN.test(arg))
     ?.replace(COMPRESSION_PATTERN, "");
   return value === "null" ? null : value;
 })();
 
-const bedrockLevel: Format["bedrockLevel"] = (() => {
+const bedrockLevel: NBTDataOptions["bedrockLevel"] = (() => {
   const value: string | undefined = args
     .find(arg => BEDROCK_LEVEL_PATTERN.test(arg))
     ?.replace(BEDROCK_LEVEL_PATTERN, "");
@@ -75,7 +75,7 @@ const bedrockLevel: Format["bedrockLevel"] = (() => {
   }
 })();
 
-export const format: Format = { rootName, endian, compression, bedrockLevel };
+export const format: NBTDataOptions = { rootName, endian, compression, bedrockLevel };
 
 export const space: StringifyOptions["space"] = (() => {
   const space: string | undefined = args
