@@ -18,12 +18,16 @@ const buffer: Buffer = readFileSync(file);
 let input: RootTag | NBTData;
 
 if (file === 0) {
-  input = await readBuffer();
+  input = await readBuffer(buffer);
 } else {
-  input = await readExtension(file);
+  try {
+    input = await readExtension(buffer, file);
+  } catch {
+    input = await readBuffer(buffer);
+  }
 }
 
-async function readExtension(file: string): Promise<RootTag | NBTData> {
+async function readExtension(buffer: Buffer, file: string): Promise<RootTag | NBTData> {
   const extension: string = extname(file);
   switch (extension) {
     case ".json": return JSON.parse(buffer.toString("utf-8")) as RootTag;
@@ -32,7 +36,7 @@ async function readExtension(file: string): Promise<RootTag | NBTData> {
   }
 }
 
-async function readBuffer(): Promise<RootTag | NBTData> {
+async function readBuffer(buffer: Buffer): Promise<RootTag | NBTData> {
   try {
     return JSON.parse(buffer.toString("utf-8")) as RootTag;
   } catch {
