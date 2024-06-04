@@ -58,8 +58,8 @@ if (!nbt && !snbt && !json) {
 const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
 
 const result: string | Uint8Array = json
-  ? `${JSON.stringify(output.data, null, space ?? 2)}\n`
+  ? `${JSON.stringify(output.data, null, space)}\n`
   : snbt
-  ? `${stringify(output, { space: space ?? 2 })}\n`
+  ? `${stringify(output, { space })}\n`
   : await write(output);
 await stdoutWriteAsync(result);
