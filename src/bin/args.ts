@@ -1,4 +1,4 @@
-import type { Format, NBTDataOptions, StringifyOptions } from "../index.js";
+import type { NBTDataOptions, StringifyOptions } from "../index.js";
 
 const NBT_PATTERN = /^--nbt$/;
 const SNBT_PATTERN = /^--snbt$/;
@@ -51,14 +51,25 @@ const rootName: NBTDataOptions["rootName"] = args
   .find(arg => ROOT_NAME_PATTERN.test(arg))
   ?.replace(ROOT_NAME_PATTERN, "");
 
-const endian: NBTDataOptions["endian"] = args
-  .find(arg => ENDIAN_PATTERN.test(arg))
-  ?.replace(ENDIAN_PATTERN, "");
+const endian: NBTDataOptions["endian"] = (() => {
+  const value: string | undefined = args
+    .find(arg => ENDIAN_PATTERN.test(arg))
+    ?.replace(ENDIAN_PATTERN, "");
+  if (value !== undefined && value !== "big" && value !== "little") {
+    value satisfies string;
+    throw new TypeError("Endian option must be a valid endian type");
+  }
+  return value;
+})();
 
 const compression: NBTDataOptions["compression"] = (() => {
   const value: string | undefined = args
     .find(arg => COMPRESSION_PATTERN.test(arg))
     ?.replace(COMPRESSION_PATTERN, "");
+  if (value !== undefined && value !== "deflate" && value !== "deflate-raw" && value !== "gzip" && value !== "null") {
+    value satisfies string;
+    throw new TypeError("Compression option must be a valid compression type");
+  }
   return value === "null" ? null : value;
 })();
 
