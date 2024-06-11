@@ -50,7 +50,7 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
     this.bedrockLevel = bedrockLevel;
   }
 
-  get [Symbol.toStringTag]() {
-    return "NBTData" as const;
+  get [Symbol.toStringTag](): "NBTData" {
+    return "NBTData";
   }
 }
