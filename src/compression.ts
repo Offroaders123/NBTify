@@ -21,9 +21,9 @@ async function pipeThroughCompressionStream(data: Uint8Array, { readable, writab
   writer.close().catch(() => {});
 
   const chunks: Uint8Array[] = [];
-  let byteLength = 0;
+  let byteLength: number = 0;
 
-  const iterator = readableStreamToAsyncIterable(readable);
+  const iterator: AsyncIterable<Uint8Array> = readableStreamToAsyncIterable(readable);
 
   for await (const chunk of iterator) {
     chunks.push(chunk);
@@ -31,7 +31,7 @@ async function pipeThroughCompressionStream(data: Uint8Array, { readable, writab
   }
 
   const result = new Uint8Array(byteLength);
-  let byteOffset = 0;
+  let byteOffset: number = 0;
 
   for (const chunk of chunks) {
     result.set(chunk, byteOffset);
@@ -49,7 +49,7 @@ function readableStreamToAsyncIterable<T>(readable: ReadableStream<T>): AsyncIte
 }
 
 async function* readableStreamToAsyncGenerator<T>(readable: ReadableStream<T>): AsyncGenerator<T, void, void> {
-  const reader = readable.getReader();
+  const reader: ReadableStreamDefaultReader<T> = readable.getReader();
   try {
     while (true) {
       const { done, value } = await reader.read();
