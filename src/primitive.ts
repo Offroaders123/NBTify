@@ -7,12 +7,12 @@ export class Int8<T extends number = number> extends Number {
     super(value << 24 >> 24);
   }
 
-  override valueOf() {
+  override valueOf(): T {
     return super.valueOf() as T;
   }
 
-  get [Symbol.toStringTag]() {
-    return "Int8" as const;
+  get [Symbol.toStringTag](): "Int8" {
+    return "Int8";
   }
 
   /**
@@ -28,12 +28,12 @@ export class Int16<T extends number = number> extends Number {
     super(value << 16 >> 16);
   }
 
-  override valueOf() {
+  override valueOf(): T {
     return super.valueOf() as T;
   }
 
-  get [Symbol.toStringTag]() {
-    return "Int16" as const;
+  get [Symbol.toStringTag](): "Int16" {
+    return "Int16";
   }
 
   /**
@@ -49,12 +49,12 @@ export class Int32<T extends number = number> extends Number {
     super(value | 0);
   }
 
-  override valueOf() {
+  override valueOf(): T {
     return super.valueOf() as T;
   }
 
-  get [Symbol.toStringTag]() {
-    return "Int32" as const;
+  get [Symbol.toStringTag](): "Int32" {
+    return "Int32";
   }
 
   /**
@@ -70,12 +70,12 @@ export class Float32<T extends number = number> extends Number {
     super(value);
   }
 
-  override valueOf() {
+  override valueOf(): T {
     return super.valueOf() as T;
   }
 
-  get [Symbol.toStringTag]() {
-    return "Float32" as const;
+  get [Symbol.toStringTag](): "Float32" {
+    return "Float32";
   }
 
   /**
