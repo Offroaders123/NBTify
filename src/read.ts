@@ -1,7 +1,7 @@
 import { MUtf8Decoder } from "mutf-8";
 import { NBTData } from "./format.js";
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
-import { TAG, TAG_TYPE } from "./tag.js";
+import { TAG, TAG_TYPE, isTagType } from "./tag.js";
 import { decompress } from "./compression.js";
 import { NBTError } from "./error.js";
 
@@ -203,8 +203,12 @@ class NBTReader {
     }
   }
 
-  #readTagType() {
-    return this.#readUnsignedByte() as TAG;
+  #readTagType(): TAG {
+    const type: number = this.#readUnsignedByte();
+    if (!isTagType(type)) {
+      throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${this.#byteOffset}`);
+    }
+    return type;
   }
 
   #readUnsignedByte(): number {

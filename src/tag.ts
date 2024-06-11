@@ -72,6 +72,10 @@ export function isTag<T extends Tag>(value: any): value is T {
   return getTagType(value) !== null;
 }
 
+export function isTagType(type: any): type is TAG {
+  return type in TAG;
+}
+
 export function getTagType(value: Tag): TAG;
 export function getTagType(value: any): TAG | null;
 export function getTagType(value: any): TAG | null {
