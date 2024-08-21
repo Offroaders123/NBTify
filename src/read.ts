@@ -120,8 +120,8 @@ class NBTReader {
   #byteOffset: number = 0;
   #data: Uint8Array;
   #view: DataView;
-  #littleEndian: boolean;
-  #decoder: MUtf8Decoder = new MUtf8Decoder();
+  readonly #littleEndian: boolean;
+  readonly #decoder: MUtf8Decoder = new MUtf8Decoder();
 
   constructor(data: Uint8Array, littleEndian: boolean) {
     this.#data = data;
@@ -130,18 +130,18 @@ class NBTReader {
   }
 
   hasGzipHeader(): boolean {
-    const header = this.#view.getUint16(0, false);
+    const header: number = this.#view.getUint16(0, false);
     return header === 0x1F8B;
   }
 
   hasZlibHeader(): boolean {
-    const header = this.#view.getUint8(0);
+    const header: number = this.#view.getUint8(0);
     return header === 0x78;
   }
 
   hasBedrockLevelHeader(endian: Endian): boolean {
     if (endian !== "little" || this.#data.byteLength < 8) return false;
-    const byteLength = this.#view.getUint32(4, true);
+    const byteLength: number = this.#view.getUint32(4, true);
     return byteLength === this.#data.byteLength - 8;
   }
 
@@ -163,7 +163,7 @@ class NBTReader {
       this.#readUnsignedInt();
     }
 
-    const type = this.#readTagType();
+    const type: TAG = this.#readTagType();
     if (type !== TAG.LIST && type !== TAG.COMPOUND) {
       throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
     }
@@ -172,7 +172,7 @@ class NBTReader {
     const root: T = this.#readTag<T>(type);
 
     if (strict && this.#data.byteLength > this.#byteOffset) {
-      const remaining = this.#data.byteLength - this.#byteOffset;
+      const remaining: number = this.#data.byteLength - this.#byteOffset;
       throw new NBTError(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`, { byteOffset: this.#byteOffset, cause: new NBTData<RootTag>(root as RootTag, { rootName: rootNameV, endian }), remaining });
     }
 
@@ -184,7 +184,7 @@ class NBTReader {
   #readTag(type: TAG): Tag {
     switch (type) {
       case TAG.END: {
-        const remaining = this.#data.byteLength - this.#byteOffset;
+        const remaining: number = this.#data.byteLength - this.#byteOffset;
         throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
       }
       case TAG.BYTE: return this.#readByte();
@@ -213,7 +213,7 @@ class NBTReader {
 
   #readUnsignedByte(): number {
     this.#allocate(1);
-    const value = this.#view.getUint8(this.#byteOffset);
+    const value: number = this.#view.getUint8(this.#byteOffset);
     this.#byteOffset += 1;
     return value;
   }
@@ -222,14 +222,14 @@ class NBTReader {
   #readByte(valueOf: true): number;
   #readByte(valueOf: boolean = false): number | ByteTag {
     this.#allocate(1);
-    const value = this.#view.getInt8(this.#byteOffset);
+    const value: number = this.#view.getInt8(this.#byteOffset);
     this.#byteOffset += 1;
     return (valueOf) ? value : new Int8(value);
   }
 
   #readUnsignedShort(): number {
     this.#allocate(2);
-    const value = this.#view.getUint16(this.#byteOffset, this.#littleEndian);
+    const value: number = this.#view.getUint16(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 2;
     return value;
   }
@@ -238,14 +238,14 @@ class NBTReader {
   #readShort(valueOf: true): number;
   #readShort(valueOf: boolean = false): number | ShortTag {
     this.#allocate(2);
-    const value = this.#view.getInt16(this.#byteOffset, this.#littleEndian);
+    const value: number = this.#view.getInt16(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 2;
     return (valueOf) ? value : new Int16(value);
   }
 
   #readUnsignedInt(): number {
     this.#allocate(4);
-    const value = this.#view.getUint32(this.#byteOffset, this.#littleEndian);
+    const value: number = this.#view.getUint32(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 4;
     return value;
   }
@@ -254,14 +254,14 @@ class NBTReader {
   #readInt(valueOf: true): number;
   #readInt(valueOf: boolean = false): number | IntTag {
     this.#allocate(4);
-    const value = this.#view.getInt32(this.#byteOffset, this.#littleEndian);
+    const value: number = this.#view.getInt32(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 4;
     return (valueOf) ? value : new Int32(value);
   }
 
   #readLong(): LongTag {
     this.#allocate(8);
-    const value = this.#view.getBigInt64(this.#byteOffset, this.#littleEndian);
+    const value: bigint = this.#view.getBigInt64(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
@@ -270,20 +270,20 @@ class NBTReader {
   #readFloat(valueOf: true): number;
   #readFloat(valueOf: boolean = false): number | FloatTag {
     this.#allocate(4);
-    const value = this.#view.getFloat32(this.#byteOffset, this.#littleEndian);
+    const value: number = this.#view.getFloat32(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 4;
     return (valueOf) ? value : new Float32(value);
   }
 
   #readDouble(): DoubleTag {
     this.#allocate(8);
-    const value = this.#view.getFloat64(this.#byteOffset, this.#littleEndian);
+    const value: number = this.#view.getFloat64(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 8;
     return value;
   }
 
   #readByteArray(): ByteArrayTag {
-    const length = this.#readInt(true);
+    const length: number = this.#readInt(true);
     this.#allocate(length);
     const value = new Int8Array(this.#data.subarray(this.#byteOffset, this.#byteOffset + length));
     this.#byteOffset += length;
@@ -291,16 +291,16 @@ class NBTReader {
   }
 
   #readString(): StringTag {
-    const length = this.#readUnsignedShort();
+    const length: number = this.#readUnsignedShort();
     this.#allocate(length);
-    const value = this.#decoder.decode(this.#data.subarray(this.#byteOffset, this.#byteOffset + length));
+    const value: string = this.#decoder.decode(this.#data.subarray(this.#byteOffset, this.#byteOffset + length));
     this.#byteOffset += length;
     return value;
   }
 
   #readList(): ListTag<Tag> {
-    const type = this.#readTagType();
-    const length = this.#readInt(true);
+    const type: TAG = this.#readTagType();
+    const length: number = this.#readInt(true);
     const value: ListTag<Tag> = [];
     Object.defineProperty(value, TAG_TYPE, {
       configurable: true,
@@ -308,8 +308,8 @@ class NBTReader {
       writable: true,
       value: type
     });
-    for (let i = 0; i < length; i++) {
-      const entry = this.#readTag(type);
+    for (let i: number = 0; i < length; i++) {
+      const entry: Tag = this.#readTag(type);
       value.push(entry);
     }
     return value;
@@ -318,30 +318,30 @@ class NBTReader {
   #readCompound(): CompoundTag {
     const value: CompoundTag = {};
     while (true) {
-      const type = this.#readTagType();
+      const type: TAG = this.#readTagType();
       if (type === TAG.END) break;
-      const name = this.#readString();
-      const entry = this.#readTag(type);
+      const name: string = this.#readString();
+      const entry: Tag = this.#readTag(type);
       value[name] = entry;
     }
     return value;
   }
 
   #readIntArray(): IntArrayTag {
-    const length = this.#readInt(true);
+    const length: number = this.#readInt(true);
     const value = new Int32Array(length);
     for (const i in value) {
-      const entry = this.#readInt(true);
+      const entry: number = this.#readInt(true);
       value[i] = entry;
     }
     return value;
   }
 
   #readLongArray(): LongArrayTag {
-    const length = this.#readInt(true);
+    const length: number = this.#readInt(true);
     const value = new BigInt64Array(length);
     for (const i in value) {
-      const entry = this.#readLong();
+      const entry: bigint = this.#readLong();
       value[i] = entry;
     }
     return value;

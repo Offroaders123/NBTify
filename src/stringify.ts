@@ -31,7 +31,7 @@ export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>,
 }
 
 function stringifyRoot(value: RootTag, space: string, level: number): string {
-  const type = getTagType(value);
+  const type: TAG = getTagType(value);
   if (type !== TAG.LIST && type !== TAG.COMPOUND) {
     throw new TypeError("Encountered unexpected Root tag type, must be either a List or Compound tag");
   }
@@ -40,7 +40,7 @@ function stringifyRoot(value: RootTag, space: string, level: number): string {
 }
 
 function stringifyTag(value: Tag, space: string, level: number): string {
-  const type = getTagType(value);
+  const type: TAG = getTagType(value);
   switch (type) {
     case TAG.BYTE: return stringifyByte(value as ByteTag | BooleanTag);
     case TAG.SHORT: return stringifyShort(value as ShortTag);
@@ -87,8 +87,8 @@ function stringifyByteArray(value: ByteArrayTag): string {
 }
 
 function stringifyString(value: StringTag): string {
-  const singleQuoteString = escapeString(value.replace(/['\\]/g, character => `\\${character}`));
-  const doubleQuoteString = escapeString(value.replace(/["\\]/g, character => `\\${character}`));
+  const singleQuoteString: string = escapeString(value.replace(/['\\]/g, character => `\\${character}`));
+  const doubleQuoteString: string = escapeString(value.replace(/["\\]/g, character => `\\${character}`));
   return (singleQuoteString.length < doubleQuoteString.length) ? `'${singleQuoteString}'` : `"${doubleQuoteString}"`;
 }
 
@@ -103,22 +103,22 @@ function escapeString(value: StringTag): string {
 
 function stringifyList(value: ListTag<Tag>, space: string, level: number): string {
   value = value.filter(isTag);
-  const fancy = (space !== "");
+  const fancy: boolean = (space !== "");
   const type: TAG = (value[0] !== undefined) ? getTagType(value[0]) : TAG.END;
-  const isIndentedList = fancy && new Set<TAG>([TAG.BYTE_ARRAY, TAG.LIST, TAG.COMPOUND, TAG.INT_ARRAY, TAG.LONG_ARRAY]).has(type);
+  const isIndentedList: boolean = fancy && new Set<TAG>([TAG.BYTE_ARRAY, TAG.LIST, TAG.COMPOUND, TAG.INT_ARRAY, TAG.LONG_ARRAY]).has(type);
   return `[${value.map(entry => `${isIndentedList ? `\n${space.repeat(level)}` : ""}${(() => {
     if (getTagType(entry) !== type) {
       throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
     }
-    const result = stringifyTag(entry, space, level + 1);
+    const result: string = stringifyTag(entry, space, level + 1);
     return result;
   })() satisfies string}`).join(`,${fancy && !isIndentedList ? " " : ""}`)}${isIndentedList ? `\n${space.repeat(level - 1)}` : ""}]`;
 }
 
 function stringifyCompound(value: CompoundTag, space: string, level: number): string {
-  const fancy = (space !== "");
+  const fancy: boolean = (space !== "");
   return `{${Object.entries(value).filter((entry): entry is [string, Tag] => isTag(entry[1])).map(([key, value]) => `${fancy ? `\n${(space satisfies string).repeat(level)}` : ""}${/^[0-9a-z_\-.+]+$/i.test(key) ? key : stringifyString(key)}:${fancy ? " " : ""}${(() => {
-    const result = stringifyTag(value, space, level + 1);
+    const result: string = stringifyTag(value, space, level + 1);
     return result;
   })() satisfies string}`).join(",")}${fancy && Object.keys(value).length !== 0 ? `\n${space.repeat(level - 1)}` : ""}}`;
 }

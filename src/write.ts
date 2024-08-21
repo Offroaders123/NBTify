@@ -46,18 +46,18 @@ class NBTWriter {
   #byteOffset: number = 0;
   #data: Uint8Array = new Uint8Array(1024);
   #view: DataView = new DataView(this.#data.buffer);
-  #littleEndian: boolean;
-  #encoder: MUtf8Encoder = new MUtf8Encoder();
+  readonly #littleEndian: boolean;
+  readonly #encoder: MUtf8Encoder = new MUtf8Encoder();
 
   constructor(littleEndian: boolean) {
     this.#littleEndian = littleEndian;
   }
 
   #allocate(byteLength: number): void {
-    const required = this.#byteOffset + byteLength;
+    const required: number = this.#byteOffset + byteLength;
     if (this.#data.byteLength >= required) return;
 
-    let length = this.#data.byteLength;
+    let length: number = this.#data.byteLength;
 
     while (length < required) {
       length *= 2;
@@ -83,7 +83,7 @@ class NBTWriter {
   async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>): Promise<Uint8Array> {
     const { data: root, rootName, endian, compression, bedrockLevel } = data;
     const littleEndian: boolean = endian === "little";
-    const type = getTagType(root);
+    const type: Tag | null = getTagType(root);
     if (type !== TAG.LIST && type !== TAG.COMPOUND) {
       throw new TypeError(`Encountered unexpected Root tag type '${type}', must be either a List or Compound tag`);
     }
@@ -105,12 +105,12 @@ class NBTWriter {
         throw new TypeError("Expected a 'StorageVersion' Int tag when Bedrock Level flag is enabled");
       }
       const version: number = root["StorageVersion"].valueOf();
-      const byteLength = this.#byteOffset - 8;
+      const byteLength: number = this.#byteOffset - 8;
       this.#view.setUint32(0, version, littleEndian);
       this.#view.setUint32(4, byteLength, littleEndian);
     }
 
-    let result = this.#trimmedEnd();
+    let result: Uint8Array = this.#trimmedEnd();
 
     if (compression !== null) {
       result = await compress(result, compression);
@@ -120,7 +120,7 @@ class NBTWriter {
   }
 
   #writeTag(value: Tag): this {
-    const type = getTagType(value);
+    const type: TAG = getTagType(value);
     switch (type) {
       case TAG.BYTE: return this.#writeByte(value as ByteTag | BooleanTag);
       case TAG.SHORT: return this.#writeShort(value as ShortTag);
@@ -216,7 +216,7 @@ class NBTWriter {
   }
 
   #writeString(value: StringTag): this {
-    const entry = this.#encoder.encode(value);
+    const entry: Uint8Array = this.#encoder.encode(value);
     const { length } = entry;
     this.#writeUnsignedShort(length);
     this.#allocate(length);
@@ -244,7 +244,7 @@ class NBTWriter {
   #writeCompound(value: CompoundTag): this {
     for (const [name, entry] of Object.entries(value)) {
       if (entry === undefined) continue;
-      const type = getTagType(entry as unknown);
+      const type: TAG | null = getTagType(entry as unknown);
       if (type === null) continue;
       this.#writeTagType(type);
       this.#writeString(name);

@@ -22,7 +22,7 @@ interface IndexRef {
 }
 
   function peek(data: string, index: number, byteOffset: number = index): string {
-    const value = data[byteOffset];
+    const value: string | undefined = data[byteOffset];
     if (value === undefined) {
       throw unexpectedEnd();
     }
@@ -59,8 +59,8 @@ interface IndexRef {
       }
       case "[": {
         index.index++;
-        const list = parseList(data, "[root]", i, index);
-        const type = getTagType(list);
+        const list: ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag = parseList(data, "[root]", i, index);
+        const type: TAG = getTagType(list);
         if (type !== TAG.LIST) break;
         return list as ListTag<Tag>;
       }
@@ -89,7 +89,7 @@ interface IndexRef {
         ) {
           return (parseUnquotedString(data, i, index) as "true" | "false" === "true") as BooleanTag;
         }
-        const value = parseNumber(data, i, index);
+        const value: ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null = parseNumber(data, i, index);
         if (value != null && (index.index == data.length || !UNQUOTED_STRING_PATTERN.test(peek(data, index.index)))) {
           return value;
         }
@@ -102,10 +102,10 @@ interface IndexRef {
     if (!"-0123456789".includes(peek(data, index.index))) return null;
 
     i = index.index++;
-    let hasFloatingPoint = false;
+    let hasFloatingPoint: boolean = false;
 
     while (index.index < data.length) {
-      const char = peek(data, index.index);
+      const char: string = peek(data, index.index);
       index.index++;
       if ("0123456789e-+".includes(char)) continue;
 
@@ -168,13 +168,13 @@ interface IndexRef {
   }
 
   function parseQuotedString(data: string, index: IndexRef): StringTag {
-    const quoteChar = peek(data, index.index);
+    const quoteChar: string = peek(data, index.index);
     // i = 
     ++index.index;
-    let string = "";
+    let string: string = "";
 
     while (index.index < data.length) {
-      let char = peek(data, index.index++);
+      let char: string = peek(data, index.index++);
 
       if (char === "\\") {
         char = `\\${peek(data, index.index++)}`;
@@ -242,7 +242,7 @@ interface IndexRef {
         index.index++;
       }
 
-      const prefix = (type === "B") ? "b" : (type === "L") ? "l" : "";
+      const prefix: "b" | "l" | "" = (type === "B") ? "b" : (type === "L") ? "l" : "";
 
       if (peek(data, index.index) == prefix) {
         index.index++;
@@ -288,7 +288,7 @@ interface IndexRef {
         return array satisfies ListTag<Tag>;
       }
 
-      const entry = parseTag(data, key, i, index);
+      const entry: Tag = parseTag(data, key, i, index);
 
       if (type === undefined) {
         type = getTagType(entry);
@@ -305,7 +305,7 @@ interface IndexRef {
 
   function parseCompound(data: string, i: number, index: IndexRef): CompoundTag {
     const entries: [string, Tag | undefined][] = [];
-    let first = true;
+    let first: boolean = true;
 
     while (true) {
       skipCommas(data, first, "}", index);
@@ -316,7 +316,7 @@ interface IndexRef {
         return entries.reduce<CompoundTag>((obj, [k, v]) => (obj[k] = v, obj), {});
       }
 
-      const key = parseString(data, i, index);
+      const key: string = parseString(data, i, index);
       skipWhitespace(data, index);
 
       if (data[index.index++] != ":") {

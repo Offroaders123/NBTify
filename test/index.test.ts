@@ -3,10 +3,10 @@ import { strictEqual, throws } from "node:assert";
 import { readFile, readdir } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
-const paths = await readdir(new URL("./nbt/", import.meta.url))
+const paths: string[] = await readdir(new URL("./nbt/", import.meta.url))
   .then(paths => paths.sort(Intl.Collator().compare));
 
-const files = await Promise.all(paths.map(async name => {
+const files: { name: string; buffer: Buffer; }[] = await Promise.all(paths.map(async name => {
   const buffer = await readFile(new URL(`./nbt/${name}`, import.meta.url));
   return { name, buffer };
 }));
@@ -16,16 +16,16 @@ describe("Read, Stringify, Parse and Write", () => {
     if (name.includes("varint")) continue;
     it(name, async () => {
       /** Determines if the file is SNBT */
-      const snbt = name.endsWith(".snbt");
+      const snbt: boolean = name.endsWith(".snbt");
 
       /** Reads the SNBT List Item assertion type file. */
-      const listItemAssertion = snbt && name.startsWith("list_item_check");
+      const listItemAssertion: boolean = snbt && name.startsWith("list_item_check");
 
       /** Determines if the test is for checking empty list handling. */
-      const emptyList = name.startsWith("empty");
+      const emptyList: boolean = name.startsWith("empty");
 
       /** Disables strict mode for the Legacy Console Edition player data files. */
-      const strict = !name.includes("_280dfc");
+      const strict: boolean = !name.includes("_280dfc");
 
       /** Reads the NBT file buffer by auto-detecting the file format. */
       const result: void | NBT.RootTag | NBT.NBTData = (snbt)
@@ -42,10 +42,10 @@ describe("Read, Stringify, Parse and Write", () => {
       if (stringified === undefined) return;
 
       /** Parses the SNBT string to a new NBTData result. */
-      const parsed = NBT.parse<NBT.RootTag>(stringified);
+      const parsed: NBT.RootTag = NBT.parse<NBT.RootTag>(stringified);
 
       /** Writes the new NBTData result to a recompiled NBT buffer. */
-      const recompile = (snbt)
+      const recompile: Buffer | Uint8Array = (snbt)
         ? Buffer.from(NBT.stringify(parsed,
           (snbt)
             ? undefined
@@ -63,23 +63,23 @@ describe("Read, Stringify, Parse and Write", () => {
        * than the full file size.
       */
       if (!strict) return;
-      const compression = (result instanceof NBT.NBTData)
+      const compression: NBT.Compression = (result instanceof NBT.NBTData)
         ? result.compression
         : null;
-      const header = (compression !== null && compression !== "deflate-raw") ? 10 : 0;
+      const header: 0 | 10 = (compression !== null && compression !== "deflate-raw") ? 10 : 0;
 
-      const control = (snbt)
+      const control: Buffer = (snbt)
         ? Buffer.from(stringified)
         : buffer.subarray(header);
 
-      const experiment = recompile.subarray(header);
+      const experiment: Buffer | Uint8Array = recompile.subarray(header);
 
       /**
        * Compare the original NBT file buffer to that of the recompiled buffer,
        * ensure that they are byte-for-byte the same, asserting that NBTify has
        * it's formats implemented correctly!
       */
-      const compare = Buffer.compare(control, experiment);
+      const compare: 0 | 1 | -1 = Buffer.compare(control, experiment);
       strictEqual(compare, 0, `'${name}' does not symmetrically recompile`);
     });
   }

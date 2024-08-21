@@ -68,17 +68,17 @@ Object.freeze(TAG);
 
 export const TAG_TYPE = Symbol("nbtify.tag.type");
 
-export function isTag<T extends Tag>(value: any): value is T {
+export function isTag<T extends Tag>(value: unknown): value is T {
   return getTagType(value) !== null;
 }
 
-export function isTagType(type: any): type is TAG {
-  return type in TAG;
+export function isTagType(type: unknown): type is TAG {
+  return typeof type === "number" && type in TAG;
 }
 
 export function getTagType(value: Tag): TAG;
-export function getTagType(value: any): TAG | null;
-export function getTagType(value: any): TAG | null {
+export function getTagType(value: unknown): TAG | null;
+export function getTagType(value: unknown): TAG | null {
   switch (true) {
     case value instanceof Int8:
     case typeof value === "boolean": return TAG.BYTE;
