@@ -1,7 +1,7 @@
 import type { RootTag, RootTagLike } from "./tag.js";
 
 export type RootName = string | null;
-export type Endian = "big" | "little";
+export type Endian = "big" | "little" | "little-varint";
 export type Compression = CompressionFormat | null;
 export type BedrockLevel = boolean;
 
