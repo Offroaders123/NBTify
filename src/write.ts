@@ -25,7 +25,7 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
     rootName satisfies never;
     throw new TypeError("Root Name option must be a string or null");
   }
-  if (endian !== undefined && endian !== "big" && endian !== "little") {
+  if (endian !== undefined && endian !== "big" && endian !== "little" && endian !== "little-varint") {
     endian satisfies never;
     throw new TypeError("Endian option must be a valid endian type");
   }
@@ -38,7 +38,7 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
     throw new TypeError("Bedrock Level option must be a boolean");
   }
 
-  const writer = new NBTWriter(endian === "little");
+  const writer = new NBTWriter(endian !== "big", endian === "little-varint");
   return writer.writeRoot(data as NBTData<T>);
 }
 
@@ -47,10 +47,12 @@ class NBTWriter {
   #data: Uint8Array = new Uint8Array(1024);
   #view: DataView = new DataView(this.#data.buffer);
   readonly #littleEndian: boolean;
+  readonly #varint: boolean;
   readonly #encoder: MUtf8Encoder = new MUtf8Encoder();
 
-  constructor(littleEndian: boolean) {
+  constructor(littleEndian: boolean, varint: boolean) {
     this.#littleEndian = littleEndian;
+    this.#varint = varint;
   }
 
   #allocate(byteLength: number): void {
@@ -82,7 +84,7 @@ class NBTWriter {
 
   async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>): Promise<Uint8Array> {
     const { data: root, rootName, endian, compression, bedrockLevel } = data;
-    const littleEndian: boolean = endian === "little";
+    const littleEndian: boolean = endian !== "big";
     const type: Tag | null = getTagType(root);
     if (type !== TAG.LIST && type !== TAG.COMPOUND) {
       throw new TypeError(`Encountered unexpected Root tag type '${type}', must be either a List or Compound tag`);
@@ -153,11 +155,16 @@ class NBTWriter {
   #writeByte(value: number | ByteTag | BooleanTag): this {
     this.#allocate(1);
     this.#view.setInt8(this.#byteOffset, Number(value.valueOf()));
+    // console.log(this.#byteOffset, value);
+    // console.log(Buffer.from(this.#data));
     this.#byteOffset += 1;
     return this;
   }
 
   #writeUnsignedShort(value: number): this {
+    if (this.#varint) {
+      return this.#writeVarInt(value);
+    }
     this.#allocate(2);
     this.#view.setUint16(this.#byteOffset, value, this.#littleEndian);
     this.#byteOffset += 2;
@@ -172,6 +179,9 @@ class NBTWriter {
   }
 
   #writeUnsignedInt(value: number): this {
+    if (this.#varint) {
+      return this.#writeVarInt(value);
+    }
     this.#allocate(4);
     this.#view.setUint32(this.#byteOffset, value, this.#littleEndian);
     this.#byteOffset += 4;
@@ -179,17 +189,75 @@ class NBTWriter {
   }
 
   #writeInt(value: number | IntTag): this {
+    if (this.#varint) {
+      return this.#writeVarIntZigZag(value.valueOf());
+    }
     this.#allocate(4);
     this.#view.setInt32(this.#byteOffset, value.valueOf(), this.#littleEndian);
     this.#byteOffset += 4;
     return this;
   }
 
+  #writeVarInt(value: number): this {
+    while (true) {
+      let byte = value & 0x7F; // Get the 7 least significant bits
+      value >>>= 7; // Shift right by 7 bits
+      if (value !== 0) {
+        byte |= 0x80; // Set the continuation bit if more bytes follow
+      }
+      // this.#view.setUint8(this.#byteOffset++, byte);
+      this.#writeByte(byte);
+      if (value === 0) break; // Exit if no more bits to write
+    }
+    return this;
+  }
+
+  #writeVarIntZigZag(value: number): this {
+    value = (value << 1) ^ (value >> 31)
+    let cursor: number = 0
+    while (value & ~0x7F) {
+      const num: number = Number((value & 0xFF) | 0x80)
+      // buffer.writeUInt8(num, this.#byteOffset + cursor)
+      // this.#view.setUint8(num, this.#byteOffset + cursor)
+      this.#writeByte(num)
+      cursor++
+      value >>>= 7
+    }
+    // buffer.writeUInt8(value, this.#byteOffset + cursor)
+    // this.#view.setUint8(value, this.#byteOffset + cursor)
+    this.#writeByte(value)
+    return this
+    // return this.#byteOffset + cursor + 1
+  }
+
   #writeLong(value: LongTag): this {
+    if (this.#varint) {
+      return this.#writeVarLongZigZag(value);
+    }
     this.#allocate(8);
     this.#view.setBigInt64(this.#byteOffset, value, this.#littleEndian);
     this.#byteOffset += 8;
     return this;
+  }
+
+  #writeVarLongZigZag(value: bigint): this {
+    // shift value left and flip if negative (no sign bit, but right shifting beyond value will always be -0b1)
+    value = (value << 1n) ^ (value >> 63n)
+    let cursor: number = 0
+    while (value > 127n) { // keep writing in 7 bit slices
+      const num: number = Number(value & 0xFFn)
+      // buffer.writeUInt8(num | 0x80, this.#byteOffset + cursor)
+      // this.#view.setUint8(num | 0x80, this.#byteOffset + cursor)
+      this.#writeByte(num | 0x80)
+      cursor++
+      value >>= 7n
+    }
+    // buffer.writeUInt8(Number(value), this.#byteOffset + cursor)
+    // this.#view.setUint8(Number(value), this.#byteOffset + cursor)
+    this.#writeByte(Number(value))
+    // this.#byteOffset += cursor + 1
+    return this
+    // return this.#byteOffset + cursor + 1
   }
 
   #writeFloat(value: number | FloatTag): this {
@@ -231,7 +299,11 @@ class NBTWriter {
     type = type ?? (value[0] !== undefined ? getTagType(value[0]) : TAG.END);
     const { length } = value;
     this.#writeTagType(type);
-    this.#writeInt(length);
+    if (this.#varint) {
+      this.#writeVarIntZigZag(length);
+    } else {
+      this.#writeInt(length);
+    }
     for (const entry of value) {
       if (getTagType(entry) !== type) {
         throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");

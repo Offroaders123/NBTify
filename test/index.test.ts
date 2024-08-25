@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import { strictEqual, throws } from "node:assert";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, writeFile } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
 const paths: string[] = await readdir(new URL("./nbt/", import.meta.url))
@@ -13,10 +13,12 @@ const files: { name: string; buffer: Buffer; }[] = await Promise.all(paths.map(a
 
 describe("Read, Stringify, Parse and Write", () => {
   for (const { name, buffer } of files) {
-    if (name.includes("varint")) continue;
+    if (!name.includes("bigtest")) continue;
     it(name, async () => {
       /** Determines if the file is SNBT */
       const snbt: boolean = name.endsWith(".snbt");
+
+      const varint: boolean = name.includes("varint");
 
       /** Reads the SNBT List Item assertion type file. */
       const listItemAssertion: boolean = snbt && name.startsWith("list_item_check");
@@ -32,7 +34,7 @@ describe("Read, Stringify, Parse and Write", () => {
         ? (listItemAssertion)
           ? throws(() => NBT.parse<NBT.RootTag>(buffer.toString("utf-8")), `'${name}' parses from SNBT when it shouldn't`)
           : NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
-        : await NBT.read<NBT.RootTag>(buffer, { strict });
+        : await NBT.read<NBT.RootTag>(buffer, { endian: varint ? "little-varint" : undefined, strict });
       if (result === undefined) return;
 
       /** Stringifies the NBTData result to an SNBT string. */
@@ -56,6 +58,12 @@ describe("Read, Stringify, Parse and Write", () => {
             ? result
             : parsed
           , (result instanceof NBT.NBTData) ? result : {});
+
+      if (varint) {
+        await writeFile("./test/nbt/recompile-varint.nbt", recompile);
+        console.log("buffer:\n", Buffer.from(buffer).subarray(0,40), "\n");
+        console.log("recompile:\n", Buffer.from(recompile).subarray(0,40), "\n");
+      }
 
       /**
        * Skip the following checks for Legacy Console Edition player data files,
