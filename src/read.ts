@@ -3,7 +3,6 @@ import { NBTData } from "./format.js";
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG, TAG_TYPE, isTagType } from "./tag.js";
 import { decompress } from "./compression.js";
-import { NBTError } from "./error.js";
 
 import type { RootName, Endian, Compression, BedrockLevel } from "./format.js";
 import type { Tag, RootTag, RootTagLike, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
@@ -179,7 +178,7 @@ class NBTReader {
 
     if (strict && this.#data.byteLength > this.#byteOffset) {
       const remaining: number = this.#data.byteLength - this.#byteOffset;
-      throw new NBTError(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`, { byteOffset: this.#byteOffset, cause: new NBTData<RootTag>(root as RootTag, { rootName: rootNameV, endian }), remaining });
+      throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
 
     return new NBTData(root, { rootName: rootNameV, endian, compression, bedrockLevel });
