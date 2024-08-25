@@ -10,8 +10,8 @@ export interface StringifyOptions {
 /**
  * Converts an NBT object into an SNBT string.
 */
-export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: StringifyOptions): string;
-export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
+export function writeString<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: StringifyOptions): string;
+export function writeString<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
   if (data instanceof NBTData) {
     data = data.data;
   }

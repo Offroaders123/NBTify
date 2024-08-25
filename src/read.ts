@@ -20,7 +20,7 @@ export interface ReadOptions {
  * 
  * If a format option isn't specified, the function will attempt reading the data using all options until it either throws or returns successfully.
 */
-export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike | Blob, options: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
+export async function readBinary<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike | Blob, options: Partial<ReadOptions> = {}): Promise<NBTData<T>> {
   if (data instanceof Blob) {
     data = await data.arrayBuffer();
   }
@@ -64,10 +64,10 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
       case reader.hasZlibHeader(): compression = "deflate"; break compression;
     }
     try {
-      return await read<T>(data, { ...options, compression: null });
+      return await readBinary<T>(data, { ...options, compression: null });
     } catch (error) {
       try {
-        return await read<T>(data, { ...options, compression: "deflate-raw" });
+        return await readBinary<T>(data, { ...options, compression: "deflate-raw" });
       } catch {
         throw error;
       }
@@ -78,13 +78,13 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
   if (endian === undefined) {
     try {
-      return await read<T>(data, { ...options, endian: "big" });
+      return await readBinary<T>(data, { ...options, endian: "big" });
     } catch (error) {
       try {
-        return await read<T>(data, { ...options, endian: "little" });
+        return await readBinary<T>(data, { ...options, endian: "little" });
       } catch {
         try {
-          return await read<T>(data, { ...options, endian: "little-varint" });
+          return await readBinary<T>(data, { ...options, endian: "little-varint" });
         } catch {
           throw error;
         }
@@ -96,10 +96,10 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
 
   if (rootName === undefined) {
     try {
-      return await read<T>(data, { ...options, rootName: true });
+      return await readBinary<T>(data, { ...options, rootName: true });
     } catch (error) {
       try {
-        return await read<T>(data, { ...options, rootName: false });
+        return await readBinary<T>(data, { ...options, rootName: false });
       } catch {
         throw error;
       }

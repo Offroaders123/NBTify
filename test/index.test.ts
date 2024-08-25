@@ -29,28 +29,28 @@ describe("Read, Stringify, Parse and Write", () => {
       /** Reads the NBT file buffer by auto-detecting the file format. */
       const result: void | NBT.RootTag | NBT.NBTData = (snbt)
         ? (listItemAssertion)
-          ? throws(() => NBT.parse<NBT.RootTag>(buffer.toString("utf-8")), `'${name}' parses from SNBT when it shouldn't`)
-          : NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
-        : await NBT.read<NBT.RootTag>(buffer, { strict });
+          ? throws(() => NBT.readString<NBT.RootTag>(buffer.toString("utf-8")), `'${name}' parses from SNBT when it shouldn't`)
+          : NBT.readString<NBT.RootTag>(buffer.toString("utf-8"))
+        : await NBT.readBinary<NBT.RootTag>(buffer, { strict });
       if (result === undefined) return;
 
       /** Stringifies the NBTData result to an SNBT string. */
       const stringified: string | void = (listItemAssertion)
-        ? throws(() => NBT.stringify(result), `'${name}' stringifies to SNBT when it shouldn't`)
-        : NBT.stringify(result);
+        ? throws(() => NBT.writeString(result), `'${name}' stringifies to SNBT when it shouldn't`)
+        : NBT.writeString(result);
       if (stringified === undefined) return;
 
       /** Parses the SNBT string to a new NBTData result. */
-      const parsed: NBT.RootTag = NBT.parse<NBT.RootTag>(stringified);
+      const parsed: NBT.RootTag = NBT.readString<NBT.RootTag>(stringified);
 
       /** Writes the new NBTData result to a recompiled NBT buffer. */
       const recompile: Buffer | Uint8Array = (snbt)
-        ? Buffer.from(NBT.stringify(parsed,
+        ? Buffer.from(NBT.writeString(parsed,
           (snbt)
             ? undefined
             : { space: 2 }
           ))
-        : await NBT.write(
+        : await NBT.writeBinary(
           (emptyList)
             ? result
             : parsed

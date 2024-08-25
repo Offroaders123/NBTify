@@ -12,7 +12,7 @@ import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, 
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options: NBTDataOptions = {}): Promise<Uint8Array> {
+export async function writeBinary<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options: NBTDataOptions = {}): Promise<Uint8Array> {
   data = new NBTData(data, options);
 
   const { rootName, endian, compression, bedrockLevel } = data as NBTData<T>;
