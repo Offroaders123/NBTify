@@ -55,7 +55,7 @@ const endian: NBTDataOptions["endian"] = (() => {
   const value: string | undefined = args
     .find(arg => ENDIAN_PATTERN.test(arg))
     ?.replace(ENDIAN_PATTERN, "");
-  if (value !== undefined && value !== "big" && value !== "little") {
+  if (value !== undefined && value !== "big" && value !== "little" && value !== "little-varint") {
     value satisfies string;
     throw new TypeError("Endian option must be a valid endian type");
   }
