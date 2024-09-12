@@ -195,6 +195,7 @@ interface IndexRef {
       .replaceAll("\\\\", "\\")
       .replaceAll("\\\"", "\"")
       .replaceAll("\\'", "'")
+      .replaceAll("\\0", "\0")
       .replaceAll("\\b", "\b")
       .replaceAll("\\f", "\f")
       .replaceAll("\\n", "\n")
