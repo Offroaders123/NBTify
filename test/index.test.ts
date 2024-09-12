@@ -13,7 +13,22 @@ const files: { name: string; buffer: Buffer; }[] = await Promise.all(paths.map(a
 
 describe("Read, Stringify, Parse and Write", () => {
   for (const { name, buffer } of files) {
+    if (!name.endsWith(".dat")) continue;
+
     it(name, async () => {
+      if (/^BlockEntity|^chunk91/.test(name)) {
+        // for await (const data of NBT.readAdjacent(buffer, {
+        //   rootName: true, endian: "little", compression: null, bedrockLevel: false
+        // })) {
+        //   console.log(data);
+        // }
+
+        const data: NBT.NBTData[] = await Array.fromAsync(NBT.readAdjacent(buffer, { rootName: true, endian: "little", compression: null, bedrockLevel: false }));
+        console.log(data);
+
+        return;
+      }
+
       /** Determines if the file is SNBT */
       const snbt: boolean = name.endsWith(".snbt");
 

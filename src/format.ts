@@ -23,6 +23,7 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
   endian: Endian;
   compression: Compression;
   bedrockLevel: BedrockLevel;
+  #byteOffset: typeof this.byteOffset = null;
 
   constructor(data: T | NBTData<T>, options: NBTDataOptions = {}) {
     if (data instanceof NBTData) {
@@ -48,6 +49,17 @@ export class NBTData<T extends RootTagLike = RootTag> implements Format {
     this.endian = endian;
     this.compression = compression;
     this.bedrockLevel = bedrockLevel;
+  }
+
+  get byteOffset(): number | null {
+    return this.#byteOffset;
+  }
+
+  /**
+   * @internal
+   */
+  set byteOffset(value: typeof this.byteOffset) {
+    this.#byteOffset = value;
   }
 
   get [Symbol.toStringTag](): "NBTData" {

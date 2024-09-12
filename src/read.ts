@@ -119,6 +119,33 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   return reader.readRoot<T>({ rootName, endian, compression, bedrockLevel, strict });
 }
 
+export async function* readAdjacent<T extends RootTagLike = RootTag>(data: Uint8Array | ArrayBufferLike | Blob, options: Partial<ReadOptions> = {}): AsyncGenerator<NBTData<T>, void, void> {
+  if (data instanceof Blob) {
+    data = await data.arrayBuffer();
+  }
+
+  if (!("byteOffset" in data)) {
+    data = new Uint8Array(data);
+  }
+
+  if (!(data instanceof Uint8Array)) {
+    data satisfies never;
+    throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, or Blob");
+  }
+
+  try {
+    let byteOffset: number = 0;
+
+    while (true) {
+      const root: NBTData<T> = await read<T>(data.subarray(byteOffset), { ...options, strict: false });
+      byteOffset += root.byteOffset!;
+      yield root;
+    }
+  } catch {
+    return;
+  }
+}
+
 class NBTReader {
   #byteOffset: number = 0;
   #data: Uint8Array;
@@ -181,7 +208,13 @@ class NBTReader {
       throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
 
-    return new NBTData(root, { rootName: rootNameV, endian, compression, bedrockLevel });
+    const result: NBTData<T> = new NBTData<T>(root, { rootName: rootNameV, endian, compression, bedrockLevel });
+
+    if (!strict) {
+      result.byteOffset = this.#byteOffset;
+    }
+
+    return result;
   }
 
   #readTag<T extends Tag>(type: TAG): T;
