@@ -174,6 +174,10 @@ class NBTReader {
     }
 
     const rootNameV: RootName = typeof rootName === "string" || rootName ? this.#readString() : null;
+    if (typeof rootName === "string" && rootNameV !== rootName) {
+      throw new Error(`Expected root name '${rootName}', encountered '${rootNameV}'`);
+    }
+
     const root: T = this.#readTag<T>(type);
 
     if (strict && this.#data.byteLength > this.#byteOffset) {

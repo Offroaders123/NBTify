@@ -1,5 +1,5 @@
 import { describe, it } from "node:test";
-import { strictEqual, throws } from "node:assert";
+import { rejects, strictEqual, throws } from "node:assert";
 import { readFile, readdir } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
@@ -14,6 +14,12 @@ const files: { name: string; buffer: Buffer; }[] = await Promise.all(paths.map(a
 describe("Read, Stringify, Parse and Write", () => {
   for (const { name, buffer } of files) {
     it(name, async () => {
+      if (name.includes("hello_world")) {
+        await rejects(async () => {
+          await NBT.read(buffer, { rootName: "SHOULD_ERROR" });
+        }, `'${name}' should only parse when passing in a root name of 'true' or 'hello_world'`);
+      }
+
       /** Determines if the file is SNBT */
       const snbt: boolean = name.endsWith(".snbt");
 

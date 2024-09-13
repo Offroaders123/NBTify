@@ -1,22 +1,16 @@
-import { readFile, writeFile } from "node:fs/promises";
-import { parse, read, write } from "../src/index.js";
+import { readFile } from "node:fs/promises";
+import { read } from "../src/index.js";
+import { rejects } from "node:assert";
 
-const ridiculous = new URL("./nbt/ridiculous.snbt", import.meta.url);
+const helloWorld = new URL("./nbt/hello_world.nbt", import.meta.url);
 
-const data = await readFile(ridiculous);
+const data = await readFile(helloWorld);
 console.log(data);
 
-const nbt = parse(data.toString());
-console.log(nbt);
+const nbt0 = await read(data);
+console.log(nbt0);
 
-const result = await write(nbt, {
-  rootName: null,
-  endian: "little",
-  compression: "deflate-raw",
-  bedrockLevel: false
+await rejects(async () => {
+  const nbt1 = await read(data, { rootName: "SHOULD_ERROR" });
+  console.log(nbt1);
 });
-
-const differ = await read(result);
-console.log(differ);
-
-await writeFile(new URL(ridiculous.toString().replace(/.snbt$/, ".nbt")), result);
