@@ -185,7 +185,13 @@ class NBTReader {
       throw new Error(`Encountered unexpected End tag at byte offset ${this.#byteOffset}, ${remaining} unread bytes remaining`);
     }
 
-    return new NBTData(root, { rootName: rootNameV, endian, compression, bedrockLevel });
+    const result: NBTData<T> = new NBTData<T>(root, { rootName: rootNameV, endian, compression, bedrockLevel });
+
+    if (!strict) {
+      result.byteOffset = this.#byteOffset;
+    }
+
+    return result;
   }
 
   #readTag<T extends Tag>(type: TAG): T;

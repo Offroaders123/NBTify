@@ -1,5 +1,5 @@
 import { describe, it } from "node:test";
-import { rejects, strictEqual, throws } from "node:assert";
+import assert, { rejects, strictEqual, throws } from "node:assert";
 import { readFile, readdir } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
@@ -29,8 +29,8 @@ describe("Read, Stringify, Parse and Write", () => {
       /** Determines if the test is for checking empty list handling. */
       const emptyList: boolean = name.startsWith("empty");
 
-      /** Disables strict mode for the Legacy Console Edition player data files. */
-      const strict: boolean = !name.includes("_280dfc");
+      /** Disables strict mode for Bedrock LevelDB and Legacy Console Edition player data files. */
+      const strict: boolean = !/^BlockEntity|^chunk91|_280dfc/.test(name);
 
       /** Reads the NBT file buffer by auto-detecting the file format. */
       const result: void | NBT.RootTag | NBT.NBTData = (snbt)
@@ -39,6 +39,10 @@ describe("Read, Stringify, Parse and Write", () => {
           : NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
         : await NBT.read<NBT.RootTag>(buffer, { strict });
       if (result === undefined) return;
+
+      if (!strict && result instanceof NBT.NBTData) {
+        assert(result.byteOffset !== null, `'${name}' should have bytes remaining because it shouldn't be parseable with strict mode`);
+      }
 
       /** Stringifies the NBTData result to an SNBT string. */
       const stringified: string | void = (listItemAssertion)
