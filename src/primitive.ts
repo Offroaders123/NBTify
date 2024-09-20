@@ -4,6 +4,7 @@ const CustomInspect = Symbol.for("nodejs.util.inspect.custom");
 
 export type Int8<T extends number = number> = T & {
   valueOf(): T;
+  [Symbol.toPrimitive](): T;
   get [Symbol.toStringTag](): "Int8";
 };
 
@@ -24,6 +25,10 @@ export const Int8 = function<T extends number>(value: T): Int8<T> {
 
 Object.setPrototypeOf(Int8.prototype, Number.prototype);
 Object.setPrototypeOf(Int8, Number);
+
+Int8.prototype[Symbol.toPrimitive] = function() {
+  return this.valueOf();
+};
 
 Object.defineProperty(Int8.prototype, Symbol.toStringTag, {
   get() {

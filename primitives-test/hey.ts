@@ -19,4 +19,4 @@ byte1 satisfies number;
 const broader: number = byte0;
 console.log(broader);
 
-const specific: 5 = byte0.valueOf() satisfies 5;
+const specific: 5 = byte0 satisfies 5;
