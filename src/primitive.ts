@@ -2,13 +2,14 @@ type CustomInspectFunction = import("node:util").CustomInspectFunction;
 
 const CustomInspect = Symbol.for("nodejs.util.inspect.custom");
 
-export interface Int8Constructor {
-  new <T extends number = number>(value: T): Int8<T>;
-}
-
 export type Int8<T extends number = number> = T & {
   readonly [Symbol.toStringTag]: "Int8";
 };
+
+export interface Int8Constructor extends NumberConstructor {
+  new <T extends number = number>(value: T): Int8<T>;
+  readonly prototype: Int8;
+}
 
 export const Int8 = class Int8<T extends number = number> extends Number {
   constructor(value: T) {
