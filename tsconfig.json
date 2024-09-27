@@ -13,8 +13,5 @@
     "noUnusedLocals": true,
     "allowUnusedLabels": false,
     "noUnusedParameters": true
-  },
-  "exclude": [
-    "./primitives-test"
-  ]
+  }
 }
