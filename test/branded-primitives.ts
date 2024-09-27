@@ -11,6 +11,9 @@ console.log(byte0);
 const byte1 = new Int8(num);
 console.log(byte1);
 
+// Very awesome! Now you can use math with the object classes, at the type level!
+// This is already 'safe' at the JS level because you can do this with `Number` objects
+// already, and this wrapper extends that, hence why it works out of the box too.
 const gg: number = byte0 + byte1;
 console.log(gg, `'gg' is number: ${typeof gg === "number"}`);
 
@@ -21,3 +24,4 @@ const broader: number = byte0;
 console.log(broader);
 
 const specific: 5 = byte0 satisfies 5;
+specific;
