@@ -2,6 +2,11 @@ type CustomInspectFunction = import("node:util").CustomInspectFunction;
 
 const CustomInspect = Symbol.for("nodejs.util.inspect.custom");
 
+type NonConstructorKeys<T> = { [P in keyof T]: T[P] extends new () => any ? never : P; }[keyof T];
+type NonConstructor<T> = Pick<T, NonConstructorKeys<T>>;
+
+type NumberConstructor = NonConstructor<globalThis.NumberConstructor>;
+
 export type Int8<T extends number = number> = T & {
   readonly [Symbol.toStringTag]: "Int8";
 };
