@@ -16,12 +16,12 @@ interface Int8Constructor extends NumberConstructor {
   readonly prototype: Int8;
 }
 
-export const Int8 = class Int8 extends Number {
-  constructor(value: number) {
+export const Int8 = class Int8<T extends number = number> extends Number {
+  constructor(value: T) {
     super(value << 24 >> 24);
   }
 
-  get [Symbol.toStringTag]() {
+  get [Symbol.toStringTag](): "Int8" {
     return "Int8";
   }
 
@@ -42,12 +42,12 @@ interface Int16Constructor extends NumberConstructor {
   readonly prototype: Int16;
 }
 
-export const Int16 = class Int16 extends Number {
-  constructor(value: number) {
+export const Int16 = class Int16<T extends number = number> extends Number {
+  constructor(value: T) {
     super(value << 16 >> 16);
   }
 
-  get [Symbol.toStringTag]() {
+  get [Symbol.toStringTag](): "Int16" {
     return "Int16";
   }
 
@@ -68,12 +68,12 @@ interface Int32Constructor extends NumberConstructor {
   readonly prototype: Int32;
 }
 
-export const Int32 = class Int32 extends Number {
-  constructor(value: number) {
+export const Int32 = class Int32<T extends number = number> extends Number {
+  constructor(value: T) {
     super(value | 0);
   }
 
-  get [Symbol.toStringTag]() {
+  get [Symbol.toStringTag](): "Int32" {
     return "Int32";
   }
 
@@ -94,12 +94,12 @@ interface Float32Constructor extends NumberConstructor {
   readonly prototype: Float32;
 }
 
-export const Float32 = class Float32 extends Number {
-  constructor(value: number) {
+export const Float32 = class Float32<T extends number = number> extends Number {
+  constructor(value: T) {
     super(value);
   }
 
-  get [Symbol.toStringTag]() {
+  get [Symbol.toStringTag](): "Float32" {
     return "Float32";
   }
 
