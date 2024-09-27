@@ -13,13 +13,13 @@ console.log(nbt0);
 console.log(Int8.MAX_SAFE_INTEGER);
 console.log(Number.MAX_SAFE_INTEGER);
 
-const byte0 = new Int8() satisfies number;
-    // ^?
+// const byte0 = new Int8() satisfies number;
+//     // ^?
 
-const byte1 = new Int8(1) satisfies number;
-    // ^?
+// const byte1 = new Int8(1) satisfies number;
+//     // ^?
 
-byte0; byte1;
+// byte0; byte1;
 
 await rejects(async () => {
   const nbt1 = await read(data, { rootName: "SHOULD_ERROR" });

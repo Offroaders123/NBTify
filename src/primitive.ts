@@ -37,7 +37,16 @@ export const Int8 = class Int8<T extends number = number> extends Number {
   }
 } as Int8Constructor;
 
-export class Int16<T extends number = number> extends Number {
+export type Int16<T extends number = number> = T & {
+  readonly [Symbol.toStringTag]: "Int16";
+};
+
+export interface Int16Constructor extends NumberConstructor {
+  new <T extends number = number>(value: T): Int16<T>;
+  readonly prototype: Int16;
+}
+
+export const Int16 = class Int16<T extends number = number> extends Number {
   constructor(value: T) {
     super(value << 16 >> 16);
   }
@@ -56,9 +65,18 @@ export class Int16<T extends number = number> extends Number {
   get [CustomInspect](): CustomInspectFunction {
     return (_, { stylize }) => stylize(`${this.valueOf()}s`, "number");
   }
+} as Int16Constructor;
+
+export type Int32<T extends number = number> = T & {
+  readonly [Symbol.toStringTag]: "Int32";
+};
+
+export interface Int32Constructor extends NumberConstructor {
+  new <T extends number = number>(value: T): Int32<T>;
+  readonly prototype: Int32;
 }
 
-export class Int32<T extends number = number> extends Number {
+export const Int32 = class Int32<T extends number = number> extends Number {
   constructor(value: T) {
     super(value | 0);
   }
@@ -77,9 +95,18 @@ export class Int32<T extends number = number> extends Number {
   get [CustomInspect](): CustomInspectFunction {
     return () => this.valueOf();
   }
+} as Int32Constructor;
+
+export type Float32<T extends number = number> = T & {
+  readonly [Symbol.toStringTag]: "Float32";
+};
+
+export interface Float32Constructor extends NumberConstructor {
+  new <T extends number = number>(value: T): Float32<T>;
+  readonly prototype: Float32;
 }
 
-export class Float32<T extends number = number> extends Number {
+export const Float32 = class Float32<T extends number = number> extends Number {
   constructor(value: T) {
     super(value);
   }
@@ -98,4 +125,4 @@ export class Float32<T extends number = number> extends Number {
   get [CustomInspect](): CustomInspectFunction {
     return (_, { stylize }) => stylize(`${this.valueOf()}f`, "number");
   }
-}
+} as Float32Constructor;
