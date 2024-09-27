@@ -11,21 +11,17 @@ export type Int8<T extends number = number> = T & {
   readonly [Symbol.toStringTag]: "Int8";
 };
 
-export interface Int8Constructor extends NumberConstructor {
+interface Int8Constructor extends NumberConstructor {
   new <T extends number = number>(value: T): Int8<T>;
   readonly prototype: Int8;
 }
 
-export const Int8 = class Int8<T extends number = number> extends Number {
-  constructor(value: T) {
+export const Int8 = class Int8 extends Number {
+  constructor(value: number) {
     super(value << 24 >> 24);
   }
 
-  override valueOf(): T {
-    return super.valueOf() as T;
-  }
-
-  get [Symbol.toStringTag](): "Int8" {
+  get [Symbol.toStringTag]() {
     return "Int8";
   }
 
@@ -41,21 +37,17 @@ export type Int16<T extends number = number> = T & {
   readonly [Symbol.toStringTag]: "Int16";
 };
 
-export interface Int16Constructor extends NumberConstructor {
+interface Int16Constructor extends NumberConstructor {
   new <T extends number = number>(value: T): Int16<T>;
   readonly prototype: Int16;
 }
 
-export const Int16 = class Int16<T extends number = number> extends Number {
-  constructor(value: T) {
+export const Int16 = class Int16 extends Number {
+  constructor(value: number) {
     super(value << 16 >> 16);
   }
 
-  override valueOf(): T {
-    return super.valueOf() as T;
-  }
-
-  get [Symbol.toStringTag](): "Int16" {
+  get [Symbol.toStringTag]() {
     return "Int16";
   }
 
@@ -71,21 +63,17 @@ export type Int32<T extends number = number> = T & {
   readonly [Symbol.toStringTag]: "Int32";
 };
 
-export interface Int32Constructor extends NumberConstructor {
+interface Int32Constructor extends NumberConstructor {
   new <T extends number = number>(value: T): Int32<T>;
   readonly prototype: Int32;
 }
 
-export const Int32 = class Int32<T extends number = number> extends Number {
-  constructor(value: T) {
+export const Int32 = class Int32 extends Number {
+  constructor(value: number) {
     super(value | 0);
   }
 
-  override valueOf(): T {
-    return super.valueOf() as T;
-  }
-
-  get [Symbol.toStringTag](): "Int32" {
+  get [Symbol.toStringTag]() {
     return "Int32";
   }
 
@@ -101,21 +89,17 @@ export type Float32<T extends number = number> = T & {
   readonly [Symbol.toStringTag]: "Float32";
 };
 
-export interface Float32Constructor extends NumberConstructor {
+interface Float32Constructor extends NumberConstructor {
   new <T extends number = number>(value: T): Float32<T>;
   readonly prototype: Float32;
 }
 
-export const Float32 = class Float32<T extends number = number> extends Number {
-  constructor(value: T) {
+export const Float32 = class Float32 extends Number {
+  constructor(value: number) {
     super(value);
   }
 
-  override valueOf(): T {
-    return super.valueOf() as T;
-  }
-
-  get [Symbol.toStringTag](): "Float32" {
+  get [Symbol.toStringTag]() {
     return "Float32";
   }
 
