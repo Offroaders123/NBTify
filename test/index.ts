@@ -1,16 +1,36 @@
 import { readFile } from "node:fs/promises";
 import { read } from "../src/index.js";
-import { rejects } from "node:assert";
 
-const helloWorld = new URL("./nbt/hello_world.nbt", import.meta.url);
+import type { RootTag, RootTagLike, NBTData, ReadOptions } from "../src/index.js";
 
-const data = await readFile(helloWorld);
+const BlockEntity = new URL("./nbt/BlockEntity.dat", import.meta.url);
+// const chunk91_ = new URL("./nbt/chunk91_.dat", import.meta.url);
+
+const data = await readFile(BlockEntity);
 console.log(data);
 
-const nbt0 = await read(data);
-console.log(nbt0);
+const options: ReadAdjacentOptions = {
+  rootName: true,
+  endian: "little",
+  compression: null,
+  bedrockLevel: false
+};
 
-await rejects(async () => {
-  const nbt1 = await read(data, { rootName: "SHOULD_ERROR" });
-  console.log(nbt1);
-});
+// for await (const nbt of readAdjacent(data, options)) {
+//   console.log(nbt);
+// }
+
+const nbts: NBTData[] = await Array.fromAsync(readAdjacent(data, options));
+console.log(nbts);
+
+interface ReadAdjacentOptions extends Omit<ReadOptions, "strict"> {}
+
+async function* readAdjacent<T extends RootTagLike = RootTag>(data: Uint8Array, options: ReadAdjacentOptions): AsyncGenerator<NBTData<T>, void, void> {
+  let byteOffset: number = 0;
+
+  while (byteOffset < data.byteLength) {
+    const nbt: NBTData<T> = await read(data.subarray(byteOffset), { ...options, strict: false });
+    byteOffset += nbt.byteOffset!;
+    yield nbt;
+  }
+}
