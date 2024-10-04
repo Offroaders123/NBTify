@@ -309,7 +309,7 @@ class SNBTReader {
   }
 
   #parseCompound(data: string): CompoundTag {
-    const entries: [string, Tag | undefined][] = [];
+    const value: CompoundTag = {};
     let first: boolean = true;
 
     while (true) {
@@ -318,7 +318,7 @@ class SNBTReader {
 
       if (this.#peek(data, this.#index.index) == "}") {
         this.#index.index++;
-        return entries.reduce<CompoundTag>((obj, [k, v]) => (obj[k] = v, obj), {});
+        return value;
       }
 
       const key: string = this.#parseString(data);
@@ -328,7 +328,7 @@ class SNBTReader {
         throw this.#unexpectedChar(data, this.#index.index);
       }
 
-      entries.push([key, this.#parseTag(data, key)]);
+      value[key] = this.#parseTag(data, key);
     }
   }
 }
