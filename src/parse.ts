@@ -14,52 +14,56 @@ export function parse<T extends RootTagLike = RootTag>(data: string): T {
     throw new TypeError("First parameter must be a string");
   }
 
-  return parseRoot(data, 0, { index: 0 }) as T;
+  return new SNBTReader().parseRoot(data) as T;
 }
 
 interface IndexRef {
   index: number;
 }
 
-  function peek(data: string, index: number, byteOffset: number = index): string {
+class SNBTReader {
+  #i: number = 0;
+  #index: IndexRef = { index: 0 };
+
+  #peek(data: string, index: number, byteOffset: number = index): string {
     const value: string | undefined = data[byteOffset];
     if (value === undefined) {
-      throw unexpectedEnd();
+      throw this.#unexpectedEnd();
     }
     return value;
   }
 
-  function unexpectedEnd(): Error {
+  #unexpectedEnd(): Error {
     return new Error("Unexpected end");
   }
 
-  function unexpectedChar(data: string, index: number, i?: number): Error {
+  #unexpectedChar(data: string, index: number, i?: number): Error {
     if (i == null) {
       i = index;
     }
-    return new Error(`Unexpected character ${peek(data, index)} at position ${index}`);
+    return new Error(`Unexpected character ${this.#peek(data, index)} at position ${index}`);
   }
 
-  function skipWhitespace(data: string, index: IndexRef): void {
-    while (index.index < data.length) {
-      if (!/ |\t|\r/.test(peek(data, index.index)) && peek(data, index.index) != "\n") return;
-      index.index += 1;
+  #skipWhitespace(data: string): void {
+    while (this.#index.index < data.length) {
+      if (!/ |\t|\r/.test(this.#peek(data, this.#index.index)) && this.#peek(data, this.#index.index) != "\n") return;
+      this.#index.index += 1;
     }
   }
 
-  function parseRoot(data: string, i: number, index: IndexRef): RootTag {
-    skipWhitespace(data, index);
+  parseRoot(data: string): RootTag {
+    this.#skipWhitespace(data);
 
-    i = index.index;
+    this.#i = this.#index.index;
 
-    switch (peek(data, index.index)) {
+    switch (this.#peek(data, this.#index.index)) {
       case "{": {
-        index.index++;
-        return parseCompound(data, i, index);
+        this.#index.index++;
+        return this.#parseCompound(data);
       }
       case "[": {
-        index.index++;
-        const list: ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag = parseList(data, "[root]", i, index);
+        this.#index.index++;
+        const list: ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag = this.#parseList(data, "[root]");
         const type: TAG = getTagType(list);
         if (type !== TAG.LIST) break;
         return list as ListTag<Tag>;
@@ -69,128 +73,128 @@ interface IndexRef {
     throw new Error("Encountered unexpected Root tag type, must be either a List or Compound tag");
   }
 
-  function parseTag(data: string, key: string, i: number, index: IndexRef): Tag {
-    skipWhitespace(data, index);
+  #parseTag(data: string, key: string): Tag {
+    this.#skipWhitespace(data);
 
-    i = index.index;
+    this.#i = this.#index.index;
 
-    switch (peek(data, index.index)) {
+    switch (this.#peek(data, this.#index.index)) {
       case "{": {
-        index.index++;
-        return parseCompound(data, i, index);
+        this.#index.index++;
+        return this.#parseCompound(data);
       }
-      case "[": return (index.index++, parseList(data, key, i, index));
+      case "[": return (this.#index.index++, this.#parseList(data, key));
       case '"':
-      case "'": return parseQuotedString(data, index);
+      case "'": return this.#parseQuotedString(data);
       default: {
         if (
-          /^(true)$/.test(data.slice(i, index.index + 4)) ||
-          /^(false)$/.test(data.slice(i, index.index + 5))
+          /^(true)$/.test(data.slice(this.#i, this.#index.index + 4)) ||
+          /^(false)$/.test(data.slice(this.#i, this.#index.index + 5))
         ) {
-          return (parseUnquotedString(data, i, index) as "true" | "false" === "true") as BooleanTag;
+          return (this.#parseUnquotedString(data) as "true" | "false" === "true") as BooleanTag;
         }
-        const value: ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null = parseNumber(data, i, index);
-        if (value != null && (index.index == data.length || !UNQUOTED_STRING_PATTERN.test(peek(data, index.index)))) {
+        const value: ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null = this.#parseNumber(data);
+        if (value != null && (this.#index.index == data.length || !UNQUOTED_STRING_PATTERN.test(this.#peek(data, this.#index.index)))) {
           return value;
         }
-        return (data.slice(i, index.index) + parseUnquotedString(data, i, index)) as StringTag;
+        return (data.slice(this.#i, this.#index.index) + this.#parseUnquotedString(data)) as StringTag;
       }
     }
   }
 
-  function parseNumber(data: string, i: number, index: IndexRef): ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null {
-    if (!"-0123456789".includes(peek(data, index.index))) return null;
+  #parseNumber(data: string): ByteTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | null {
+    if (!"-0123456789".includes(this.#peek(data, this.#index.index))) return null;
 
-    i = index.index++;
+    this.#i = this.#index.index++;
     let hasFloatingPoint: boolean = false;
 
-    while (index.index < data.length) {
-      const char: string = peek(data, index.index);
-      index.index++;
+    while (this.#index.index < data.length) {
+      const char: string = this.#peek(data, this.#index.index);
+      this.#index.index++;
       if ("0123456789e-+".includes(char)) continue;
 
       switch (char.toLowerCase()) {
         case ".": {
           if (hasFloatingPoint) {
-            index.index--;
+            this.#index.index--;
             return null;
           }
           hasFloatingPoint = true;
           break;
         }
-        case "f": return new Float32(+data.slice(i, index.index - 1)) satisfies FloatTag;
-        case "d": return +data.slice(i, index.index - 1) satisfies DoubleTag;
-        case "b": return new Int8(+data.slice(i, index.index - 1)) satisfies ByteTag;
-        case "s": return new Int16(+data.slice(i, index.index - 1)) satisfies ShortTag;
-        case "l": return BigInt(data.slice(i, index.index - 1)) satisfies LongTag;
+        case "f": return new Float32(+data.slice(this.#i, this.#index.index - 1)) satisfies FloatTag;
+        case "d": return +data.slice(this.#i, this.#index.index - 1) satisfies DoubleTag;
+        case "b": return new Int8(+data.slice(this.#i, this.#index.index - 1)) satisfies ByteTag;
+        case "s": return new Int16(+data.slice(this.#i, this.#index.index - 1)) satisfies ShortTag;
+        case "l": return BigInt(data.slice(this.#i, this.#index.index - 1)) satisfies LongTag;
         default: {
           if (hasFloatingPoint) {
-            return +data.slice(i, --index.index) satisfies DoubleTag;
+            return +data.slice(this.#i, --this.#index.index) satisfies DoubleTag;
           } else {
-            return new Int32(+data.slice(i, --index.index)) satisfies IntTag;
+            return new Int32(+data.slice(this.#i, --this.#index.index)) satisfies IntTag;
           }
         }
       }
     }
 
     if (hasFloatingPoint) {
-      return +data.slice(i, index.index) satisfies DoubleTag;
+      return +data.slice(this.#i, this.#index.index) satisfies DoubleTag;
     } else {
-      return new Int32(+data.slice(i, index.index)) satisfies IntTag;
+      return new Int32(+data.slice(this.#i, this.#index.index)) satisfies IntTag;
     }
   }
 
-  function parseString(data: string, i: number, index: IndexRef): StringTag {
-    if (peek(data, index.index) == '"' || peek(data, index.index) == "'") {
-      return parseQuotedString(data, index);
+  #parseString(data: string): StringTag {
+    if (this.#peek(data, this.#index.index) == '"' || this.#peek(data, this.#index.index) == "'") {
+      return this.#parseQuotedString(data);
     } else {
-      return parseUnquotedString(data, i, index);
+      return this.#parseUnquotedString(data);
     }
   }
 
-  function parseUnquotedString(data: string, i: number, index: IndexRef): StringTag {
-    i = index.index;
+  #parseUnquotedString(data: string): StringTag {
+    this.#i = this.#index.index;
 
-    while (index.index < data.length) {
-      if (!UNQUOTED_STRING_PATTERN.test(peek(data, index.index))) break;
-      index.index++;
+    while (this.#index.index < data.length) {
+      if (!UNQUOTED_STRING_PATTERN.test(this.#peek(data, this.#index.index))) break;
+      this.#index.index++;
     }
 
-    if (index.index - i == 0) {
-      if (index.index == data.length) {
-        throw unexpectedEnd();
+    if (this.#index.index - this.#i == 0) {
+      if (this.#index.index == data.length) {
+        throw this.#unexpectedEnd();
       } else {
-        throw unexpectedChar(data, index.index);
+        throw this.#unexpectedChar(data, this.#index.index);
       }
     }
 
-    return data.slice(i, index.index);
+    return data.slice(this.#i, this.#index.index);
   }
 
-  function parseQuotedString(data: string, index: IndexRef): StringTag {
-    const quoteChar: string = peek(data, index.index);
+  #parseQuotedString(data: string): StringTag {
+    const quoteChar: string = this.#peek(data, this.#index.index);
     // i = 
-    ++index.index;
+    ++this.#index.index;
     let string: string = "";
 
-    while (index.index < data.length) {
-      let char: string = peek(data, index.index++);
+    while (this.#index.index < data.length) {
+      let char: string = this.#peek(data, this.#index.index++);
 
       if (char === "\\") {
-        char = `\\${peek(data, index.index++)}`;
+        char = `\\${this.#peek(data, this.#index.index++)}`;
       }
 
       if (char === quoteChar) {
         return string;
       }
 
-      string += unescapeString(char);
+      string += this.#unescapeString(char);
     }
 
-    throw unexpectedEnd();
+    throw this.#unexpectedEnd();
   }
 
-  function unescapeString(value: StringTag): string {
+  #unescapeString(value: StringTag): string {
     return value
       .replaceAll("\\\\", "\\")
       .replaceAll("\\\"", "\"")
@@ -203,29 +207,29 @@ interface IndexRef {
       .replaceAll("\\t", "\t");
   }
 
-  function skipCommas(data: string, isFirst: boolean, end: string, index: IndexRef): void {
-    skipWhitespace(data, index);
+  #skipCommas(data: string, isFirst: boolean, end: string): void {
+    this.#skipWhitespace(data);
 
-    if (peek(data, index.index) == ",") {
+    if (this.#peek(data, this.#index.index) == ",") {
       if (isFirst) {
-        throw unexpectedChar(data, index.index);
+        throw this.#unexpectedChar(data, this.#index.index);
       } else {
-        index.index++;
-        skipWhitespace(data, index);
+        this.#index.index++;
+        this.#skipWhitespace(data);
       }
-    } else if (!isFirst && peek(data, index.index) != end) {
-      throw unexpectedChar(data, index.index);
+    } else if (!isFirst && this.#peek(data, this.#index.index) != end) {
+      throw this.#unexpectedChar(data, this.#index.index);
     }
   }
 
-  function parseArray(data: string, type: "B" | "I" | "L", i: number, index: IndexRef): ByteArrayTag | IntArrayTag | LongArrayTag {
+  #parseArray(data: string, type: "B" | "I" | "L"): ByteArrayTag | IntArrayTag | LongArrayTag {
     const array: string[] = [];
 
-    while (index.index < data.length) {
-      skipCommas(data, array.length == 0, "]", index);
+    while (this.#index.index < data.length) {
+      this.#skipCommas(data, array.length == 0, "]");
 
-      if (peek(data, index.index) == "]") {
-        index.index++;
+      if (this.#peek(data, this.#index.index) == "]") {
+        this.#index.index++;
         switch (type) {
           case "B": return Int8Array.from(array.map(v => +v)) satisfies ByteArrayTag;
           case "I": return Int32Array.from(array.map(v => +v)) satisfies IntArrayTag;
@@ -233,63 +237,63 @@ interface IndexRef {
         }
       }
 
-      i = index.index;
-      if (peek(data, index.index) == "-") {
-        index.index++;
+      this.#i = this.#index.index;
+      if (this.#peek(data, this.#index.index) == "-") {
+        this.#index.index++;
       }
 
-      while (index.index < data.length) {
-        if (!"0123456789".includes(peek(data, index.index))) break;
-        index.index++;
+      while (this.#index.index < data.length) {
+        if (!"0123456789".includes(this.#peek(data, this.#index.index))) break;
+        this.#index.index++;
       }
 
       const prefix: "b" | "l" | "" = (type === "B") ? "b" : (type === "L") ? "l" : "";
 
-      if (peek(data, index.index) == prefix) {
-        index.index++;
+      if (this.#peek(data, this.#index.index) == prefix) {
+        this.#index.index++;
       }
 
-      if (index.index - i == 0) {
-        throw unexpectedChar(data, index.index);
+      if (this.#index.index - this.#i == 0) {
+        throw this.#unexpectedChar(data, this.#index.index);
       }
-      if (UNQUOTED_STRING_PATTERN.test(peek(data, index.index))) {
-        throw unexpectedChar(data, index.index);
+      if (UNQUOTED_STRING_PATTERN.test(this.#peek(data, this.#index.index))) {
+        throw this.#unexpectedChar(data, this.#index.index);
       }
 
-      array.push(data.slice(i, index.index - ((type !== "I") ? 1 : 0)));
+      array.push(data.slice(this.#i, this.#index.index - ((type !== "I") ? 1 : 0)));
     }
 
-    throw unexpectedEnd();
+    throw this.#unexpectedEnd();
   }
 
-  function parseList(data: string, key: string, i: number, index: IndexRef): ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag {
-    if ("BILbil".includes(peek(data, index.index)) && data[index.index + 1] == ";") {
-      return parseArray(data, peek(data, (index.index += 2) - 2).toUpperCase() as "B" | "I" | "L", i, index) satisfies ByteArrayTag | IntArrayTag | LongArrayTag;
+  #parseList(data: string, key: string): ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag {
+    if ("BILbil".includes(this.#peek(data, this.#index.index)) && data[this.#index.index + 1] == ";") {
+      return this.#parseArray(data, this.#peek(data, (this.#index.index += 2) - 2).toUpperCase() as "B" | "I" | "L") satisfies ByteArrayTag | IntArrayTag | LongArrayTag;
     }
 
     const array: ListTag<Tag> = [];
     let type: TAG | undefined;
 
-    while (index.index < data.length) {
-      skipWhitespace(data, index);
+    while (this.#index.index < data.length) {
+      this.#skipWhitespace(data);
 
-      if (peek(data, index.index) == ",") {
+      if (this.#peek(data, this.#index.index) == ",") {
         if (array.length == 0) {
-          throw unexpectedChar(data, index.index);
+          throw this.#unexpectedChar(data, this.#index.index);
         } else {
-          index.index++;
-          skipWhitespace(data, index);
+          this.#index.index++;
+          this.#skipWhitespace(data);
         }
-      } else if (array.length > 0 && peek(data, index.index) != "]") {
-        throw unexpectedChar(data, index.index - 1);
+      } else if (array.length > 0 && this.#peek(data, this.#index.index) != "]") {
+        throw this.#unexpectedChar(data, this.#index.index - 1);
       }
 
-      if (peek(data, index.index) == "]") {
-        index.index++;
+      if (this.#peek(data, this.#index.index) == "]") {
+        this.#index.index++;
         return array satisfies ListTag<Tag>;
       }
 
-      const entry: Tag = parseTag(data, key, i, index);
+      const entry: Tag = this.#parseTag(data, key);
 
       if (type === undefined) {
         type = getTagType(entry);
@@ -301,29 +305,30 @@ interface IndexRef {
       array.push(entry);
     }
 
-    throw unexpectedEnd();
+    throw this.#unexpectedEnd();
   }
 
-  function parseCompound(data: string, i: number, index: IndexRef): CompoundTag {
+  #parseCompound(data: string): CompoundTag {
     const entries: [string, Tag | undefined][] = [];
     let first: boolean = true;
 
     while (true) {
-      skipCommas(data, first, "}", index);
+      this.#skipCommas(data, first, "}");
       first = false;
 
-      if (peek(data, index.index) == "}") {
-        index.index++;
+      if (this.#peek(data, this.#index.index) == "}") {
+        this.#index.index++;
         return entries.reduce<CompoundTag>((obj, [k, v]) => (obj[k] = v, obj), {});
       }
 
-      const key: string = parseString(data, i, index);
-      skipWhitespace(data, index);
+      const key: string = this.#parseString(data);
+      this.#skipWhitespace(data);
 
-      if (data[index.index++] != ":") {
-        throw unexpectedChar(data, index.index);
+      if (data[this.#index.index++] != ":") {
+        throw this.#unexpectedChar(data, this.#index.index);
       }
 
-      entries.push([key, parseTag(data, key, i, index)]);
+      entries.push([key, this.#parseTag(data, key)]);
     }
   }
+}
