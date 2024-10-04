@@ -31,7 +31,7 @@ Modern builds rely on resolving the [`mutf-8`](https://github.com/sciencesakura/
 ```html
 <script type="module">
   // Static version (recommended 🏔️)
-  import * as NBT from "https://cdn.jsdelivr.net/npm/nbtify@2.0.0/+esm";
+  import * as NBT from "https://cdn.jsdelivr.net/npm/nbtify@2.1.0/+esm";
 
   // Latest build (living on the edge 🧗)
   import * as NBT from "https://cdn.jsdelivr.net/npm/nbtify/+esm";
