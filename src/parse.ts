@@ -118,25 +118,25 @@ class SNBTReader {
           hasFloatingPoint = true;
           break;
         }
-        case "f": return new Float32(+data.slice(this.#i, this.#index - 1)) satisfies FloatTag;
-        case "d": return +data.slice(this.#i, this.#index - 1) satisfies DoubleTag;
-        case "b": return new Int8(+data.slice(this.#i, this.#index - 1)) satisfies ByteTag;
-        case "s": return new Int16(+data.slice(this.#i, this.#index - 1)) satisfies ShortTag;
+        case "f": return new Float32(Number(data.slice(this.#i, this.#index - 1))) satisfies FloatTag;
+        case "d": return Number(data.slice(this.#i, this.#index - 1)) satisfies DoubleTag;
+        case "b": return new Int8(Number(data.slice(this.#i, this.#index - 1))) satisfies ByteTag;
+        case "s": return new Int16(Number(data.slice(this.#i, this.#index - 1))) satisfies ShortTag;
         case "l": return BigInt(data.slice(this.#i, this.#index - 1)) satisfies LongTag;
         default: {
           if (hasFloatingPoint) {
-            return +data.slice(this.#i, --this.#index) satisfies DoubleTag;
+            return Number(data.slice(this.#i, --this.#index)) satisfies DoubleTag;
           } else {
-            return new Int32(+data.slice(this.#i, --this.#index)) satisfies IntTag;
+            return new Int32(Number(data.slice(this.#i, --this.#index))) satisfies IntTag;
           }
         }
       }
     }
 
     if (hasFloatingPoint) {
-      return +data.slice(this.#i, this.#index) satisfies DoubleTag;
+      return Number(data.slice(this.#i, this.#index)) satisfies DoubleTag;
     } else {
-      return new Int32(+data.slice(this.#i, this.#index)) satisfies IntTag;
+      return new Int32(Number(data.slice(this.#i, this.#index))) satisfies IntTag;
     }
   }
 
@@ -227,8 +227,8 @@ class SNBTReader {
       if (this.#peek(data, this.#index) == "]") {
         this.#index++;
         switch (type) {
-          case "B": return Int8Array.from(array.map(v => +v)) satisfies ByteArrayTag;
-          case "I": return Int32Array.from(array.map(v => +v)) satisfies IntArrayTag;
+          case "B": return Int8Array.from(array.map(v => Number(v))) satisfies ByteArrayTag;
+          case "I": return Int32Array.from(array.map(v => Number(v))) satisfies IntArrayTag;
           case "L": return BigInt64Array.from(array.map(v => BigInt(v))) satisfies LongArrayTag;
         }
       }
