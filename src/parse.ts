@@ -263,7 +263,9 @@ class SNBTReader {
   }
 
   #parseList(data: string, key: string): ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag {
-    if ("BILbil".includes(this.#peek(data, this.#index)) && data[this.#index + 1] == ";") {
+    const prefix: string = this.#peek(data, this.#index).toUpperCase();
+
+    if ("BIL".includes(prefix) && data[this.#index + 1] == ";") {
       return this.#parseArray(data, this.#peek(data, (this.#index += 2) - 2).toUpperCase() as "B" | "I" | "L") satisfies ByteArrayTag | IntArrayTag | LongArrayTag;
     }
 
