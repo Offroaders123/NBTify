@@ -42,7 +42,7 @@ class SNBTReader {
 
   #skipWhitespace(data: string): void {
     while (this.#index < data.length) {
-      if (!/ |\t|\r/.test(this.#peek(data, this.#index)) && this.#peek(data, this.#index) != "\n") return;
+      if (!/ |\n|\t|\r/.test(this.#peek(data, this.#index))) return;
       this.#index += 1;
     }
   }
