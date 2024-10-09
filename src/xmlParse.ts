@@ -54,7 +54,7 @@ function parseTag(tag: Element): RootTag {
 
 function parseCompoundTag(tag: Element): CompoundTag {
   const compound: CompoundTag = {};
-  console.log(tag.childNodes);
+  // console.log(tag.childNodes);
   for (const key in tag.childNodes) {
     const child = tag.childNodes[key]!;
     if (child.nodeType === 1) { // Element node

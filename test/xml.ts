@@ -10,12 +10,12 @@ console.log(xmlData);
 
 const snbtData: string = stringify(parse(await readFile(snbt, "utf-8")), { space: 2 });
 
-const nodes: RootTag = parseXML(xmlData);
-console.log(nodes);
+const nbt: RootTag = parseXML(xmlData);
+console.log(nbt);
 
-const stringed: string = stringify(nodes, { space: 2 });
-console.log(snbtData);
-console.log(stringed);
+const stringed: string = stringify(nbt, { space: 2 });
+// console.log(snbtData);
+// console.log(stringed);
 
 const diff = Buffer.compare(Buffer.from(snbtData), Buffer.from(stringed));
 console.log(diff);
