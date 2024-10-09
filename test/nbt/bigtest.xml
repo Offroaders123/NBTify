@@ -15,7 +15,13 @@
       <FloatTag name="value">0.5</FloatTag>
     </CompoundTag>
   </CompoundTag>
-  <ListTag name="listTest (long)">[11l, 12l, 13l, 14l, 15l]</ListTag>
+  <ListTag name="listTest (long)">
+    <LongTag>11</LongTag>
+    <LongTag>12</LongTag>
+    <LongTag>13</LongTag>
+    <LongTag>14</LongTag>
+    <LongTag>15</LongTag>
+  </ListTag>
   <ListTag name="listTest (compound)">
     <CompoundTag>
       <StringTag name="name">Compound tag #0</StringTag>

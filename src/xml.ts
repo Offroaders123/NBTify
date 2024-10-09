@@ -71,7 +71,8 @@ function parseListTag(tag: Element): ListTag<Tag> {
     const child = tag.childNodes[key]!;
     if (child.nodeType === 1) { // Element node
       const parsedTag = parseTag(child as Element);
-      list.push(parsedTag);
+      // Since this is a list, we push the tag value directly into the list.
+      list.push(Object.values(parsedTag)[0]!); // Use the value, not the object
     }
   }
   return list;
