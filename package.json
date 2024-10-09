@@ -36,10 +36,12 @@
   },
   "homepage": "https://github.com/Offroaders123/NBTify#readme",
   "dependencies": {
-    "mutf-8": "^1.1.4"
+    "mutf-8": "^1.1.4",
+    "xmldom": "^0.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
+    "@types/xmldom": "^0.1.34",
     "tsx": "^4.19.1",
     "typescript": "^5.6.2"
   },
