@@ -1,22 +1,8 @@
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
+import { ALLOWED_TAGS } from "./xmlTags.js";
 import { DOMParser } from "xmldom";
 
 import type { Tag, RootTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
-
-enum ALLOWED_TAGS {
-  ByteTag = "ByteTag",
-  ShortTag = "ShortTag",
-  IntTag = "IntTag",
-  LongTag = "LongTag",
-  FloatTag = "FloatTag",
-  DoubleTag = "DoubleTag",
-  ByteArrayTag = "ByteArrayTag",
-  StringTag = "StringTag",
-  ListTag = "ListTag",
-  CompoundTag = "CompoundTag",
-  IntArrayTag = "IntArrayTag",
-  LongArrayTag = "LongArrayTag"
-}
 
 function parseTag(tag: Element): RootTag {
   const tagName = tag.tagName;
@@ -24,29 +10,29 @@ function parseTag(tag: Element): RootTag {
 
   switch (tagName as ALLOWED_TAGS) {
     case "ByteTag":
-      return { [nameAttr!]: new Int8(Number(tag.textContent)) };
+      return { [nameAttr!]: new Int8(Number(tag.textContent)) satisfies ByteTag };
     case "ShortTag":
-      return { [nameAttr!]: new Int16(Number(tag.textContent)) };
+      return { [nameAttr!]: new Int16(Number(tag.textContent)) satisfies ShortTag };
     case "IntTag":
-      return { [nameAttr!]: new Int32(Number(tag.textContent)) };
+      return { [nameAttr!]: new Int32(Number(tag.textContent)) satisfies IntTag };
     case "LongTag":
-      return { [nameAttr!]: BigInt(tag.textContent!) };
+      return { [nameAttr!]: BigInt(tag.textContent!) satisfies LongTag };
     case "FloatTag":
-      return { [nameAttr!]: new Float32(Number(tag.textContent)) };
+      return { [nameAttr!]: new Float32(Number(tag.textContent)) satisfies FloatTag };
     case "DoubleTag":
-      return { [nameAttr!]: Number(tag.textContent) };
+      return { [nameAttr!]: Number(tag.textContent) satisfies DoubleTag };
     case "ByteArrayTag":
-      return { [nameAttr!]: parseByteArrayTag(tag) };
+      return { [nameAttr!]: parseByteArrayTag(tag) satisfies ByteArrayTag };
     case "IntArrayTag":
-      return { [nameAttr!]: parseIntArrayTag(tag) };
+      return { [nameAttr!]: parseIntArrayTag(tag) satisfies IntArrayTag };
     case "LongArrayTag":
-      return { [nameAttr!]: parseLongArrayTag(tag) };
+      return { [nameAttr!]: parseLongArrayTag(tag) satisfies LongArrayTag };
     case "StringTag":
-      return { [nameAttr!]: tag.textContent! };
+      return { [nameAttr!]: tag.textContent! satisfies StringTag };
     case "CompoundTag":
-      return { [nameAttr!]: parseCompoundTag(tag) };
+      return { [nameAttr!]: parseCompoundTag(tag) satisfies CompoundTag };
     case "ListTag":
-      return { [nameAttr!]: parseListTag(tag) };
+      return { [nameAttr!]: parseListTag(tag) satisfies ListTag<Tag> };
     default:
       throw new TypeError(`All tags must only be NBT primitives, received tag '${tagName}'`);
   }
@@ -82,18 +68,18 @@ function parseByteArrayTag(tag: Element): ByteArrayTag {
   const byteArray: number[] = [];
   for (const key in tag.childNodes) {
     const child = tag.childNodes[key]!;
-    if (child.nodeType === 1 && child.tagName === "ByteTag") {
+    if (child.nodeType === 1 && (child as Element).tagName === "ByteTag") {
       byteArray.push(Number((child as Element).textContent));
     }
   }
-  return new Uint8Array(byteArray);
+  return new Int8Array(byteArray);
 }
 
 function parseIntArrayTag(tag: Element): IntArrayTag {
   const intArray: number[] = [];
   for (const key in tag.childNodes) {
     const child = tag.childNodes[key]!;
-    if (child.nodeType === 1 && child.tagName === "IntTag") {
+    if (child.nodeType === 1 && (child as Element).tagName === "IntTag") {
       intArray.push(Number((child as Element).textContent));
     }
   }
@@ -104,7 +90,7 @@ function parseLongArrayTag(tag: Element): LongArrayTag {
   const longArray: bigint[] = [];
   for (const key in tag.childNodes) {
     const child = tag.childNodes[key]!;
-    if (child.nodeType === 1 && child.tagName === "LongTag") {
+    if (child.nodeType === 1 && (child as Element).tagName === "LongTag") {
       longArray.push(BigInt((child as Element).textContent!));
     }
   }
