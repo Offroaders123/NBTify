@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompoundTag name="Level">
+  <LongTag name="longTest">9223372036854775807</LongTag>
+  <ShortTag name="shortTest">32767</ShortTag>
+  <StringTag name="stringTest">HELLO WORLD THIS IS A TEST STRING ÅÄÖ!</StringTag>
+  <FloatTag name="floatTest">0.4982314705848694</FloatTag>
+  <IntTag name="intTest">2147483647</IntTag>
+  <CompoundTag name="nested compound test">
+    <CompoundTag name="ham">
+      <StringTag name="name">Hampus</StringTag>
+      <FloatTag name="value">0.75</FloatTag>
+    </CompoundTag>
+    <CompoundTag name="egg">
+      <StringTag name="name">Eggbert</StringTag>
+      <FloatTag name="value">0.5</FloatTag>
+    </CompoundTag>
+  </CompoundTag>
+  <ListTag name="listTest (long)">[11l, 12l, 13l, 14l, 15l]</ListTag>
+  <ListTag name="listTest (compound)">
+    <CompoundTag>
+      <StringTag name="name">Compound tag #0</StringTag>
+      <LongTag name="created-on">1264099775885</LongTag>
+    </CompoundTag>
+    <CompoundTag>
+      <StringTag name="name">Compound tag #1</StringTag>
+      <LongTag name="created-on">1264099775885</LongTag>
+    </CompoundTag>
+  </ListTag>
+  <ByteTag name="byteTest">127</ByteTag>
+  <DoubleTag name="doubleTest">0.4931287132182315</DoubleTag>
+  <ByteArrayTag name="byteArrayTest">
+    <ByteTag>0</ByteTag>
+    <ByteTag>62</ByteTag>
+    <ByteTag>34</ByteTag>
+    <ByteTag>16</ByteTag>
+    <ByteTag>8</ByteTag>
+  </ByteArrayTag>
+  <IntArrayTag name="intArrayTest">
+    <IntTag>543</IntTag>
+    <IntTag>123</IntTag>
+    <IntTag>7567</IntTag>
+    <IntTag>244</IntTag>
+  </IntArrayTag>
+  <LongArrayTag name="longArrayTest">
+    <LongTag>7676</LongTag>
+    <LongTag>53534</LongTag>
+    <LongTag>34534</LongTag>
+    <LongTag>345345345</LongTag>
+  </LongArrayTag>
+  <StringTag name="escapedString">"noice, I gotchya"</StringTag>
+  <StringTag name="escapeSequences">&#x8;&#xC;&#xA;&#13;&#x9;"'\</StringTag>
+  <StringTag name="otherEscape">"</StringTag>
+</CompoundTag>
