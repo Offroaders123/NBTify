@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises";
-import { parseXML } from "../src/xml.js";
+import { parseXML } from "../src/xmlParse.js";
 import { parse, stringify, type RootTag } from "../src/index.js";
 
 const xml = new URL("./nbt/bigtest.xml", import.meta.url);
