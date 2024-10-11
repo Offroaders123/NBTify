@@ -1,7 +1,8 @@
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { ALLOWED_TAGS } from "./xmlTags.js";
-import { DOMParser } from "xmldom";
+import { DOMParser } from "@xmldom/xmldom";
 
+import type { Document, Element } from "@xmldom/xmldom";
 import type { Tag, RootTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 function parseTag(tag: Element): RootTag {
@@ -100,8 +101,8 @@ function parseLongArrayTag(tag: Element): LongArrayTag {
 // Main parsing function
 export function parseXML(xml: string): RootTag {
   const parser = new DOMParser();
-  const doc = parser.parseFromString(xml, "application/xml");
-  const rootTag = doc.documentElement;
+  const doc: Document = parser.parseFromString(xml, "application/xml");
+  const rootTag: Element = doc.documentElement!;
 
   if (rootTag.tagName === "CompoundTag") {
     return parseCompoundTag(rootTag);
