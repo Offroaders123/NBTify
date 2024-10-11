@@ -10,29 +10,29 @@ function parseTag(tag: Element): RootTag {
   const nameAttr = tag.getAttribute("name");
 
   switch (tagName as ALLOWED_TAGS) {
-    case "ByteTag":
+    case ALLOWED_TAGS.ByteTag:
       return { [nameAttr!]: new Int8(Number(tag.textContent)) satisfies ByteTag };
-    case "ShortTag":
+    case ALLOWED_TAGS.ShortTag:
       return { [nameAttr!]: new Int16(Number(tag.textContent)) satisfies ShortTag };
-    case "IntTag":
+    case ALLOWED_TAGS.IntTag:
       return { [nameAttr!]: new Int32(Number(tag.textContent)) satisfies IntTag };
-    case "LongTag":
+    case ALLOWED_TAGS.LongTag:
       return { [nameAttr!]: BigInt(tag.textContent!) satisfies LongTag };
-    case "FloatTag":
+    case ALLOWED_TAGS.FloatTag:
       return { [nameAttr!]: new Float32(Number(tag.textContent)) satisfies FloatTag };
-    case "DoubleTag":
+    case ALLOWED_TAGS.DoubleTag:
       return { [nameAttr!]: Number(tag.textContent) satisfies DoubleTag };
-    case "ByteArrayTag":
+    case ALLOWED_TAGS.ByteArrayTag:
       return { [nameAttr!]: parseByteArrayTag(tag) satisfies ByteArrayTag };
-    case "IntArrayTag":
+    case ALLOWED_TAGS.IntArrayTag:
       return { [nameAttr!]: parseIntArrayTag(tag) satisfies IntArrayTag };
-    case "LongArrayTag":
+    case ALLOWED_TAGS.LongArrayTag:
       return { [nameAttr!]: parseLongArrayTag(tag) satisfies LongArrayTag };
-    case "StringTag":
+    case ALLOWED_TAGS.StringTag:
       return { [nameAttr!]: tag.textContent! satisfies StringTag };
-    case "CompoundTag":
+    case ALLOWED_TAGS.CompoundTag:
       return { [nameAttr!]: parseCompoundTag(tag) satisfies CompoundTag };
-    case "ListTag":
+    case ALLOWED_TAGS.ListTag:
       return { [nameAttr!]: parseListTag(tag) satisfies ListTag<Tag> };
     default:
       throw new TypeError(`All tags must only be NBT primitives, received tag '${tagName}'`);
@@ -69,7 +69,7 @@ function parseByteArrayTag(tag: Element): ByteArrayTag {
   const byteArray: number[] = [];
   for (const key in tag.childNodes) {
     const child = tag.childNodes[key]!;
-    if (child.nodeType === 1 && (child as Element).tagName === "ByteTag") {
+    if (child.nodeType === 1 && (child as Element).tagName === ALLOWED_TAGS.ByteTag) {
       byteArray.push(Number((child as Element).textContent));
     }
   }
@@ -80,7 +80,7 @@ function parseIntArrayTag(tag: Element): IntArrayTag {
   const intArray: number[] = [];
   for (const key in tag.childNodes) {
     const child = tag.childNodes[key]!;
-    if (child.nodeType === 1 && (child as Element).tagName === "IntTag") {
+    if (child.nodeType === 1 && (child as Element).tagName === ALLOWED_TAGS.IntTag) {
       intArray.push(Number((child as Element).textContent));
     }
   }
@@ -91,7 +91,7 @@ function parseLongArrayTag(tag: Element): LongArrayTag {
   const longArray: bigint[] = [];
   for (const key in tag.childNodes) {
     const child = tag.childNodes[key]!;
-    if (child.nodeType === 1 && (child as Element).tagName === "LongTag") {
+    if (child.nodeType === 1 && (child as Element).tagName === ALLOWED_TAGS.LongTag) {
       longArray.push(BigInt((child as Element).textContent!));
     }
   }
@@ -104,9 +104,9 @@ export function parseXML(xml: string): RootTag {
   const doc: Document = parser.parseFromString(xml, "application/xml");
   const rootTag: Element = doc.documentElement!;
 
-  if (rootTag.tagName === "CompoundTag") {
+  if (rootTag.tagName === ALLOWED_TAGS.CompoundTag) {
     return parseCompoundTag(rootTag);
-  } else if (rootTag.tagName === "ListTag") {
+  } else if (rootTag.tagName === ALLOWED_TAGS.ListTag) {
     return parseListTag(rootTag);
   } else {
     throw new Error("Invalid root tag. Expected CompoundTag or ListTag.");
