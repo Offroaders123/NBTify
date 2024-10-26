@@ -126,8 +126,8 @@ class NBTWriter {
     switch (type) {
       case TAG.BYTE: return this.#writeByte(value as ByteTag | BooleanTag);
       case TAG.SHORT: return this.#writeShort(value as ShortTag);
-      case TAG.INT: return this.#writeInt(value as IntTag);
-      case TAG.LONG: return this.#writeLong(value as LongTag);
+      case TAG.INT: return this.#varint ? this.#writeVarIntZigZag(value as IntTag) : this.#writeInt(value as IntTag);
+      case TAG.LONG: return this.#varint ? this.#writeVarLongZigZag(value as LongTag) : this.#writeLong(value as LongTag);
       case TAG.FLOAT: return this.#writeFloat(value as FloatTag);
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
@@ -181,9 +181,6 @@ class NBTWriter {
   }
 
   #writeInt(value: number | IntTag): this {
-    if (this.#varint) {
-      return this.#writeVarIntZigZag(value);
-    }
     this.#allocate(4);
     this.#view.setInt32(this.#byteOffset, value.valueOf(), this.#littleEndian);
     this.#byteOffset += 4;
@@ -216,9 +213,6 @@ class NBTWriter {
   }
 
   #writeLong(value: LongTag): this {
-    if (this.#varint) {
-      return this.#writeVarLongZigZag(value);
-    }
     this.#allocate(8);
     this.#view.setBigInt64(this.#byteOffset, value, this.#littleEndian);
     this.#byteOffset += 8;
@@ -252,7 +246,7 @@ class NBTWriter {
 
   #writeByteArray(value: ByteArrayTag): this {
     const { length } = value;
-    this.#writeInt(length);
+    this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
     this.#allocate(length);
     this.#data.set(value, this.#byteOffset);
     this.#byteOffset += length;
@@ -262,11 +256,7 @@ class NBTWriter {
   #writeString(value: StringTag): this {
     const entry: Uint8Array = this.#encoder.encode(value);
     const { length } = entry;
-    if (this.#varint) {
-      this.#writeVarInt(length);
-    } else {
-      this.#writeUnsignedShort(length);
-    }
+    this.#varint ? this.#writeVarInt(length) : this.#writeUnsignedShort(length);
     this.#allocate(length);
     this.#data.set(entry, this.#byteOffset);
     this.#byteOffset += length;
@@ -279,11 +269,7 @@ class NBTWriter {
     type = type ?? (value[0] !== undefined ? getTagType(value[0]) : TAG.END);
     const { length } = value;
     this.#writeTagType(type);
-    if (this.#varint) {
-      this.#writeVarIntZigZag(length);
-    } else {
-      this.#writeInt(length);
-    }
+    this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
     for (const entry of value) {
       if (getTagType(entry) !== type) {
         throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
@@ -308,7 +294,7 @@ class NBTWriter {
 
   #writeIntArray(value: IntArrayTag): this {
     const { length } = value;
-    this.#writeInt(length);
+    this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
     for (const entry of value) {
       this.#writeInt(entry);
     }
@@ -317,7 +303,7 @@ class NBTWriter {
 
   #writeLongArray(value: LongArrayTag): this {
     const { length } = value;
-    this.#writeInt(length);
+    this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
     for (const entry of value) {
       this.#writeLong(entry);
     }

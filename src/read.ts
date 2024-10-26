@@ -204,8 +204,8 @@ class NBTReader {
       }
       case TAG.BYTE: return this.#readByte();
       case TAG.SHORT: return this.#readShort();
-      case TAG.INT: return this.#readInt();
-      case TAG.LONG: return this.#readLong();
+      case TAG.INT: return this.#varint ? this.#readVarIntZigZag() : this.#readInt();
+      case TAG.LONG: return this.#varint ? this.#readVarLongZigZag() : this.#readLong();
       case TAG.FLOAT: return this.#readFloat();
       case TAG.DOUBLE: return this.#readDouble();
       case TAG.BYTE_ARRAY: return this.#readByteArray();
@@ -268,9 +268,6 @@ class NBTReader {
   #readInt(valueOf?: false): IntTag;
   #readInt(valueOf: true): number;
   #readInt(valueOf: boolean = false): number | IntTag {
-    if (this.#varint) {
-      return this.#readVarIntZigZag();
-    }
     this.#allocate(4);
     const value: number = this.#view.getInt32(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 4;
@@ -310,9 +307,6 @@ class NBTReader {
   }
 
   #readLong(): LongTag {
-    if (this.#varint) {
-      return this.#readVarLongZigZag();
-    }
     this.#allocate(8);
     const value: bigint = this.#view.getBigInt64(this.#byteOffset, this.#littleEndian);
     this.#byteOffset += 8;
@@ -353,7 +347,7 @@ class NBTReader {
   }
 
   #readByteArray(): ByteArrayTag {
-    const length: number = this.#readInt(true);
+    const length: number = this.#varint ? this.#readVarIntZigZag(true) : this.#readInt(true);
     this.#allocate(length);
     const value = new Int8Array(this.#data.subarray(this.#byteOffset, this.#byteOffset + length));
     this.#byteOffset += length;
@@ -391,7 +385,7 @@ class NBTReader {
       const type: TAG = this.#readTagType();
       if (type === TAG.END) break;
       const name: string = this.#readString();
-      console.log(name);
+      // console.log(name);
       const entry: Tag = this.#readTag(type);
       value[name] = entry;
       if (name.includes("ArrayTest")) console.log(name, entry);
@@ -400,7 +394,7 @@ class NBTReader {
   }
 
   #readIntArray(): IntArrayTag {
-    const length: number = this.#readInt(true);
+    const length: number = this.#varint ? this.#readVarIntZigZag(true) : this.#readInt(true);
     const value = new Int32Array(length);
     for (const i in value) {
       const entry: number = this.#readInt(true);
@@ -410,7 +404,7 @@ class NBTReader {
   }
 
   #readLongArray(): LongArrayTag {
-    const length: number = this.#readInt(true);
+    const length: number = this.#varint ? this.#readVarIntZigZag(true) : this.#readInt(true);
     const value = new BigInt64Array(length);
     for (const i in value) {
       const entry: bigint = this.#readLong();
