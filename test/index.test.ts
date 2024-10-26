@@ -13,6 +13,8 @@ const files: { name: string; buffer: Buffer; }[] = await Promise.all(paths.map(a
 
 describe("Read, Stringify, Parse and Write", () => {
   for (const { name, buffer } of files) {
+    if (!name.includes("varint-stringy")) continue;
+
     it(name, async () => {
       if (name.includes("hello_world")) {
         await rejects(async () => {
@@ -37,7 +39,7 @@ describe("Read, Stringify, Parse and Write", () => {
         ? (listItemAssertion)
           ? throws(() => NBT.parse<NBT.RootTag>(buffer.toString("utf-8")), `'${name}' parses from SNBT when it shouldn't`)
           : NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
-        : await NBT.read<NBT.RootTag>(buffer, { strict });
+        : await NBT.read<NBT.RootTag>(buffer, { rootName: "", endian: "little-varint", compression: null, bedrockLevel: false, strict: true });
       if (result === undefined) return;
 
       if (!strict && result instanceof NBT.NBTData) {

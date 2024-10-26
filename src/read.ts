@@ -391,8 +391,10 @@ class NBTReader {
       const type: TAG = this.#readTagType();
       if (type === TAG.END) break;
       const name: string = this.#readString();
+      console.log(name);
       const entry: Tag = this.#readTag(type);
       value[name] = entry;
+      if (name.includes("ArrayTest")) console.log(name, entry);
     }
     return value;
   }
