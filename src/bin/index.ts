@@ -8,6 +8,9 @@ import { file, nbt, snbt, json, format, space } from "./args.js";
 
 import type { RootTag } from "../index.js";
 
+await main();
+
+async function main(): Promise<void> {
 if (file === undefined) {
   file satisfies never;
   throw new TypeError("Missing argument 'input'");
@@ -63,3 +66,4 @@ const result: string | Uint8Array = json
   ? `${stringify(output, { space })}\n`
   : await write(output);
 await stdoutWriteAsync(result);
+}
