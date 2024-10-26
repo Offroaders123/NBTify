@@ -1,6 +1,6 @@
 {
   "name": "nbtify",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "A library to read and write NBT files on the web!",
   "type": "module",
   "main": "./dist/index.js",
@@ -39,9 +39,9 @@
     "mutf-8": "^1.1.4"
   },
   "devDependencies": {
-    "@types/node": "^22.7.4",
+    "@types/node": "^22.8.1",
     "tsx": "^4.19.1",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.3"
   },
   "sideEffects": false
 }
