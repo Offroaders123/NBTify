@@ -11,23 +11,38 @@ import type { RootTag } from "../index.js";
 await main();
 
 async function main(): Promise<void> {
-if (file === undefined) {
-  file satisfies never;
-  throw new TypeError("Missing argument 'input'");
-}
-
-const buffer: Buffer = readFileSync(file);
-
-let input: RootTag | NBTData;
-
-if (file === 0) {
-  input = await readBuffer(buffer);
-} else {
-  try {
-    input = await readExtension(buffer, file);
-  } catch {
-    input = await readBuffer(buffer);
+  if (file === undefined) {
+    file satisfies never;
+    throw new TypeError("Missing argument 'input'");
   }
+
+  const buffer: Buffer = readFileSync(file);
+
+  let input: RootTag | NBTData;
+
+  if (file === 0) {
+    input = await readBuffer(buffer);
+  } else {
+    try {
+      input = await readExtension(buffer, file);
+    } catch {
+      input = await readBuffer(buffer);
+    }
+  }
+
+  const output: NBTData = new NBTData(input, format);
+
+  if (!nbt && !snbt && !json) {
+    console.log(inspect(output, { colors: true, depth: null }));
+    process.exit(0);
+  }
+
+  const result: string | Uint8Array = json
+    ? `${JSON.stringify(output.data, null, space)}\n`
+    : snbt
+    ? `${stringify(output, { space })}\n`
+    : await write(output);
+  await stdoutWriteAsync(result);
 }
 
 async function readExtension(buffer: Buffer, file: string): Promise<RootTag | NBTData> {
@@ -51,19 +66,4 @@ async function readBuffer(buffer: Buffer): Promise<RootTag | NBTData> {
   }
 }
 
-const output: NBTData = new NBTData(input, format);
-
-if (!nbt && !snbt && !json) {
-  console.log(inspect(output, { colors: true, depth: null }));
-  process.exit(0);
-}
-
 const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
-
-const result: string | Uint8Array = json
-  ? `${JSON.stringify(output.data, null, space)}\n`
-  : snbt
-  ? `${stringify(output, { space })}\n`
-  : await write(output);
-await stdoutWriteAsync(result);
-}
