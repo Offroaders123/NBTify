@@ -17,9 +17,6 @@ process.on("uncaughtException", error => {
 
 const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
 
-await main(args);
-
-async function main(args: string[]): Promise<void> {
   const file = getFile(args);
   const nbt = getNBT(args);
   const snbt = getSNBT(args);
@@ -54,7 +51,6 @@ async function main(args: string[]): Promise<void> {
     ? `${stringify(output, { space })}\n`
     : await write(output);
   await stdoutWriteAsync(result);
-}
 
 async function readExtension(buffer: Buffer, file: string): Promise<RootTag | NBTData> {
   const extension: string = extname(file);
