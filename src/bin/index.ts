@@ -4,13 +4,27 @@ import { extname } from "node:path";
 import { readFileSync } from "node:fs";
 import { inspect, promisify } from "node:util";
 import { read, write, parse, stringify, NBTData } from "../index.js";
-import { file, nbt, snbt, json, format, space } from "./args.js";
+import { getFile, getNBT, getSNBT, getJSON, getFormat, getSpace } from "./args.js";
 
 import type { RootTag } from "../index.js";
 
-await main();
+const args: string[] = process.argv.slice(2);
 
-async function main(): Promise<void> {
+process.on("uncaughtException", error => {
+  console.error(`${error}`);
+  process.exit(1);
+});
+
+await main(args);
+
+async function main(args: string[]): Promise<void> {
+  const file = getFile(args);
+  const nbt = getNBT(args);
+  const snbt = getSNBT(args);
+  const json = getJSON(args);
+  const format = getFormat(args);
+  const space = getSpace(args);
+
   if (file === undefined) {
     file satisfies never;
     throw new TypeError("Missing argument 'input'");

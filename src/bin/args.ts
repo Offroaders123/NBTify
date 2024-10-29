@@ -9,19 +9,13 @@ const COMPRESSION_PATTERN = /^--compression=/;
 const BEDROCK_LEVEL_PATTERN = /^(?:--bedrock-level$|--bedrock-level=)/;
 const SPACE_PATTERN = /^--space=/;
 
-const args: string[] = process.argv.slice(2);
-
-process.on("uncaughtException", error => {
-  console.error(`${error}`);
-  process.exit(1);
-});
-
-export const file: string | typeof process.stdin.fd = !process.stdin.isTTY
+export const getFile = (args: string[]): string | typeof process.stdin.fd => !process.stdin.isTTY
   ? process.stdin.fd
   : args.shift() ?? (() => {
     throw new TypeError("Missing argument 'input'");
   })();
 
+export function validateArgs(args: string[]): void {
 for (const arg of args) {
   switch (true) {
     case NBT_PATTERN.test(arg):
@@ -37,21 +31,22 @@ for (const arg of args) {
       throw new TypeError(`Unexpected argument '${arg}'`);
   }
 }
+}
 
-export const nbt: boolean = args
+export const getNBT = (args: string[]): boolean => args
   .some(arg => NBT_PATTERN.test(arg));
 
-export const snbt: boolean = args
+export const getSNBT = (args: string[]): boolean => args
   .some(arg => SNBT_PATTERN.test(arg));
 
-export const json: boolean = args
+export const getJSON = (args: string[]): boolean => args
   .some(arg => JSON_PATTERN.test(arg));
 
-const rootName: NBTDataOptions["rootName"] = args
+const getRootName = (args: string[]): NBTDataOptions["rootName"] => args
   .find(arg => ROOT_NAME_PATTERN.test(arg))
   ?.replace(ROOT_NAME_PATTERN, "");
 
-const endian: NBTDataOptions["endian"] = (() => {
+const getEndian = (args: string[]): NBTDataOptions["endian"] => {
   const value: string | undefined = args
     .find(arg => ENDIAN_PATTERN.test(arg))
     ?.replace(ENDIAN_PATTERN, "");
@@ -60,9 +55,9 @@ const endian: NBTDataOptions["endian"] = (() => {
     throw new TypeError("Endian option must be a valid endian type");
   }
   return value;
-})();
+};
 
-const compression: NBTDataOptions["compression"] = (() => {
+const getCompression = (args: string[]): NBTDataOptions["compression"] => {
   const value: string | undefined = args
     .find(arg => COMPRESSION_PATTERN.test(arg))
     ?.replace(COMPRESSION_PATTERN, "");
@@ -71,9 +66,9 @@ const compression: NBTDataOptions["compression"] = (() => {
     throw new TypeError("Compression option must be a valid compression type");
   }
   return value === "null" ? null : value;
-})();
+};
 
-const bedrockLevel: NBTDataOptions["bedrockLevel"] = (() => {
+const getBedrockLevel = (args: string[]): NBTDataOptions["bedrockLevel"] => {
   const value: string | undefined = args
     .find(arg => BEDROCK_LEVEL_PATTERN.test(arg))
     ?.replace(BEDROCK_LEVEL_PATTERN, "");
@@ -84,11 +79,11 @@ const bedrockLevel: NBTDataOptions["bedrockLevel"] = (() => {
     case "false": return false;
     default: throw new TypeError("Bedrock Level must be a boolean");
   }
-})();
+};
 
-export const format: NBTDataOptions = { rootName, endian, compression, bedrockLevel };
+export const getFormat = (args: string[]): NBTDataOptions => ({ rootName: getRootName(args), endian: getEndian(args), compression: getCompression(args), bedrockLevel: getBedrockLevel(args) });
 
-export const space: StringifyOptions["space"] = (() => {
+export const getSpace = (args: string[]): StringifyOptions["space"] => {
   const space: string | undefined = args
     .find(arg => SPACE_PATTERN.test(arg))
     ?.replace(SPACE_PATTERN, "");
@@ -97,4 +92,4 @@ export const space: StringifyOptions["space"] = (() => {
   } else {
     return Number(space);
   }
-})();
+};
