@@ -15,6 +15,8 @@ process.on("uncaughtException", error => {
   process.exit(1);
 });
 
+const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
+
 await main(args);
 
 async function main(args: string[]): Promise<void> {
@@ -24,11 +26,6 @@ async function main(args: string[]): Promise<void> {
   const json = getJSON(args);
   const format = getFormat(args);
   const space = getSpace(args);
-
-  if (file === undefined) {
-    file satisfies never;
-    throw new TypeError("Missing argument 'input'");
-  }
 
   const buffer: Buffer = readFileSync(file);
 
@@ -79,5 +76,3 @@ async function readBuffer(buffer: Buffer): Promise<RootTag | NBTData> {
     }
   }
 }
-
-const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
