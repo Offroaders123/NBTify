@@ -9,8 +9,8 @@ const COMPRESSION_PATTERN = /^--compression=/;
 const BEDROCK_LEVEL_PATTERN = /^(?:--bedrock-level$|--bedrock-level=)/;
 const SPACE_PATTERN = /^--space=/;
 
-export const getFile = (args: string[]): string | typeof process.stdin.fd => !process.stdin.isTTY
-  ? process.stdin.fd
+export const getFile = (args: string[]): string | true => !process.stdin.isTTY
+  ? true
   : args.shift() ?? (() => {
     throw new TypeError("Missing argument 'input'");
   })();

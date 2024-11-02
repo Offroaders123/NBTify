@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 import { extname } from "node:path";
-import { readFileSync } from "node:fs";
-import { inspect, promisify } from "node:util";
+import { readFile } from "node:fs/promises";
+import { inspect } from "node:util";
 import { read, write, parse, stringify, NBTData } from "../index.js";
+import { readStdin, writeStdout } from "./input.js";
 import { getFile, getNBT, getSNBT, getJSON, getFormat, getSpace } from "./args.js";
 
 import type { RootTag } from "../index.js";
@@ -15,8 +16,6 @@ process.on("uncaughtException", error => {
   process.exit(1);
 });
 
-const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
-
   const file = getFile(args);
   const nbt = getNBT(args);
   const snbt = getSNBT(args);
@@ -24,11 +23,11 @@ const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
   const format = getFormat(args);
   const space = getSpace(args);
 
-  const buffer: Buffer = readFileSync(file);
+  const buffer: Buffer = file === true ? await readStdin() : await readFile(file);
 
   let input: RootTag | NBTData;
 
-  if (file === 0) {
+  if (file === true) {
     input = await readBuffer(buffer);
   } else {
     try {
@@ -50,7 +49,7 @@ const stdoutWriteAsync = promisify(process.stdout.write.bind(process.stdout));
     : snbt
     ? `${stringify(output, { space })}\n`
     : await write(output);
-  await stdoutWriteAsync(result);
+  await writeStdout(result);
 
 async function readExtension(buffer: Buffer, file: string): Promise<RootTag | NBTData> {
   const extension: string = extname(file);
