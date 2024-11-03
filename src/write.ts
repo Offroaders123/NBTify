@@ -12,10 +12,11 @@ import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, 
  * 
  * If a format option isn't specified, the value of the equivalent property on the NBTData object will be used.
 */
-export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options: NBTDataOptions = {}): Promise<Uint8Array> {
+export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options: NBTDataOptions & { rootCheck?: boolean; } = {}): Promise<Uint8Array> {
   data = new NBTData(data, options);
 
   const { rootName, endian, compression, bedrockLevel } = data as NBTData<T>;
+  const rootCheck: boolean = options.rootCheck ?? true;
 
   if (typeof data !== "object" || data === null) {
     data satisfies never;
@@ -39,7 +40,7 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
   }
 
   const writer = new NBTWriter(endian !== "big", endian === "little-varint");
-  return writer.writeRoot(data as NBTData<T>);
+  return writer.writeRoot(data as NBTData<T>, rootCheck);
 }
 
 class NBTWriter {
@@ -82,11 +83,11 @@ class NBTWriter {
     return this.#data.slice(0, this.#byteOffset);
   }
 
-  async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>): Promise<Uint8Array> {
+  async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, rootCheck: boolean): Promise<Uint8Array> {
     const { data: root, rootName, endian, compression, bedrockLevel } = data;
     const littleEndian: boolean = endian !== "big";
-    const type: Tag | null = getTagType(root);
-    if (type !== TAG.LIST && type !== TAG.COMPOUND) {
+    const type: TAG | null = getTagType(root);
+    if (type === null || rootCheck && type !== TAG.LIST && type !== TAG.COMPOUND) {
       throw new TypeError(`Encountered unexpected Root tag type '${type}', must be either a List or Compound tag`);
     }
 

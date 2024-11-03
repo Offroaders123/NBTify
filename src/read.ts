@@ -13,6 +13,7 @@ export interface ReadOptions {
   compression: Compression;
   bedrockLevel: BedrockLevel;
   strict: boolean;
+  rootCheck: boolean;
 }
 
 /**
@@ -35,7 +36,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
   }
 
   const reader = new NBTReader(data, options.endian !== "big", options.endian === "little-varint");
-  let { rootName, endian, compression, bedrockLevel, strict = true } = options;
+  let { rootName, endian, compression, bedrockLevel, strict = true, rootCheck = true } = options;
 
   if (rootName !== undefined && typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null) {
     rootName satisfies never;
@@ -116,7 +117,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     bedrockLevel = reader.hasBedrockLevelHeader(endian);
   }
 
-  return reader.readRoot<T>({ rootName, endian, compression, bedrockLevel, strict });
+  return reader.readRoot<T>({ rootName, endian, compression, bedrockLevel, strict, rootCheck });
 }
 
 class NBTReader {
@@ -156,7 +157,7 @@ class NBTReader {
     }
   }
 
-  async readRoot<T extends RootTagLike = RootTag>({ rootName, endian, compression, bedrockLevel, strict }: ReadOptions): Promise<NBTData<T>> {
+  async readRoot<T extends RootTagLike = RootTag>({ rootName, endian, compression, bedrockLevel, strict, rootCheck }: ReadOptions): Promise<NBTData<T>> {
     if (compression !== null) {
       this.#data = await decompress(this.#data, compression);
       this.#view = new DataView(this.#data.buffer);
@@ -169,7 +170,7 @@ class NBTReader {
     }
 
     const type: TAG = this.#readTagType();
-    if (type !== TAG.LIST && type !== TAG.COMPOUND) {
+    if (rootCheck && type !== TAG.LIST && type !== TAG.COMPOUND) {
       throw new Error(`Expected an opening List or Compound tag at the start of the buffer, encountered tag type '${type}'`);
     }
 

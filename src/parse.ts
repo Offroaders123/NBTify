@@ -8,13 +8,13 @@ const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 /**
  * Converts an SNBT string into an NBT object.
 */
-export function parse<T extends RootTagLike = RootTag>(data: string): T {
+export function parse<T extends RootTagLike = RootTag>(data: string, rootCheck: boolean = true): T {
   if (typeof data !== "string") {
     data satisfies never;
     throw new TypeError("First parameter must be a string");
   }
 
-  return new SNBTReader().parseRoot(data) as T;
+  return new SNBTReader().parseRoot(data, rootCheck) as T;
 }
 
 class SNBTReader {
@@ -47,7 +47,11 @@ class SNBTReader {
     }
   }
 
-  parseRoot(data: string): RootTag {
+  parseRoot(data: string, rootCheck: boolean): RootTag {
+    if (!rootCheck) {
+      return this.#parseTag(data, "[root]") as RootTag;
+    }
+
     this.#skipWhitespace(data);
 
     this.#i = this.#index;
