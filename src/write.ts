@@ -18,7 +18,7 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
   const { rootName, endian, compression, bedrockLevel } = data as NBTData<T>;
   const rootCheck: boolean = options.rootCheck ?? true;
 
-  if (typeof data !== "object" || data === null) {
+  if (rootCheck && typeof data !== "object" || data === null) {
     data satisfies never;
     throw new TypeError("First parameter must be an object or array");
   }

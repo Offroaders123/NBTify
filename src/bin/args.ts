@@ -88,7 +88,7 @@ const getBedrockLevel = (args: string[]): NBTDataOptions["bedrockLevel"] => {
 
 export const getFormat = (args: string[]): NBTDataOptions => ({ rootName: getRootName(args), endian: getEndian(args), compression: getCompression(args), bedrockLevel: getBedrockLevel(args) });
 
-export const getSpace = (args: string[]): StringifyOptions["space"] => {
+export const getSpace = (args: string[]): Partial<StringifyOptions>["space"] => {
   const space: string | undefined = args
     .find(arg => SPACE_PATTERN.test(arg))
     ?.replace(SPACE_PATTERN, "");

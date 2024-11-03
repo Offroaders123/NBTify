@@ -4,19 +4,20 @@ import { TAG, isTag, getTagType } from "./tag.js";
 import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface StringifyOptions {
-  space?: string | number;
+  space: string | number;
+  rootCheck: boolean;
 }
 
 /**
  * Converts an NBT object into an SNBT string.
 */
-export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: StringifyOptions): string;
-export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { space = "" }: StringifyOptions = {}): string {
+export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, options?: Partial<StringifyOptions>): string;
+export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>, { space = "", rootCheck = true }: Partial<StringifyOptions> = {}): string {
   if (data instanceof NBTData) {
     data = data.data;
   }
 
-  if (typeof data !== "object" || data === null) {
+  if (rootCheck && typeof data !== "object" || data === null) {
     data satisfies never;
     throw new TypeError("First parameter must be an object or array");
   }
@@ -27,12 +28,12 @@ export function stringify<T extends RootTagLike = RootTag>(data: T | NBTData<T>,
 
   space = typeof space === "number" ? " ".repeat(space) : space;
   const level = 1;
-  return stringifyRoot(data as RootTag, space, level);
+  return stringifyRoot(data as RootTag, space, level, rootCheck);
 }
 
-function stringifyRoot(value: RootTag, space: string, level: number): string {
+function stringifyRoot(value: RootTag, space: string, level: number, rootCheck: boolean): string {
   const type: TAG = getTagType(value);
-  if (type !== TAG.LIST && type !== TAG.COMPOUND) {
+  if (rootCheck && type !== TAG.LIST && type !== TAG.COMPOUND) {
     throw new TypeError("Encountered unexpected Root tag type, must be either a List or Compound tag");
   }
 

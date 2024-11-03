@@ -48,8 +48,8 @@ process.on("uncaughtException", error => {
   const result: string | Uint8Array = json
     ? `${JSON.stringify(output.data, null, space)}\n`
     : snbt
-    ? `${stringify(output, { space })}\n`
-    : await write(output);
+    ? `${stringify(output, { space, rootCheck })}\n`
+    : await write(output, { rootCheck });
   await writeStdout(result);
 
 async function readExtension(buffer: Buffer, file: string, rootCheck: boolean): Promise<RootTag | NBTData> {
