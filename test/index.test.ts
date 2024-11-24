@@ -107,7 +107,7 @@ const thirdPartyAPI = {
     new Set([92, 5n])
   ])
 };
-console.log(thirdPartyAPI);
+// console.log(thirdPartyAPI);
 
 const replacer: NBT.Replacer = function(_key, value) {
   switch (true) {
@@ -126,7 +126,7 @@ const reviver: NBT.Reviver = function(_key, value) {
 
 describe("Replace, and Revive", async () => {
   const bruce: Uint8Array = await NBT.write(thirdPartyAPI, undefined, replacer);
-  console.dir((await NBT.read(bruce)).data, { depth: null });
+  // console.dir((await NBT.read(bruce)).data, { depth: null });
   const PARTERY: typeof thirdPartyAPI = (await NBT.read<typeof thirdPartyAPI>(bruce, undefined, reviver)).data;
   deepStrictEqual(thirdPartyAPI, PARTERY);
 });
