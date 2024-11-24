@@ -110,20 +110,25 @@ const thirdPartyAPI = {
 };
 
 const replacer: NBT.Replacer = function(_key, value) {
+  const val = function(){
   // console.log("THIS", _key, this);
   // console.log("VALUE", value);
   switch (true) {
-    case value instanceof Uint8Array: return { $__custom: "Uint8Array", value: [...value] };
+    case value instanceof Uint8Array: return { $__custom: "Uint8Array", value: Int8Array.from(value) };
     // case typeof value === "bigint": return ["$__bigint", value.toString()];
-    case value instanceof Set: return { $__custom: "Set", value: { ...value } };
+    case value instanceof Set: return { $__custom: "Set", value: { ...[...value] } };
     default: return value;
   }
+  }();
+  console.log(val);
+  return val;
 };
 
 const reviver: NBT.Reviver = function(_key, value) {
   // console.log("THIS", _key, this);
   // console.log("VALUE", value);
-  if (typeof value !== "object" || !("$__custom" in value)) return value;
+  if (!(typeof value === "object" && "$__custom" in value)) return value;
+  console.log(value);
   switch (value.$__custom) {
     case "Uint8Array": return Uint8Array.from(value.value);
     // case "$__bigint": return BigInt(value[1]);
