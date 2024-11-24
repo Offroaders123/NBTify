@@ -108,9 +108,10 @@ const thirdPartyAPI = {
     new Set([92, 5n])
   ])
 };
+console.log(thirdPartyAPI);
 
 const replacer: NBT.Replacer = function(_key, value) {
-  const val = function(){
+  // const val = function(){
   // console.log("THIS", _key, this);
   // console.log("VALUE", value);
   switch (true) {
@@ -119,16 +120,16 @@ const replacer: NBT.Replacer = function(_key, value) {
     case value instanceof Set: return { $__custom: "Set", value: { ...[...value] } };
     default: return value;
   }
-  }();
-  console.log(val);
-  return val;
+  // }();
+  // console.log(val);
+  // return val;
 };
 
 const reviver: NBT.Reviver = function(_key, value) {
   // console.log("THIS", _key, this);
   // console.log("VALUE", value);
   if (!(typeof value === "object" && "$__custom" in value)) return value;
-  console.log(value);
+  // console.log(value);
   switch (value.$__custom) {
     // case "Uint8Array": return Uint8Array.from(value.value);
     // case "$__bigint": return BigInt(value[1]);
@@ -139,6 +140,7 @@ const reviver: NBT.Reviver = function(_key, value) {
 
 describe("Replace, and Revive", async () => {
   const bruce: Uint8Array = await NBT.write(thirdPartyAPI, undefined, replacer);
+  console.dir((await NBT.read(bruce)).data, { depth: null });
   const PARTERY: typeof thirdPartyAPI = (await NBT.read<typeof thirdPartyAPI>(bruce, undefined, reviver)).data;
   deepStrictEqual(thirdPartyAPI, PARTERY);
 });
