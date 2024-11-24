@@ -1,5 +1,5 @@
 import { describe, it } from "node:test";
-import assert, { rejects, strictEqual, throws } from "node:assert";
+import assert, { deepStrictEqual, rejects, strictEqual, throws } from "node:assert";
 import { readFile, readdir } from "node:fs/promises";
 import * as NBT from "../src/index.js";
 
@@ -92,4 +92,48 @@ describe("Read, Stringify, Parse and Write", () => {
       strictEqual(compare, 0, `'${name}' does not symmetrically recompile`);
     });
   }
+});
+
+const thirdPartyAPI = {
+  nice: new Uint8Array([45, 82, 19, 43, 0, 1, 2, 3, 4, 5]),
+  heya: 25n,
+  what: [
+    {
+      aa: "Sweet",
+      l: {}
+    }
+  ],
+  sets: new Set([
+    new Set([25, {}]),
+    new Set([92, 5n])
+  ])
+};
+
+const replacer: NBT.Replacer = function(_key, value) {
+  // console.log("THIS", _key, this);
+  // console.log("VALUE", value);
+  switch (true) {
+    case value instanceof Uint8Array: return { $__custom: "Uint8Array", value: [...value] };
+    // case typeof value === "bigint": return ["$__bigint", value.toString()];
+    case value instanceof Set: return { $__custom: "Set", value: { ...value } };
+    default: return value;
+  }
+};
+
+const reviver: NBT.Reviver = function(_key, value) {
+  // console.log("THIS", _key, this);
+  // console.log("VALUE", value);
+  if (typeof value !== "object" || !("$__custom" in value)) return value;
+  switch (value.$__custom) {
+    case "Uint8Array": return Uint8Array.from(value.value);
+    // case "$__bigint": return BigInt(value[1]);
+    case "Set": return new Set(Object.values(value.value));
+    default: return value;
+  }
+};
+
+describe("Replace, and Revive", async () => {
+  const bruce: Uint8Array = await NBT.write(thirdPartyAPI, undefined, replacer);
+  const PARTERY: typeof thirdPartyAPI = (await NBT.read<typeof thirdPartyAPI>(bruce, undefined, reviver)).data;
+  deepStrictEqual(thirdPartyAPI, PARTERY);
 });
