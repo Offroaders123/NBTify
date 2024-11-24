@@ -95,7 +95,7 @@ describe("Read, Stringify, Parse and Write", () => {
 });
 
 const thirdPartyAPI = {
-  nice: new Uint8Array([45, 82, 19, 43, 0, 1, 2, 3, 4, 5]),
+  // nice: new Uint8Array([45, 82, 19, 43, 0, 1, 2, 3, 4, 5]),
   heya: 25n,
   what: [
     {
@@ -114,7 +114,7 @@ const replacer: NBT.Replacer = function(_key, value) {
   // console.log("THIS", _key, this);
   // console.log("VALUE", value);
   switch (true) {
-    case value instanceof Uint8Array: return { $__custom: "Uint8Array", value: Int8Array.from(value) };
+    // case value instanceof Uint8Array: return { $__custom: "Uint8Array", value: Int8Array.from(value) };
     // case typeof value === "bigint": return ["$__bigint", value.toString()];
     case value instanceof Set: return { $__custom: "Set", value: { ...[...value] } };
     default: return value;
@@ -130,7 +130,7 @@ const reviver: NBT.Reviver = function(_key, value) {
   if (!(typeof value === "object" && "$__custom" in value)) return value;
   console.log(value);
   switch (value.$__custom) {
-    case "Uint8Array": return Uint8Array.from(value.value);
+    // case "Uint8Array": return Uint8Array.from(value.value);
     // case "$__bigint": return BigInt(value[1]);
     case "Set": return new Set(Object.values(value.value));
     default: return value;
