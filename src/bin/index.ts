@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import { inspect } from "node:util";
 import { read, write, parse, stringify, NBTData } from "../index.js";
 import { readStdin, writeStdout } from "./input.js";
-import { getFile, getNBT, getSNBT, getJSON, getRootCheck, getFormat, getSpace } from "./args.js";
+import { getFile, getNBT, getSNBT, getJSON, getFormat, getSpace } from "./args.js";
 
 import type { RootTag } from "../index.js";
 
@@ -19,7 +19,6 @@ process.on("uncaughtException", error => {
   const file = getFile(args);
   const nbt = getNBT(args);
   const snbt = getSNBT(args);
-  const rootCheck = getRootCheck(args);
   const json = getJSON(args);
   const format = getFormat(args);
   const space = getSpace(args);
@@ -29,12 +28,12 @@ process.on("uncaughtException", error => {
   let input: RootTag | NBTData;
 
   if (file === true) {
-    input = await readBuffer(buffer, rootCheck);
+    input = await readBuffer(buffer);
   } else {
     try {
-      input = await readExtension(buffer, file, rootCheck);
+      input = await readExtension(buffer, file);
     } catch {
-      input = await readBuffer(buffer, rootCheck);
+      input = await readBuffer(buffer);
     }
   }
 
@@ -48,27 +47,27 @@ process.on("uncaughtException", error => {
   const result: string | Uint8Array = json
     ? `${JSON.stringify(output.data, null, space)}\n`
     : snbt
-    ? `${stringify(output, { space, rootCheck })}\n`
-    : await write(output, { rootCheck });
+    ? `${stringify(output, { space })}\n`
+    : await write(output);
   await writeStdout(result);
 
-async function readExtension(buffer: Buffer, file: string, rootCheck: boolean): Promise<RootTag | NBTData> {
+async function readExtension(buffer: Buffer, file: string): Promise<RootTag | NBTData> {
   const extension: string = extname(file);
   switch (extension) {
     case ".json": return JSON.parse(buffer.toString("utf-8")) as RootTag;
-    case ".snbt": return parse(buffer.toString("utf-8"), rootCheck);
-    default: return read(buffer, { rootCheck });
+    case ".snbt": return parse(buffer.toString("utf-8"));
+    default: return read(buffer);
   }
 }
 
-async function readBuffer(buffer: Buffer, rootCheck: boolean): Promise<RootTag | NBTData> {
+async function readBuffer(buffer: Buffer): Promise<RootTag | NBTData> {
   try {
     return JSON.parse(buffer.toString("utf-8")) as RootTag;
   } catch {
     try {
-      return parse(buffer.toString("utf-8"), rootCheck);
+      return parse(buffer.toString("utf-8"));
     } catch {
-      return read(buffer, { rootCheck });
+      return read(buffer);
     }
   }
 }

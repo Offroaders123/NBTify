@@ -23,7 +23,7 @@ const options: ReadAdjacentOptions = {
 const nbts: NBTData[] = await Array.fromAsync(readAdjacent(data, options));
 console.log(nbts);
 
-interface ReadAdjacentOptions extends Omit<ReadOptions, "strict"> {}
+interface ReadAdjacentOptions extends Omit<ReadOptions, "strict" | "rootCheck"> {}
 
 async function* readAdjacent<T extends RootTagLike = RootTag>(data: Uint8Array, options: ReadAdjacentOptions): AsyncGenerator<NBTData<T>, void, void> {
   let byteOffset: number = 0;

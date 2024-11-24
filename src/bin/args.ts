@@ -8,7 +8,6 @@ const ENDIAN_PATTERN = /^--endian=/;
 const COMPRESSION_PATTERN = /^--compression=/;
 const BEDROCK_LEVEL_PATTERN = /^(?:--bedrock-level$|--bedrock-level=)/;
 const SPACE_PATTERN = /^--space=/;
-const ROOT_CHECK_PATTERN = /^--anyroot$/;
 
 export const getFile = (args: string[]): string | true => !process.stdin.isTTY
   ? true
@@ -27,7 +26,6 @@ for (const arg of args) {
     case COMPRESSION_PATTERN.test(arg):
     case BEDROCK_LEVEL_PATTERN.test(arg):
     case SPACE_PATTERN.test(arg):
-    case ROOT_CHECK_PATTERN.test(arg):
       break;
     default:
       throw new TypeError(`Unexpected argument '${arg}'`);
@@ -43,9 +41,6 @@ export const getSNBT = (args: string[]): boolean => args
 
 export const getJSON = (args: string[]): boolean => args
   .some(arg => JSON_PATTERN.test(arg));
-
-export const getRootCheck = (args: string[]): boolean => !args
-  .some(arg => ROOT_CHECK_PATTERN.test(arg));
 
 const getRootName = (args: string[]): NBTDataOptions["rootName"] => args
   .find(arg => ROOT_NAME_PATTERN.test(arg))
