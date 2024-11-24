@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 import { inspect } from "node:util";
 import { read, write, parse, stringify, NBTData } from "../index.js";
 import { readStdin, writeStdout } from "./input.js";
-import { getFile, getNBT, getSNBT, getJSON, getFormat, getSpace } from "./args.js";
+import { getFile, validateArgs, getNBT, getSNBT, getJSON, getFormat, getSpace } from "./args.js";
 
 import type { RootTag } from "../index.js";
 
@@ -17,6 +17,7 @@ process.on("uncaughtException", error => {
 });
 
   const file = getFile(args);
+  validateArgs(args);
   const nbt = getNBT(args);
   const snbt = getSNBT(args);
   const json = getJSON(args);
