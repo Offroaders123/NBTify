@@ -52,12 +52,12 @@ class NBTWriter {
   readonly #littleEndian: boolean;
   readonly #varint: boolean;
   readonly #encoder: MUtf8Encoder = new MUtf8Encoder();
-  readonly #replacer: Replacer<CompoundTag | ListTag<Tag>>;
+  readonly #replacer?: Replacer<CompoundTag | ListTag<Tag>>;
 
   constructor(littleEndian: boolean, varint: boolean, replacer?: Replacer) {
     this.#littleEndian = littleEndian;
     this.#varint = varint;
-    this.#replacer = replacer !== undefined ? replacer : (_key, value) => value;
+    this.#replacer = replacer;
   }
 
   #allocate(byteLength: number): void {
@@ -88,7 +88,8 @@ class NBTWriter {
   }
 
   async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, rootCheck: boolean): Promise<Uint8Array> {
-    const { data: root, rootName, endian, compression, bedrockLevel } = data;
+    const { rootName, endian, compression, bedrockLevel } = data;
+    let { data: root } = data;
     const littleEndian: boolean = endian !== "big";
     const type: TAG | null = getTagType(root);
     if (type === null || rootCheck && type !== TAG.LIST && type !== TAG.COMPOUND) {
@@ -102,7 +103,10 @@ class NBTWriter {
 
     this.#writeTagType(type);
     if (rootName !== null) this.#writeString(rootName);
-    this.#writeTag(this.#replacer.call({ "": root as RootTag }, "", root as RootTag));
+    if (this.#replacer !== undefined) {
+      root = this.#replacer.call({ "": root as RootTag }, "", root as RootTag) as T;
+    }
+    this.#writeTag(root as RootTag);
 
     if (bedrockLevel) {
       if (littleEndian !== true) {
@@ -276,23 +280,29 @@ class NBTWriter {
     this.#writeTagType(type);
     this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
     for (let i: number = 0; i < value.length; i++) {
-      const entry: Tag = value[i]!;
+      let entry: Tag = value[i]!;
+      if (this.#replacer !== undefined) {
+        entry = this.#replacer.call(value, String(i), entry);
+      }
       if (getTagType(entry) !== type) {
         throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
       }
-      this.#writeTag(this.#replacer.call(value, String(i), entry));
+      this.#writeTag(entry);
     }
     return this;
   }
 
   #writeCompound(value: CompoundTag): this {
-    for (const [name, entry] of Object.entries(value)) {
+    for (let [name, entry] of Object.entries(value)) {
       if (entry === undefined) continue;
+      if (this.#replacer !== undefined) {
+        entry = this.#replacer.call(value, name, entry);
+      }
       const type: TAG | null = getTagType(entry as unknown);
       if (type === null) continue;
       this.#writeTagType(type);
       this.#writeString(name);
-      this.#writeTag(this.#replacer.call(value, name, entry));
+      this.#writeTag(entry);
     }
     this.#writeTagType(TAG.END);
     return this;
