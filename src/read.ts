@@ -16,7 +16,7 @@ export interface ReadOptions {
   rootCheck: boolean;
 }
 
-export type Reviver = (this: any, key: any, value: any) => Tag;
+export type Reviver<P = any> = (this: P, key: any, value: any) => Tag;
 
 /**
  * Converts an NBT buffer into an NBT object. Accepts an endian type, compression format, and file headers to read the data with.
@@ -129,7 +129,7 @@ class NBTReader {
   readonly #littleEndian: boolean;
   readonly #varint: boolean;
   readonly #decoder: MUtf8Decoder = new MUtf8Decoder();
-  readonly #reviver: Reviver;
+  readonly #reviver: Reviver<CompoundTag | ListTag<Tag>>;
 
   constructor(data: Uint8Array, littleEndian: boolean, varint: boolean, reviver?: Reviver) {
     this.#data = data;
@@ -183,7 +183,8 @@ class NBTReader {
       throw new Error(`Expected root name '${rootName}', encountered '${rootNameV}'`);
     }
 
-    const root: T = this.#reviver("", this.#readTag<T>(type)) as T;
+    const rootPlain: T = this.#readTag<T>(type);
+    const root: T = this.#reviver.call({ "": rootPlain as RootTag }, "", rootPlain) as T;
 
     if (strict && this.#data.byteLength > this.#byteOffset) {
       const remaining: number = this.#data.byteLength - this.#byteOffset;
@@ -378,7 +379,7 @@ class NBTReader {
       value: type
     });
     for (let i: number = 0; i < length; i++) {
-      const entry: Tag = this.#reviver(i, this.#readTag(type));
+      const entry: Tag = this.#reviver.call(value, i, this.#readTag(type));
       value.push(entry);
     }
     return value;
@@ -390,7 +391,7 @@ class NBTReader {
       const type: TAG = this.#readTagType();
       if (type === TAG.END) break;
       const name: string = this.#readString();
-      const entry: Tag = this.#reviver(name, this.#readTag(type));
+      const entry: Tag = this.#reviver.call(value, name, this.#readTag(type));
       value[name] = entry;
     }
     return value;

@@ -7,7 +7,7 @@ import { compress } from "./compression.js";
 import type { NBTDataOptions } from "./format.js";
 import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
-export type Replacer = (this: any, key: any, value: any) => Tag;
+export type Replacer<P = any> = (this: P, key: any, value: any) => Tag;
 
 /**
  * Converts an NBT object into an NBT buffer. Accepts an endian type, compression format, and file headers to write the data with.
@@ -52,7 +52,7 @@ class NBTWriter {
   readonly #littleEndian: boolean;
   readonly #varint: boolean;
   readonly #encoder: MUtf8Encoder = new MUtf8Encoder();
-  readonly #replacer: Replacer;
+  readonly #replacer: Replacer<CompoundTag | ListTag<Tag>>;
 
   constructor(littleEndian: boolean, varint: boolean, replacer?: Replacer) {
     this.#littleEndian = littleEndian;
@@ -102,7 +102,7 @@ class NBTWriter {
 
     this.#writeTagType(type);
     if (rootName !== null) this.#writeString(rootName);
-    this.#writeTag(this.#replacer("", root as RootTag));
+    this.#writeTag(this.#replacer.call({ "": root as RootTag }, "", root as RootTag));
 
     if (bedrockLevel) {
       if (littleEndian !== true) {
@@ -280,7 +280,7 @@ class NBTWriter {
       if (getTagType(entry) !== type) {
         throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
       }
-      this.#writeTag(this.#replacer(String(i), entry));
+      this.#writeTag(this.#replacer.call(value, String(i), entry));
     }
     return this;
   }
@@ -292,7 +292,7 @@ class NBTWriter {
       if (type === null) continue;
       this.#writeTagType(type);
       this.#writeString(name);
-      this.#writeTag(this.#replacer(name, entry));
+      this.#writeTag(this.#replacer.call(value, name, entry));
     }
     this.#writeTagType(TAG.END);
     return this;

@@ -33,7 +33,7 @@ async function* readAdjacent<T extends RootTagLike = RootTag>(data: Uint8Array, 
     // console.log(byteOffset);
     const nbt: NBTData<T> = await read(data.subarray(byteOffset), { ...options, strict: false },
     function(key, value) {
-      if (byteOffset > 850 && typeof value !== "object") console.log(this, key, value);
+      if (byteOffset > 850) console.log(this, key, value);
       return value;
     });
     byteOffset += nbt.byteOffset!;
