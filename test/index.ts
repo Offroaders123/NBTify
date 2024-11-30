@@ -1,12 +1,12 @@
 import { readFile } from "node:fs/promises";
 import { inspect } from "node:util";
-import { getTagType, read } from "../src/index.js";
+import { getTagType, parse, read, write } from "../src/index.js";
 
 import type { NBTData } from "../src/index.js";
 
-const bigtest = new URL("./nbt/bigtest.nbt", import.meta.url);
+const bigtest = new URL("./nbt/bigtest.snbt", import.meta.url);
 
-const data: Buffer = await readFile(bigtest);
+const data: Buffer = await write(parse(await readFile(bigtest, "utf-8"))).then(Buffer.from);
 console.log(data);
 
 const nbt: NBTData = await read(data, {},
