@@ -16,7 +16,7 @@ export interface ReadOptions {
   rootCheck: boolean;
 }
 
-export type Reviver<P = any> = (this: P, key: any, value: any) => Tag;
+export type Reviver<P = any> = (this: P, key: string, value: any) => Tag;
 
 /**
  * Converts an NBT buffer into an NBT object. Accepts an endian type, compression format, and file headers to read the data with.
@@ -361,7 +361,7 @@ class NBTReader {
     this.#byteOffset += length;
     if (this.#reviver !== undefined) {
       for (const [i, entry] of value.entries()) {
-        value[i] = this.#reviver.call(value, i, entry) as number;
+        value[i] = this.#reviver.call(value, String(i), entry) as number;
       }
     }
     return value;
@@ -391,7 +391,7 @@ class NBTReader {
     }
     if (this.#reviver !== undefined) {
       for (const [i, entry] of value.entries()) {
-        value[i] = this.#reviver.call(value, i, entry);
+        value[i] = this.#reviver.call(value, String(i), entry);
       }
     }
     return value;
@@ -423,7 +423,7 @@ class NBTReader {
     }
     if (this.#reviver !== undefined) {
       for (const [i, entry] of value.entries()) {
-        value[i] = this.#reviver.call(value, i, entry) as number;
+        value[i] = this.#reviver.call(value, String(i), entry) as number;
       }
     }
     return value;
@@ -438,7 +438,7 @@ class NBTReader {
     }
     if (this.#reviver !== undefined) {
       for (const [i, entry] of value.entries()) {
-        value[i] = this.#reviver.call(value, i, entry) as bigint;
+        value[i] = this.#reviver.call(value, String(i), entry) as bigint;
       }
     }
     return value;

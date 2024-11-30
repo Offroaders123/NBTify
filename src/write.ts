@@ -7,7 +7,7 @@ import { compress } from "./compression.js";
 import type { NBTDataOptions } from "./format.js";
 import type { Tag, RootTag, RootTagLike, ContainerTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
-export type Replacer<P = any> = (this: P, key: any, value: any) => Tag;
+export type Replacer<P = any> = (this: P, key: string, value: any) => Tag;
 
 /**
  * Converts an NBT object into an NBT buffer. Accepts an endian type, compression format, and file headers to write the data with.
@@ -257,7 +257,7 @@ class NBTWriter {
     const { length } = value;
     if (this.#replacer !== undefined) {
       for (const [i, entry] of value.entries()) {
-        value[i] = this.#replacer.call(value, i, entry) as number;
+        value[i] = this.#replacer.call(value, String(i), entry) as number;
       }
     }
     this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
@@ -317,7 +317,7 @@ class NBTWriter {
     const { length } = value;
     if (this.#replacer !== undefined) {
       for (const [i, entry] of value.entries()) {
-        value[i] = this.#replacer.call(value, i, entry) as number;
+        value[i] = this.#replacer.call(value, String(i), entry) as number;
       }
     }
     this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
@@ -331,7 +331,7 @@ class NBTWriter {
     const { length } = value;
     if (this.#replacer !== undefined) {
       for (const [i, entry] of value.entries()) {
-        value[i] = this.#replacer.call(value, i, entry) as bigint;
+        value[i] = this.#replacer.call(value, String(i), entry) as bigint;
       }
     }
     this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
