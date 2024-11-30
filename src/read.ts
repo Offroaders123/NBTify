@@ -129,14 +129,14 @@ class NBTReader {
   readonly #littleEndian: boolean;
   readonly #varint: boolean;
   readonly #decoder: MUtf8Decoder = new MUtf8Decoder();
-  readonly #reviver: Reviver<CompoundTag | ListTag<Tag>>;
+  readonly #reviver?: Reviver<CompoundTag | ListTag<Tag>>;
 
   constructor(data: Uint8Array, littleEndian: boolean, varint: boolean, reviver?: Reviver) {
     this.#data = data;
     this.#view = new DataView(data.buffer, data.byteOffset, data.byteLength);
     this.#littleEndian = littleEndian;
     this.#varint = varint;
-    this.#reviver = reviver !== undefined ? reviver : (_key, value) => value;
+    this.#reviver = reviver;
   }
 
   hasGzipHeader(): boolean {
@@ -183,8 +183,10 @@ class NBTReader {
       throw new Error(`Expected root name '${rootName}', encountered '${rootNameV}'`);
     }
 
-    const rootPlain: T = this.#readTag<T>(type);
-    const root: T = this.#reviver.call({ "": rootPlain as RootTag }, "", rootPlain) as T;
+    let root: T = this.#readTag<T>(type);
+    if (this.#reviver !== undefined) {
+      root = this.#reviver.call({ "": root as RootTag }, "", root) as T;
+    }
 
     if (strict && this.#data.byteLength > this.#byteOffset) {
       const remaining: number = this.#data.byteLength - this.#byteOffset;
@@ -379,8 +381,13 @@ class NBTReader {
       value: type
     });
     for (let i: number = 0; i < length; i++) {
-      const entry: Tag = this.#reviver.call(value, i, this.#readTag(type));
+      const entry: Tag = this.#readTag(type);
       value.push(entry);
+    }
+    if (this.#reviver !== undefined) {
+      for (const [i, entry] of value.entries()) {
+        value[i] = this.#reviver.call(value, i, entry);
+      }
     }
     return value;
   }
@@ -391,8 +398,13 @@ class NBTReader {
       const type: TAG = this.#readTagType();
       if (type === TAG.END) break;
       const name: string = this.#readString();
-      const entry: Tag = this.#reviver.call(value, name, this.#readTag(type));
+      const entry: Tag = this.#readTag(type);
       value[name] = entry;
+    }
+    if (this.#reviver !== undefined) {
+      for (const [name, entry] of Object.entries(value)) {
+        value[name] = this.#reviver.call(value, name, entry);
+      }
     }
     return value;
   }
