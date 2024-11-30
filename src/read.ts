@@ -359,6 +359,11 @@ class NBTReader {
     this.#allocate(length);
     const value = new Int8Array(this.#data.subarray(this.#byteOffset, this.#byteOffset + length));
     this.#byteOffset += length;
+    if (this.#reviver !== undefined) {
+      for (const [i, entry] of value.entries()) {
+        value[i] = this.#reviver.call(value, i, entry) as number;
+      }
+    }
     return value;
   }
 
@@ -416,6 +421,11 @@ class NBTReader {
       const entry: number = this.#readInt(true);
       value[i] = entry;
     }
+    if (this.#reviver !== undefined) {
+      for (const [i, entry] of value.entries()) {
+        value[i] = this.#reviver.call(value, i, entry) as number;
+      }
+    }
     return value;
   }
 
@@ -425,6 +435,11 @@ class NBTReader {
     for (const i in value) {
       const entry: bigint = this.#readLong();
       value[i] = entry;
+    }
+    if (this.#reviver !== undefined) {
+      for (const [i, entry] of value.entries()) {
+        value[i] = this.#reviver.call(value, i, entry) as bigint;
+      }
     }
     return value;
   }

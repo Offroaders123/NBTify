@@ -255,6 +255,11 @@ class NBTWriter {
 
   #writeByteArray(value: ByteArrayTag): this {
     const { length } = value;
+    if (this.#replacer !== undefined) {
+      for (const [i, entry] of value.entries()) {
+        value[i] = this.#replacer.call(value, i, entry) as number;
+      }
+    }
     this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
     this.#allocate(length);
     this.#data.set(value, this.#byteOffset);
@@ -310,6 +315,11 @@ class NBTWriter {
 
   #writeIntArray(value: IntArrayTag): this {
     const { length } = value;
+    if (this.#replacer !== undefined) {
+      for (const [i, entry] of value.entries()) {
+        value[i] = this.#replacer.call(value, i, entry) as number;
+      }
+    }
     this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
     for (const entry of value) {
       this.#writeInt(entry);
@@ -319,6 +329,11 @@ class NBTWriter {
 
   #writeLongArray(value: LongArrayTag): this {
     const { length } = value;
+    if (this.#replacer !== undefined) {
+      for (const [i, entry] of value.entries()) {
+        value[i] = this.#replacer.call(value, i, entry) as bigint;
+      }
+    }
     this.#varint ? this.#writeVarIntZigZag(length) : this.#writeInt(length);
     for (const entry of value) {
       this.#writeLong(entry);
