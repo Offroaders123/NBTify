@@ -22,7 +22,7 @@ const options: ReadAdjacentOptions = {
 
 const nbts: NBTData[] = await Array.fromAsync(readAdjacent(data, options));
 // const nbts: NBTData = (await readAdjacent(data, options).next()).value!;
-console.log(nbts.pop());
+// console.log(nbts.pop());
 
 interface ReadAdjacentOptions extends Omit<ReadOptions, "strict" | "rootCheck"> {}
 
@@ -32,8 +32,8 @@ async function* readAdjacent<T extends RootTagLike = RootTag>(data: Uint8Array, 
   while (byteOffset < data.byteLength) {
     // console.log(byteOffset);
     const nbt: NBTData<T> = await read(data.subarray(byteOffset), { ...options, strict: false },
-    (key, value) => {
-      if (byteOffset > 850) console.log(key, value);
+    function(key, value) {
+      if (byteOffset > 850 && typeof value !== "object") console.log(this, key, value);
       return value;
     });
     byteOffset += nbt.byteOffset!;

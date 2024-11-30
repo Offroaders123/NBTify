@@ -41,8 +41,8 @@ export async function write<T extends RootTagLike = RootTag>(data: T | NBTData<T
     throw new TypeError("Bedrock Level option must be a boolean");
   }
 
-  const writer = new NBTWriter(endian !== "big", endian === "little-varint");
-  return writer.writeRoot(data as NBTData<T>, rootCheck, replacer);
+  const writer = new NBTWriter(endian !== "big", endian === "little-varint", replacer);
+  return writer.writeRoot(data as NBTData<T>, rootCheck);
 }
 
 class NBTWriter {
@@ -52,10 +52,12 @@ class NBTWriter {
   readonly #littleEndian: boolean;
   readonly #varint: boolean;
   readonly #encoder: MUtf8Encoder = new MUtf8Encoder();
+  readonly #replacer: Replacer;
 
-  constructor(littleEndian: boolean, varint: boolean) {
+  constructor(littleEndian: boolean, varint: boolean, replacer?: Replacer) {
     this.#littleEndian = littleEndian;
     this.#varint = varint;
+    this.#replacer = replacer !== undefined ? replacer : (_key, value) => value;
   }
 
   #allocate(byteLength: number): void {
@@ -85,7 +87,7 @@ class NBTWriter {
     return this.#data.slice(0, this.#byteOffset);
   }
 
-  async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, rootCheck: boolean, replacer: Replacer = (_key, value) => value): Promise<Uint8Array> {
+  async writeRoot<T extends RootTagLike = RootTag>(data: NBTData<T>, rootCheck: boolean): Promise<Uint8Array> {
     const { data: root, rootName, endian, compression, bedrockLevel } = data;
     const littleEndian: boolean = endian !== "big";
     const type: TAG | null = getTagType(root);
@@ -100,7 +102,7 @@ class NBTWriter {
 
     this.#writeTagType(type);
     if (rootName !== null) this.#writeString(rootName);
-    this.#writeTag(replacer("", root as RootTag), replacer);
+    this.#writeTag(this.#replacer("", root as RootTag));
 
     if (bedrockLevel) {
       if (littleEndian !== true) {
@@ -124,7 +126,7 @@ class NBTWriter {
     return result;
   }
 
-  #writeTag(value: Tag, replacer: Replacer): this {
+  #writeTag(value: Tag): this {
     const type: TAG = getTagType(value);
     switch (type) {
       case TAG.BYTE: return this.#writeByte(value as ByteTag | BooleanTag);
@@ -135,8 +137,8 @@ class NBTWriter {
       case TAG.DOUBLE: return this.#writeDouble(value as DoubleTag);
       case TAG.BYTE_ARRAY: return this.#writeByteArray(value as ByteArrayTag);
       case TAG.STRING: return this.#writeString(value as StringTag);
-      case TAG.LIST: return this.#writeList(value as ListTag<Tag>, replacer);
-      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag, replacer);
+      case TAG.LIST: return this.#writeList(value as ListTag<Tag>);
+      case TAG.COMPOUND: return this.#writeCompound(value as CompoundTag);
       case TAG.INT_ARRAY: return this.#writeIntArray(value as IntArrayTag);
       case TAG.LONG_ARRAY: return this.#writeLongArray(value as LongArrayTag);
       default: throw new Error(`Encountered unsupported tag type '${type}'`);
@@ -266,7 +268,7 @@ class NBTWriter {
     return this;
   }
 
-  #writeList(value: ListTag<Tag>, replacer: Replacer): this {
+  #writeList(value: ListTag<Tag>): this {
     let type: TAG | undefined = value[TAG_TYPE];
     value = value.filter(isTag);
     type = type ?? (value[0] !== undefined ? getTagType(value[0]) : TAG.END);
@@ -278,19 +280,19 @@ class NBTWriter {
       if (getTagType(entry) !== type) {
         throw new TypeError("Encountered unexpected item type in array, all tags in a List tag must be of the same type");
       }
-      this.#writeTag(replacer(String(i), entry), replacer);
+      this.#writeTag(this.#replacer(String(i), entry));
     }
     return this;
   }
 
-  #writeCompound(value: CompoundTag, replacer: Replacer): this {
+  #writeCompound(value: CompoundTag): this {
     for (const [name, entry] of Object.entries(value)) {
       if (entry === undefined) continue;
       const type: TAG | null = getTagType(entry as unknown);
       if (type === null) continue;
       this.#writeTagType(type);
       this.#writeString(name);
-      this.#writeTag(replacer(name, entry), replacer);
+      this.#writeTag(this.#replacer(name, entry));
     }
     this.#writeTagType(TAG.END);
     return this;

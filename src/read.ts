@@ -37,7 +37,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     throw new TypeError("First parameter must be a Uint8Array, ArrayBuffer, SharedArrayBuffer, or Blob");
   }
 
-  const reader = new NBTReader(data, options.endian !== "big", options.endian === "little-varint");
+  const reader = new NBTReader(data, options.endian !== "big", options.endian === "little-varint", reviver);
   let { rootName, endian, compression, bedrockLevel, strict = true, rootCheck = true } = options;
 
   if (rootName !== undefined && typeof rootName !== "boolean" && typeof rootName !== "string" && rootName !== null) {
@@ -119,7 +119,7 @@ export async function read<T extends RootTagLike = RootTag>(data: Uint8Array | A
     bedrockLevel = reader.hasBedrockLevelHeader(endian);
   }
 
-  return reader.readRoot<T>({ rootName, endian, compression, bedrockLevel, strict, rootCheck }, reviver);
+  return reader.readRoot<T>({ rootName, endian, compression, bedrockLevel, strict, rootCheck });
 }
 
 class NBTReader {
@@ -129,12 +129,14 @@ class NBTReader {
   readonly #littleEndian: boolean;
   readonly #varint: boolean;
   readonly #decoder: MUtf8Decoder = new MUtf8Decoder();
+  readonly #reviver: Reviver;
 
-  constructor(data: Uint8Array, littleEndian: boolean, varint: boolean) {
+  constructor(data: Uint8Array, littleEndian: boolean, varint: boolean, reviver?: Reviver) {
     this.#data = data;
     this.#view = new DataView(data.buffer, data.byteOffset, data.byteLength);
     this.#littleEndian = littleEndian;
     this.#varint = varint;
+    this.#reviver = reviver !== undefined ? reviver : (_key, value) => value;
   }
 
   hasGzipHeader(): boolean {
@@ -159,7 +161,7 @@ class NBTReader {
     }
   }
 
-  async readRoot<T extends RootTagLike = RootTag>({ rootName, endian, compression, bedrockLevel, strict, rootCheck }: ReadOptions, reviver: Reviver = (_key, value) => value): Promise<NBTData<T>> {
+  async readRoot<T extends RootTagLike = RootTag>({ rootName, endian, compression, bedrockLevel, strict, rootCheck }: ReadOptions): Promise<NBTData<T>> {
     if (compression !== null) {
       this.#data = await decompress(this.#data, compression);
       this.#view = new DataView(this.#data.buffer);
@@ -181,7 +183,7 @@ class NBTReader {
       throw new Error(`Expected root name '${rootName}', encountered '${rootNameV}'`);
     }
 
-    const root: T = reviver("", this.#readTag<T>(type, reviver)) as T;
+    const root: T = this.#reviver("", this.#readTag<T>(type)) as T;
 
     if (strict && this.#data.byteLength > this.#byteOffset) {
       const remaining: number = this.#data.byteLength - this.#byteOffset;
@@ -197,9 +199,9 @@ class NBTReader {
     return result;
   }
 
-  #readTag<T extends Tag>(type: TAG, reviver: Reviver): T;
-  #readTag<T extends RootTagLike>(type: TAG, reviver: Reviver): T;
-  #readTag(type: TAG, reviver: Reviver): Tag {
+  #readTag<T extends Tag>(type: TAG): T;
+  #readTag<T extends RootTagLike>(type: TAG): T;
+  #readTag(type: TAG): Tag {
     switch (type) {
       case TAG.END: {
         const remaining: number = this.#data.byteLength - this.#byteOffset;
@@ -213,8 +215,8 @@ class NBTReader {
       case TAG.DOUBLE: return this.#readDouble();
       case TAG.BYTE_ARRAY: return this.#readByteArray();
       case TAG.STRING: return this.#readString();
-      case TAG.LIST: return this.#readList(reviver);
-      case TAG.COMPOUND: return this.#readCompound(reviver);
+      case TAG.LIST: return this.#readList();
+      case TAG.COMPOUND: return this.#readCompound();
       case TAG.INT_ARRAY: return this.#readIntArray();
       case TAG.LONG_ARRAY: return this.#readLongArray();
       default: throw new Error(`Encountered unsupported tag type '${type}' at byte offset ${this.#byteOffset}`);
@@ -365,7 +367,7 @@ class NBTReader {
     return value;
   }
 
-  #readList(reviver: Reviver): ListTag<Tag> {
+  #readList(): ListTag<Tag> {
     const type: TAG = this.#readTagType();
     const length: number = this.#varint ? this.#readVarIntZigZag(true) : this.#readInt(true);
     const value: ListTag<Tag> = [];
@@ -376,19 +378,19 @@ class NBTReader {
       value: type
     });
     for (let i: number = 0; i < length; i++) {
-      const entry: Tag = reviver(i, this.#readTag(type, reviver));
+      const entry: Tag = this.#reviver(i, this.#readTag(type));
       value.push(entry);
     }
     return value;
   }
 
-  #readCompound(reviver: Reviver): CompoundTag {
+  #readCompound(): CompoundTag {
     const value: CompoundTag = {};
     while (true) {
       const type: TAG = this.#readTagType();
       if (type === TAG.END) break;
       const name: string = this.#readString();
-      const entry: Tag = reviver(name, this.#readTag(type, reviver));
+      const entry: Tag = this.#reviver(name, this.#readTag(type));
       value[name] = entry;
     }
     return value;
