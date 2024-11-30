@@ -94,6 +94,27 @@ describe("Read, Stringify, Parse and Write", () => {
   }
 });
 
+const TAG_ALERTER = 250;
+
+class Alerter {
+  readonly message: string;
+
+  constructor(message: string) {
+    if (message.length > 255) {
+      throw new RangeError("Message is too long!");
+    }
+    this.message = message;
+  }
+
+  get length(): number {
+    return this.message.length;
+  }
+
+  alert(): void {
+    console.log(this.message);
+  }
+}
+
 const thirdPartyAPI = {
   heya: 25n,
   what: [
@@ -105,18 +126,28 @@ const thirdPartyAPI = {
   sets: new Set([
     new Set([25, {}]),
     new Set([92, 5n])
-  ])
+  ]),
+  customTag: new Alerter("hello world!")
 };
 // console.log(thirdPartyAPI);
+
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
 
 const replacer: NBT.Replacer = function(_key, value) {
   switch (true) {
     case value instanceof Set: return { $__custom: "Set", value: { ...[...value] } };
+    case value instanceof Alerter: return new Int8Array([TAG_ALERTER, value.length, ...encoder.encode(value.message)]);
     default: return value;
   }
 };
 
 const reviver: NBT.Reviver = function(_key, value) {
+  if (NBT.getTagType(value) === NBT.TAG.BYTE_ARRAY && NBT.isTag<NBT.ByteArrayTag>(value)) {
+    const message: string = decoder.decode(value.subarray(2));
+    if (message.length !== value[1]) return value;
+    return new Alerter(message);
+  }
   if (!(typeof value === "object" && "$__custom" in value)) return value;
   switch (value.$__custom) {
     case "Set": return new Set(Object.values(value.value));
