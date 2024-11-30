@@ -5,7 +5,7 @@ import { TAG, TAG_TYPE, isTagType } from "./tag.js";
 import { decompress } from "./compression.js";
 
 import type { RootName, Endian, Compression, BedrockLevel } from "./format.js";
-import type { Tag, RootTag, RootTagLike, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, RootTagLike, ContainerTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export interface ReadOptions {
   rootName: boolean | RootName;
@@ -129,7 +129,7 @@ class NBTReader {
   readonly #littleEndian: boolean;
   readonly #varint: boolean;
   readonly #decoder: MUtf8Decoder = new MUtf8Decoder();
-  readonly #reviver?: Reviver<CompoundTag | ListTag<Tag>>;
+  readonly #reviver?: Reviver<ContainerTag>;
 
   constructor(data: Uint8Array, littleEndian: boolean, varint: boolean, reviver?: Reviver) {
     this.#data = data;

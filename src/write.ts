@@ -5,7 +5,7 @@ import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
 
 import type { NBTDataOptions } from "./format.js";
-import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Tag, RootTag, RootTagLike, ContainerTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 export type Replacer<P = any> = (this: P, key: any, value: any) => Tag;
 
@@ -52,7 +52,7 @@ class NBTWriter {
   readonly #littleEndian: boolean;
   readonly #varint: boolean;
   readonly #encoder: MUtf8Encoder = new MUtf8Encoder();
-  readonly #replacer?: Replacer<CompoundTag | ListTag<Tag>>;
+  readonly #replacer?: Replacer<ContainerTag>;
 
   constructor(littleEndian: boolean, varint: boolean, replacer?: Replacer) {
     this.#littleEndian = littleEndian;

@@ -11,7 +11,7 @@ console.log(data);
 
 const nbt: NBTData = await read(data, {},
     function(key, value) {
-      if (key !== "" && getTagType(this) === 9) console.log(inspect(this, { colors: true, depth: 0 }), key, value);
+      if (key !== "" && [7, 9, 11, 12].includes(getTagType(this)!)) console.log(inspect(this, { colors: true, depth: 0 }), key, value);
       return value;
     });
 // console.log(nbt);

@@ -6,6 +6,8 @@ export type RootTag = CompoundTag | ListTag<Tag>;
 
 export type RootTagLike = CompoundTagLike | ListTagLike;
 
+export type ContainerTag = ByteArrayTag | ListTag<Tag> | CompoundTag | IntArrayTag | LongArrayTag;
+
 export type ByteTag<T extends number = number> = Int8<NumberLike<T>>;
 
 export type BooleanTag = FalseTag | TrueTag;
