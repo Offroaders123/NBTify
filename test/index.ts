@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { inspect } from "node:util";
 import { getTagType, read } from "../src/index.js";
 
 import type { NBTData } from "../src/index.js";
@@ -10,7 +11,7 @@ console.log(data);
 
 const nbt: NBTData = await read(data, {},
     function(key, value) {
-      if (!("id" in this) && key !== "" && getTagType(value) === 1) console.log(this, key, value);
+      if (key !== "") console.log(inspect(this, { colors: true, depth: 0 }), key, value);
       return value;
     });
 // console.log(nbt);
