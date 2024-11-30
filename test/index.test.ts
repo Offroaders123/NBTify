@@ -159,5 +159,6 @@ describe("Replace, and Revive", async () => {
   const bruce: Uint8Array = await NBT.write(thirdPartyAPI, undefined, replacer);
   // console.dir((await NBT.read(bruce)).data, { depth: null });
   const PARTERY: typeof thirdPartyAPI = (await NBT.read<typeof thirdPartyAPI>(bruce, undefined, reviver)).data;
+  console.log(PARTERY.customTag, PARTERY.customTag.length);
   deepStrictEqual(thirdPartyAPI, PARTERY);
 });
