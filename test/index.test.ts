@@ -155,10 +155,20 @@ const reviver: NBT.Reviver = function(_key, value) {
   }
 };
 
-describe("Replace, and Revive", async () => {
+describe("Replace, and Revive", () => {
+  it("Read, Write", async () => {
   const bruce: Uint8Array = await NBT.write(thirdPartyAPI, undefined, replacer);
   // console.dir((await NBT.read(bruce)).data, { depth: null });
   const PARTERY: typeof thirdPartyAPI = (await NBT.read<typeof thirdPartyAPI>(bruce, undefined, reviver)).data;
   console.log(PARTERY.customTag, PARTERY.customTag.length);
   deepStrictEqual(thirdPartyAPI, PARTERY);
+  });
+
+  it("Parse, Stringify", () => {
+    const bruce: string = NBT.stringify(thirdPartyAPI, undefined, replacer);
+    console.dir(NBT.parse(bruce), { depth: null });
+    const PARTERY: typeof thirdPartyAPI = NBT.parse<typeof thirdPartyAPI>(bruce, reviver, undefined);
+    console.log(PARTERY.customTag, PARTERY.customTag.length);
+    deepStrictEqual(thirdPartyAPI, PARTERY);
+    });
 });
