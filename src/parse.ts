@@ -1,25 +1,31 @@
 import { Int8, Int16, Int32, Float32 } from "./primitive.js";
 import { TAG, getTagType } from "./tag.js";
 
-import type { Tag, RootTag, RootTagLike, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { Reviver } from "./read.js";
+import type { Tag, RootTag, RootTagLike, ContainerTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
 
 const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 
 /**
  * Converts an SNBT string into an NBT object.
 */
-export function parse<T extends RootTagLike = RootTag>(data: string, rootCheck: boolean = true): T {
+export function parse<T extends RootTagLike = RootTag>(data: string, reviver?: Reviver, rootCheck: boolean = true): T {
   if (typeof data !== "string") {
     data satisfies never;
     throw new TypeError("First parameter must be a string");
   }
 
-  return new SNBTReader().parseRoot(data, rootCheck) as T;
+  return new SNBTReader(reviver).parseRoot(data, rootCheck) as T;
 }
 
 class SNBTReader {
   #i: number = 0;
   #index: number = 0;
+  readonly #reviver?: Reviver<ContainerTag>;
+
+  constructor(reviver?: Reviver) {
+    this.#reviver = reviver;
+  }
 
   #peek(data: string, index: number, byteOffset: number = index): string {
     const value: string | undefined = data[byteOffset];
@@ -48,8 +54,13 @@ class SNBTReader {
   }
 
   parseRoot(data: string, rootCheck: boolean): RootTag {
+    let root: RootTag;
     if (!rootCheck) {
-      return this.#parseTag(data, "[root]") as RootTag;
+      root = this.#parseTag(data, "[root]") as RootTag;
+      if (this.#reviver !== undefined) {
+        root = this.#reviver.call({ "": root }, "", root) as RootTag;
+      }
+      return root;
     }
 
     this.#skipWhitespace(data);
@@ -59,14 +70,22 @@ class SNBTReader {
     switch (this.#peek(data, this.#index)) {
       case "{": {
         this.#index++;
-        return this.#parseCompound(data);
+        root = this.#parseCompound(data);
+        if (this.#reviver !== undefined) {
+          root = this.#reviver.call({ "": root }, "", root) as RootTag;
+        }
+        return root;
       }
       case "[": {
         this.#index++;
         const list: ByteArrayTag | ListTag<Tag> | IntArrayTag | LongArrayTag = this.#parseList(data, "[root]");
         const type: TAG = getTagType(list);
         if (type !== TAG.LIST) break;
-        return list as ListTag<Tag>;
+        root = list as ListTag<Tag>;
+        if (this.#reviver !== undefined) {
+          root = this.#reviver.call({ "": root }, "", root) as RootTag;
+        }
+        return root;
       }
     }
 
@@ -229,12 +248,22 @@ class SNBTReader {
       this.#skipCommas(data, array.length == 0, "]");
 
       if (this.#peek(data, this.#index) == "]") {
+        let value: ByteArrayTag | IntArrayTag | LongArrayTag;
         this.#index++;
+
         switch (type) {
-          case "B": return Int8Array.from(array.map(v => Number(v))) satisfies ByteArrayTag;
-          case "I": return Int32Array.from(array.map(v => Number(v))) satisfies IntArrayTag;
-          case "L": return BigInt64Array.from(array.map(v => BigInt(v))) satisfies LongArrayTag;
+          case "B": value = Int8Array.from(array.map(v => Number(v))) satisfies ByteArrayTag; break;
+          case "I": value = Int32Array.from(array.map(v => Number(v))) satisfies IntArrayTag; break;
+          case "L": value = BigInt64Array.from(array.map(v => BigInt(v))) satisfies LongArrayTag; break;
         }
+
+        if (this.#reviver !== undefined) {
+          for (const [i, entry] of value.entries()) {
+            value[i] = this.#reviver.call(value, String(i), entry) as number;
+          }
+        }
+
+        return value;
       }
 
       this.#i = this.#index;
@@ -292,6 +321,13 @@ class SNBTReader {
 
       if (this.#peek(data, this.#index) == "]") {
         this.#index++;
+
+        if (this.#reviver !== undefined) {
+          for (const [i, entry] of array.entries()) {
+            array[i] = this.#reviver.call(array, String(i), entry);
+          }
+        }
+
         return array satisfies ListTag<Tag>;
       }
 
@@ -320,6 +356,13 @@ class SNBTReader {
 
       if (this.#peek(data, this.#index) == "}") {
         this.#index++;
+
+        if (this.#reviver !== undefined) {
+          for (const [name, entry] of Object.entries(value)) {
+            value[name] = this.#reviver.call(value, name, entry);
+          }
+        }
+
         return value;
       }
 
