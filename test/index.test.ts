@@ -29,6 +29,13 @@ describe("Read, Stringify, Parse and Write", () => {
       /** Determines if the test is for checking empty list handling. */
       const emptyList: boolean = name.startsWith("empty");
 
+      /** Determines if the file is a `level.dat`, and should use the JSON transforms for `FlatWorldLayers`. */
+      const flatLayersTransform: boolean = name === "level.dat";
+
+      const flatLayersReplacer: NBT.Replacer = (key, value) => key === "FlatWorldLayers" ? `${JSON.stringify(value)}\n` : value;
+
+      const flatLayersReviver: NBT.Reviver = (key, value) => key === "FlatWorldLayers" ? JSON.parse(value) : value;
+
       /** Disables strict mode for Bedrock LevelDB and Legacy Console Edition player data files. */
       const strict: boolean = !/^BlockEntity|^chunk91|_280dfc/.test(name);
 
@@ -37,7 +44,7 @@ describe("Read, Stringify, Parse and Write", () => {
         ? (listItemAssertion)
           ? throws(() => NBT.parse<NBT.RootTag>(buffer.toString("utf-8")), `'${name}' parses from SNBT when it shouldn't`)
           : NBT.parse<NBT.RootTag>(buffer.toString("utf-8"))
-        : await NBT.read<NBT.RootTag>(buffer, { strict });
+        : await NBT.read<NBT.RootTag>(buffer, { strict }, flatLayersTransform ? flatLayersReviver : undefined);
       if (result === undefined) return;
 
       if (!strict && result instanceof NBT.NBTData) {
@@ -47,11 +54,11 @@ describe("Read, Stringify, Parse and Write", () => {
       /** Stringifies the NBTData result to an SNBT string. */
       const stringified: string | void = (listItemAssertion)
         ? throws(() => NBT.stringify(result), `'${name}' stringifies to SNBT when it shouldn't`)
-        : NBT.stringify(result);
+        : NBT.stringify(result, undefined, flatLayersTransform ? flatLayersReplacer : undefined);
       if (stringified === undefined) return;
 
       /** Parses the SNBT string to a new NBTData result. */
-      const parsed: NBT.RootTag = NBT.parse<NBT.RootTag>(stringified);
+      const parsed: NBT.RootTag = NBT.parse<NBT.RootTag>(stringified, flatLayersTransform ? flatLayersReviver : undefined);
 
       /** Writes the new NBTData result to a recompiled NBT buffer. */
       const recompile: Buffer | Uint8Array = (snbt)
@@ -64,7 +71,8 @@ describe("Read, Stringify, Parse and Write", () => {
           (emptyList)
             ? result
             : parsed
-          , (result instanceof NBT.NBTData) ? result : {});
+          , (result instanceof NBT.NBTData) ? result : {}
+          , flatLayersTransform ? flatLayersReplacer : undefined);
 
       /**
        * Skip the following checks for Legacy Console Edition player data files,
