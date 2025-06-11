@@ -16,21 +16,21 @@ export const getFile = (args: string[]): string | true => !process.stdin.isTTY
   })();
 
 export function validateArgs(args: string[]): void {
-for (const arg of args) {
-  switch (true) {
-    case NBT_PATTERN.test(arg):
-    case SNBT_PATTERN.test(arg):
-    case JSON_PATTERN.test(arg):
-    case ROOT_NAME_PATTERN.test(arg):
-    case ENDIAN_PATTERN.test(arg):
-    case COMPRESSION_PATTERN.test(arg):
-    case BEDROCK_LEVEL_PATTERN.test(arg):
-    case SPACE_PATTERN.test(arg):
-      break;
-    default:
-      throw new TypeError(`Unexpected argument '${arg}'`);
+  for (const arg of args) {
+    switch (true) {
+      case NBT_PATTERN.test(arg):
+      case SNBT_PATTERN.test(arg):
+      case JSON_PATTERN.test(arg):
+      case ROOT_NAME_PATTERN.test(arg):
+      case ENDIAN_PATTERN.test(arg):
+      case COMPRESSION_PATTERN.test(arg):
+      case BEDROCK_LEVEL_PATTERN.test(arg):
+      case SPACE_PATTERN.test(arg):
+        break;
+      default:
+        throw new TypeError(`Unexpected argument '${arg}'`);
+    }
   }
-}
 }
 
 export const getNBT = (args: string[]): boolean => args

@@ -17,8 +17,8 @@ export async function decompress(data: Uint8Array, format: CompressionFormat): P
 async function pipeThroughCompressionStream(data: Uint8Array, { readable, writable }: CompressionStream | DecompressionStream): Promise<Uint8Array> {
   const writer: WritableStreamDefaultWriter<BufferSource> = writable.getWriter();
 
-  writer.write(data).catch(() => {});
-  writer.close().catch(() => {});
+  writer.write(data).catch(() => { });
+  writer.close().catch(() => { });
 
   const chunks: Uint8Array[] = [];
   let byteLength: number = 0;

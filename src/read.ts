@@ -1,11 +1,11 @@
 import { MUtf8Decoder } from "mutf-8";
-import { NBTData } from "./format.js";
-import { Int8, Int16, Int32, Float32 } from "./primitive.js";
-import { TAG, TAG_TYPE, isTagType } from "./tag.js";
 import { decompress } from "./compression.js";
+import { NBTData } from "./format.js";
+import { Float32, Int16, Int32, Int8 } from "./primitive.js";
+import { TAG, TAG_TYPE, isTagType } from "./tag.js";
 
-import type { RootName, Endian, Compression, BedrockLevel } from "./format.js";
-import type { Tag, RootTag, RootTagLike, ContainerTag, ByteTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, StringTag, ByteArrayTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { BedrockLevel, Compression, Endian, RootName } from "./format.js";
+import type { ByteArrayTag, ByteTag, CompoundTag, ContainerTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag, LongArrayTag, LongTag, RootTag, RootTagLike, ShortTag, StringTag, Tag } from "./tag.js";
 
 export interface ReadOptions {
   rootName: boolean | RootName;
@@ -169,7 +169,7 @@ class NBTReader {
 
     if (bedrockLevel) {
       // const version =
-        this.#readUnsignedInt();
+      this.#readUnsignedInt();
       this.#readUnsignedInt();
     }
 

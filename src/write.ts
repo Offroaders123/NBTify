@@ -1,11 +1,11 @@
 import { MUtf8Encoder } from "mutf-8";
-import { NBTData } from "./format.js";
-import { TAG, TAG_TYPE, isTag, getTagType } from "./tag.js";
-import { Int32 } from "./primitive.js";
 import { compress } from "./compression.js";
+import { NBTData } from "./format.js";
+import { Int32 } from "./primitive.js";
+import { TAG, TAG_TYPE, getTagType, isTag } from "./tag.js";
 
 import type { NBTDataOptions } from "./format.js";
-import type { Tag, RootTag, RootTagLike, ContainerTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { BooleanTag, ByteArrayTag, ByteTag, CompoundTag, ContainerTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag, LongArrayTag, LongTag, RootTag, RootTagLike, ShortTag, StringTag, Tag } from "./tag.js";
 
 export type Replacer<P = any> = (this: P, key: string, value: any) => Tag;
 

@@ -1,6 +1,6 @@
-import { write, Int32 } from "../src/index.js";
+import { Int32, write } from "../src/index.js";
 
-import type { Tag, RootTagLike, IntTag, CompoundTag } from "../src/index.js";
+import type { CompoundTag, IntTag, RootTagLike, Tag } from "../src/index.js";
 
 export type Difficulty = 0 | 1 | 2 | 3;
 
@@ -25,6 +25,6 @@ await write(levelDat);
 // Using classes to build NBT objects is supported too, but less declarative, so I don't recommend it as much.
 
 // Fixed! - // @ts-expect-error - Index signature for type 'string' is missing in type '(Anonymous class)'. ts(1360)
-await write(new class {} satisfies RootTagLike);
+await write(new class { } satisfies RootTagLike);
 
 await write(new class { [name: string]: Tag; } satisfies RootTagLike);

@@ -1,4 +1,4 @@
-import { Int8, Int16, NBTData } from "../src/index.js";
+import { Int16, Int8, NBTData } from "../src/index.js";
 
 import type { RootTag } from "../src/index.js";
 

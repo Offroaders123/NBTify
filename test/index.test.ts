@@ -1,6 +1,6 @@
-import { describe, it } from "node:test";
 import assert, { deepStrictEqual, rejects, strictEqual, throws } from "node:assert";
 import { readFile, readdir } from "node:fs/promises";
+import { describe, it } from "node:test";
 import * as NBT from "../src/index.js";
 
 const paths: string[] = await readdir(new URL("./nbt/", import.meta.url))
@@ -66,7 +66,7 @@ describe("Read, Stringify, Parse and Write", () => {
           (snbt)
             ? undefined
             : { space: 2 }
-          ))
+        ))
         : await NBT.write(
           (emptyList)
             ? result
@@ -124,52 +124,52 @@ class Alerter {
 }
 
 describe("Replace, and Revive", () => {
-const thirdPartyAPI = {
-  heya: 25n,
-  what: [
-    {
-      aa: "Sweet",
-      l: {}
+  const thirdPartyAPI = {
+    heya: 25n,
+    what: [
+      {
+        aa: "Sweet",
+        l: {}
+      }
+    ],
+    sets: new Set([
+      new Set([25, {}]),
+      new Set([92, 5n])
+    ]),
+    customTag: new Alerter("hello world!")
+  };
+  // console.log(thirdPartyAPI);
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  const replacer: NBT.Replacer = function (_key, value) {
+    switch (true) {
+      case value instanceof Set: return { $__custom: "Set", value: { ...[...value] } };
+      case value instanceof Alerter: return new Int8Array([TAG_ALERTER, value.length, ...encoder.encode(value.message)]);
+      default: return value;
     }
-  ],
-  sets: new Set([
-    new Set([25, {}]),
-    new Set([92, 5n])
-  ]),
-  customTag: new Alerter("hello world!")
-};
-// console.log(thirdPartyAPI);
+  };
 
-const encoder = new TextEncoder();
-const decoder = new TextDecoder();
-
-const replacer: NBT.Replacer = function(_key, value) {
-  switch (true) {
-    case value instanceof Set: return { $__custom: "Set", value: { ...[...value] } };
-    case value instanceof Alerter: return new Int8Array([TAG_ALERTER, value.length, ...encoder.encode(value.message)]);
-    default: return value;
-  }
-};
-
-const reviver: NBT.Reviver = function(_key, value) {
-  if (NBT.getTagType(value) === NBT.TAG.BYTE_ARRAY && NBT.isTag<NBT.ByteArrayTag>(value)) {
-    const message: string = decoder.decode(value.subarray(2));
-    if (message.length !== value[1]) return value;
-    return new Alerter(message);
-  }
-  if (!(typeof value === "object" && "$__custom" in value)) return value;
-  switch (value.$__custom) {
-    case "Set": return new Set(Object.values(value.value));
-    default: return value;
-  }
-};
+  const reviver: NBT.Reviver = function (_key, value) {
+    if (NBT.getTagType(value) === NBT.TAG.BYTE_ARRAY && NBT.isTag<NBT.ByteArrayTag>(value)) {
+      const message: string = decoder.decode(value.subarray(2));
+      if (message.length !== value[1]) return value;
+      return new Alerter(message);
+    }
+    if (!(typeof value === "object" && "$__custom" in value)) return value;
+    switch (value.$__custom) {
+      case "Set": return new Set(Object.values(value.value));
+      default: return value;
+    }
+  };
 
   it("Read, Write", async () => {
-  const bruce: Uint8Array = await NBT.write(thirdPartyAPI, undefined, replacer);
-  // console.dir((await NBT.read(bruce)).data, { depth: null });
-  const PARTERY: typeof thirdPartyAPI = (await NBT.read<typeof thirdPartyAPI>(bruce, undefined, reviver)).data;
-  // console.log(PARTERY.customTag, PARTERY.customTag.length);
-  deepStrictEqual(thirdPartyAPI, PARTERY);
+    const bruce: Uint8Array = await NBT.write(thirdPartyAPI, undefined, replacer);
+    // console.dir((await NBT.read(bruce)).data, { depth: null });
+    const PARTERY: typeof thirdPartyAPI = (await NBT.read<typeof thirdPartyAPI>(bruce, undefined, reviver)).data;
+    // console.log(PARTERY.customTag, PARTERY.customTag.length);
+    deepStrictEqual(thirdPartyAPI, PARTERY);
   });
 
   it("Parse, Stringify", () => {
@@ -178,5 +178,5 @@ const reviver: NBT.Reviver = function(_key, value) {
     const PARTERY: typeof thirdPartyAPI = NBT.parse<typeof thirdPartyAPI>(bruce, reviver, undefined);
     // console.log(PARTERY.customTag, PARTERY.customTag.length);
     deepStrictEqual(thirdPartyAPI, PARTERY);
-    });
+  });
 });

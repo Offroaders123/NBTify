@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import { extname } from "node:path";
 import { readFile } from "node:fs/promises";
+import { extname } from "node:path";
 import { inspect } from "node:util";
-import { read, write, parse, stringify, NBTData } from "../index.js";
+import { NBTData, parse, read, stringify, write } from "../index.js";
+import { getFile, getFormat, getJSON, getNBT, getSNBT, getSpace, validateArgs } from "./args.js";
 import { readStdin, writeStdout } from "./input.js";
-import { getFile, validateArgs, getNBT, getSNBT, getJSON, getFormat, getSpace } from "./args.js";
 
 import type { RootTag } from "../index.js";
 
@@ -16,41 +16,41 @@ process.on("uncaughtException", error => {
   process.exit(1);
 });
 
-  const file = getFile(args);
-  validateArgs(args);
-  const nbt = getNBT(args);
-  const snbt = getSNBT(args);
-  const json = getJSON(args);
-  const format = getFormat(args);
-  const space = getSpace(args);
+const file = getFile(args);
+validateArgs(args);
+const nbt = getNBT(args);
+const snbt = getSNBT(args);
+const json = getJSON(args);
+const format = getFormat(args);
+const space = getSpace(args);
 
-  const buffer: Buffer = file === true ? await readStdin() : await readFile(file);
+const buffer: Buffer = file === true ? await readStdin() : await readFile(file);
 
-  let input: RootTag | NBTData;
+let input: RootTag | NBTData;
 
-  if (file === true) {
+if (file === true) {
+  input = await readBuffer(buffer);
+} else {
+  try {
+    input = await readExtension(buffer, file);
+  } catch {
     input = await readBuffer(buffer);
-  } else {
-    try {
-      input = await readExtension(buffer, file);
-    } catch {
-      input = await readBuffer(buffer);
-    }
   }
+}
 
-  const output: NBTData = new NBTData(input, format);
+const output: NBTData = new NBTData(input, format);
 
-  if (!nbt && !snbt && !json) {
-    console.log(inspect(output, { colors: true, depth: null }));
-    process.exit(0);
-  }
+if (!nbt && !snbt && !json) {
+  console.log(inspect(output, { colors: true, depth: null }));
+  process.exit(0);
+}
 
-  const result: string | Uint8Array = json
-    ? `${JSON.stringify(output.data, null, space)}\n`
-    : snbt
+const result: string | Uint8Array = json
+  ? `${JSON.stringify(output.data, null, space)}\n`
+  : snbt
     ? `${stringify(output, { space })}\n`
     : await write(output);
-  await writeStdout(result);
+await writeStdout(result);
 
 async function readExtension(buffer: Buffer, file: string): Promise<RootTag | NBTData> {
   const extension: string = extname(file);

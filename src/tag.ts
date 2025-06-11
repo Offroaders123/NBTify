@@ -1,4 +1,4 @@
-import { Int8, Int16, Int32, Float32 } from "./primitive.js";
+import { Float32, Int16, Int32, Int8 } from "./primitive.js";
 
 export type Tag = ByteTag | BooleanTag | ShortTag | IntTag | LongTag | FloatTag | DoubleTag | ByteArrayTag | StringTag | ListTag<Tag> | CompoundTag | IntArrayTag | LongArrayTag;
 

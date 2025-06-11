@@ -12,7 +12,7 @@ export interface Format {
   bedrockLevel: BedrockLevel;
 }
 
-export interface NBTDataOptions extends Partial<Format> {}
+export interface NBTDataOptions extends Partial<Format> { }
 
 /**
  * A container which maintains how a given NBT object is formatted.

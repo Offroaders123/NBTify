@@ -1,8 +1,8 @@
-import { Int8, Int16, Int32, Float32 } from "./primitive.js";
+import { Float32, Int16, Int32, Int8 } from "./primitive.js";
 import { TAG, getTagType } from "./tag.js";
 
 import type { Reviver } from "./read.js";
-import type { Tag, RootTag, RootTagLike, ContainerTag, ByteTag, BooleanTag, ShortTag, IntTag, LongTag, FloatTag, DoubleTag, ByteArrayTag, StringTag, ListTag, CompoundTag, IntArrayTag, LongArrayTag } from "./tag.js";
+import type { BooleanTag, ByteArrayTag, ByteTag, CompoundTag, ContainerTag, DoubleTag, FloatTag, IntArrayTag, IntTag, ListTag, LongArrayTag, LongTag, RootTag, RootTagLike, ShortTag, StringTag, Tag } from "./tag.js";
 
 const UNQUOTED_STRING_PATTERN = /^[0-9A-Za-z.+_-]+$/;
 
