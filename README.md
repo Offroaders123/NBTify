@@ -89,3 +89,64 @@ const result: Uint8Array = await write(data);
 // Write the file data back to the file system
 await writeFile("./bigtest.nbt", result);
 ```
+
+### CLI Conversions
+
+#### Features
+
+- Read from files or `stdin`
+- Auto-detects input format (`.nbt`, `.snbt`, `.json`)
+- Converts between formats:
+- Binary NBT (`--nbt`)
+- SNBT (stringified NBT) (`--snbt`)
+- JSON (`--json`)
+- Pretty-print output with `--space`
+- Configure output with:
+
+  `--nbt`
+  `--snbt`
+  `--json`
+  `--root-name=<name>`
+  `--endian=<big|little|little-varint>`
+  `--compression=<deflate|deflate-raw|gzip|null>`
+  `--bedrock-level[=true|false]`
+  `--space=<number|string>`
+
+#### Usage
+
+🔍 Inspect a file:
+```sh
+nbtify ./save.nbt
+```
+
+🔄 Convert NBT to SNBT:
+```sh
+nbtify ./save.nbt --snbt
+```
+
+🔄 Convert NBT to JSON with formatting:
+```sh
+nbtify ./save.nbt --json --space=2
+```
+
+📝 Convert SNBT to binary NBT:
+```sh
+nbtify ./file.snbt --nbt
+```
+
+📤 Pipe in data from stdin:
+```sh
+cat ./file.snbt | nbtify --nbt > ./out.nbt
+```
+
+#### Supported CLI Flags
+| Flag | Description |
+|------|-------------|
+| `--nbt` | Output as binary NBT |
+| `--snbt` | Output as SNBT string |
+| `--json` | Output as JSON |
+| `--root-name=<name>` | Set root tag name in output |
+| `--endian=big \| little \| little-varint` | Output endian format |
+| `--compression=gzip \| deflate \| deflate-raw \| null` | Set compression type |
+| `--bedrock-level` or `--bedrock-level=true \| false` | Set Bedrock Level header flag |
+| `--space=2` or `--space="\t"` | Set pretty-print spacing for JSON/SNBT |
