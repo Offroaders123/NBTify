@@ -310,7 +310,7 @@ class NBTReader {
         throw new Error(`VarInt size '${shift}' at byte offset ${this.#byteOffset} is too large`);
       }
     }
-    const zigzag: number = ((((result << 63) >> 63) ^ result) >> 1) ^ (result & (1 << 63));
+    const zigzag: number = ((((result << 31) >> 31) ^ result) >> 1) ^ (result & (1 << 31));
     return valueOf ? zigzag : new Int32(zigzag);
   }
 
