@@ -1,4 +1,5 @@
-type CustomInspectFunction = import("node:util").CustomInspectFunction;
+type inspect = typeof import("node:util").inspect;
+type CustomInspectFunction = import("node:util").Inspectable[inspect["custom"]];
 
 const CustomInspect = Symbol.for("nodejs.util.inspect.custom");
 
