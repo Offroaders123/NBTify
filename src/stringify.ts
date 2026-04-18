@@ -75,7 +75,7 @@ function stringifyLong(value: LongTag): string {
 }
 
 function stringifyFloat(value: number | FloatTag): string {
-  return `${value.valueOf()}${Number.isInteger(value.valueOf()) ? ".0" : ""}f`;
+  return `${value.valueOf()}${Number.isInteger(value.valueOf()) && !String(value.valueOf()).includes("e") ? ".0" : ""}f`;
 }
 
 function stringifyDouble(value: DoubleTag): string {
